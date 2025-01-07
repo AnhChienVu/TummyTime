@@ -1,0 +1,1 @@
+Tummy Time – A baby care app for parents, caregivers, and medical professionals. Features dynamic feeding schedules, diaper and growth tracking, journaling, AI-driven assistance, exportable health reports, and a gamified quiz to engage users in baby care tracking.
