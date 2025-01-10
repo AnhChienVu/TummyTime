@@ -1,4 +1,4 @@
-# Tummy Time Fragments Microservice
+# Tummy Time Microservice
 
 ## 1. API Version
 
