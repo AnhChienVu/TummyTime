@@ -1,19 +1,52 @@
 import React, { useEffect, useState } from "react";
-import { Button, Form, Container, Row, Col } from "react-bootstrap";
+import { useRouter } from "next/router";
+import { Button, Form, Container } from "react-bootstrap";
 import styles from "./index.module.css";
 import Link from "next/link";
 
 export default function Home() {
-  // useEffect(() => {
-  //   fetch("http://localhost:8080/")
-  //     .then((res) => res.json())
-  //     .then((data) => console.log(data));
-  // }, []);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [validated, setValidated] = useState(false);
+
+  const router = useRouter();
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    const form = event.currentTarget;
+    if (form.checkValidity() === true) {
+      setValidated(true);
+
+      const res = await fetch("http://localhost:8080/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        console.log("Success");
+        router.push("/about");
+      } else {
+        setError("Invalid credentials");
+      }
+    }
+  };
 
   return (
     <Container className={styles.container} fluid>
       <div className={styles.formContainer}>
-        <Form className={styles.form}>
+        <Form
+          noValidate
+          validated={validated}
+          className={styles.form}
+          onSubmit={handleSubmit}
+        >
           <p className={styles.title}>Welcome back !</p>
 
           <Form.Group className="mb-3" controlId="emailLogin">
@@ -21,7 +54,11 @@ export default function Home() {
               type="email"
               placeholder="Enter email"
               className={styles.formControl}
+              value={email}
+              required
+              onChange={(e) => setEmail(e.target.value)}
             />
+            <Form.Control.Feedback>Looks good!</Form.Control.Feedback>
           </Form.Group>
 
           <Form.Group className="mb-3" controlId="passwordLogin">
@@ -29,7 +66,11 @@ export default function Home() {
               type="password"
               placeholder="Password"
               className={styles.formControl}
+              value={password}
+              required
+              onChange={(e) => setPassword(e.target.value)}
             />
+            <Form.Control.Feedback>Looks good!</Form.Control.Feedback>
           </Form.Group>
 
           <Button
@@ -46,7 +87,7 @@ export default function Home() {
             </Link>
             <p>
               Dont have an account ?{" "}
-              <Link href="/" className={styles.link}>
+              <Link href="/register" className={styles.link}>
                 Sign up
               </Link>
             </p>
