@@ -1,9 +1,22 @@
-const express = require('express');
-const cors = require('cors');
-const bcrypt = require('bcryptjs');
+// src/server.js
 
-const mockData = require('./mockData/mockData');
-const validatePassword = require('./utils/validatePassword');
+// INDEX.JS is the ENTRY POINT for this API server: src/index.js.
+// ----------------------------
+// NOTE:ORDER OF LOADING THE SERVER: Index.js <- Server.js <- App.js
+// First, APP.JS is loaded: src/app.js –to start Express server, middleware, authentication, and all routes.
+// Second, SERVER.JS is loaded: src/server.js –to start the server with Stoppable
+// Finally, INDEX.JS is loaded: src/index.js –to load the environment variables from .ENV file, set up Error Handling, then start the server.
+
+// ----------------------------
+// This file server.js will:
+// 1-
+
+const express = require("express");
+const cors = require("cors");
+const bcrypt = require("bcryptjs");
+
+const mockData = require("../mockData/mockData");
+const validatePassword = require("./utils/validatePassword");
 
 const app = express();
 const PORT = 8080;
@@ -11,11 +24,12 @@ const mockUser = {
   users: [
     {
       user_id: 1,
-      firstName: 'John',
-      lastName: 'Doe',
-      email: 'test@example.com',
-      password: 'password',
-      role: 'Parent',
+      firstName: "John",
+      lastName: "Doe",
+      email: "test@example.com",
+      password: "password", // ==> SHOULD BE STORED AS HASHED PASSWORD + IN A SEPARATE SQL TABLE
+      // because server should NOT LOAD THE REAL USER DATA UNLESS AUTHORIZED (SECURITY RISK)
+      role: "Parent",
     },
   ],
 };

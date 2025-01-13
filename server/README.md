@@ -1,6 +1,10 @@
 # Tummy Time Microservice
 
-## 1. Authentication
+## 1. API Version
+
+This is the first version of the fragments API, and all URL endpoints discussed below begin with the current version: `/v1/*`. Defining such a version gives flexibility to change the API at a later date, while still supporting older versions in parallel.
+
+## 2. Authentication
 
 Most API routes discussed below require either [Basic HTTP credentials](https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication), or a [JSON Web Token (JWT)](https://jwt.io/) to be sent along with each request in the `Authorization` header.
 
@@ -12,13 +16,13 @@ curl -u email:password https://tummytime-api.com/v1/users
 
 _NOTE_: in the examples below, `https://tummytime-api.com/` is used as the service URL. However, this URL is only used for documentation purposes. It is not owned or associated with this API in any way.
 
-## 2. Responses
+## 3. Responses
 
 Most responses from the API are returned in JSON format (`application/json`) unless otherwise specified.
 
 Responses also include an extra `status` property, which indicates whether the request was successful (i.e., `'ok'`) or produced an error (`'error'`).
 
-### 2.1 Example: successful response
+### 3.1 Example: successful response
 
 Successful responses use an HTTP `2xx` status and always include a `"status": "ok"` property/value:
 
@@ -44,7 +48,7 @@ If a response includes other data, it will be included along with the `status`, 
 }
 ```
 
-### 2.2 Example: error response
+### 3.2 Example: error response
 
 Error responses use an appropriate HTTP `4xx` (client error) or `5xx` (server error), and include an `error` object, which has both the error `code` (a `number`) and a human readable error `message` (a `string`).
 
@@ -58,9 +62,9 @@ Error responses use an appropriate HTTP `4xx` (client error) or `5xx` (server er
 }
 ```
 
-## 3. API
+## 4. API
 
-### 3.1 Health Check
+### 4.1 Health Check
 
 An unauthenticated `/` route is available for checking the health of the service. If the service is running, it returns an HTTP `200` status along with the following body:
 
@@ -71,7 +75,7 @@ An unauthenticated `/` route is available for checking the health of the service
 }
 ```
 
-#### 3.1.1 Example using `curl`
+#### 4.1.1 Example using `curl`
 
 ```sh
 $ curl -i https://tummytime-api.com/
@@ -83,13 +87,11 @@ Content-Type: application/json; charset=utf-8
 {"status":"ok","version":"0.5.3"}
 ```
 
----
-
-## 3.2 Users
+### 4.2 Users
 
 The main data format of the API is the `user`.
 
-#### 3.2.1 User Overview
+#### 4.2.1 User Overview
 
 Users have metadata (i.e., details _about_ the user).
 
@@ -108,16 +110,44 @@ The user's **metadata** is an object that describes the user in the following fo
 }
 ```
 
-Here the user has a unique `userId` (a UUID), as well as an unhashed email address for the user (_later_ will be hashed and stored as a HEX string). Information about when the user was created, updated, and numberOfBabie are also included.
+Here the user has a unique `userId` (a UUID), as well as an unhashed email address for the user (_later_ will be hashed and stored as a HEX string). Information about when the user was created, updated, its numberOfBabies, and size are also included.
 
-#### 3.2.2 User Metadata Properties
+#### 4.2.2 Fragment Metadata Properties
 
 The user `userId` is a unique, URL-friendly, string identifier, for example `30a84843-0cd4-4975-95ba-b96112aea189`. Such ids can be generated using a [UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier) with the built-in [crypto](https://nodejs.org/api/crypto.html#cryptorandomuuidoptions) module. 
 
 Clients can only create, update, or delete _user_ for themselves (i.e,. they must be authenticated).
 
+The `created` and `updated` fields are [ISO 8601 Date strings](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString). This is the format used by JavaScript when _stringifying_ a `Date`: `const isoDate = JSON.stringify(new Date)`.
 
+The `numberOfBabies` is the number (integer) of babies related to this user, and is automatically calculated when a user and its babies are created or updated.
+
+### 4.3 `POST /users`
+
+
+#### 4.3.1 Example using `curl`
+
+
+### 4.4 `GET /users`
+
+Gets all users in the database. NOTE: if there is no users, an empty array `[]` is returned instead of an error.
+
+The response includes a `users` array of `userId`s:
+
+```json
+{
+  "status": "ok",
+  "users": ["b9e7a264-630f-436d-a785-27f30233faea", "dad25b07-8cd6-498b-9aaf-46d358ea97fe"]
+}
 ```
+
+Example using `curl`:
+
+```sh
+curl -i -u user1@email.com:password1 https://tummytime-api.com/v1/users
+
+HTTP/1.1 200 OK
+
 {
   "status": "ok",
   "users": [
@@ -127,90 +157,68 @@ Clients can only create, update, or delete _user_ for themselves (i.e,. they mus
 }
 ```
 
-### 3.3 `GET /users/:id`
+#### 4.4 `GET /users/:id`
 
 Gets a user's metadata with the given `id`.
 
 If the `id` does not represent a known fragment, returns an HTTP `404` with an appropriate error message.
 
-
-### 3.4 `POST /users/:id`
-
-
-### 3.5 `PUT /users/:userId`
+### 4.5 `PUT /users/:id`
 
 Allows the authenticated user to update (i.e., replace) the metadata for their existing user with the specified `userId`.
 
-If no such user exists with the given `userId`, returns an HTTP `404` - `Not Found` status with an appropriate error message.
+If no such user exists with the given `userId`, returns an HTTP `404` with an appropriate error message.
 
 The entire request `body` is used to update the fragment's metadata, replacing the original value for each metadata field.
 
-The successful response includes an HTTP `200` - `OK` status, as well as updated fragment metadata:
+The successful response includes an HTTP `200` as well as updated fragment metadata:
 
-These metadata `created`, `updated`, `numberOfBabies` cannot be updated because they are automatically generated by the system. If trying to edit these, returns an HTTP `400` - `Bad Request` with an appropriate error message.
 
 ```json
-{
-  "email": "new.email@example.com",
-  "firstName": "New First Name",
-  "lastName": "New Last Name",
-  "relationshipType": "Mother"
+{≈
 }
 ```
 
 ```json
 {
   "status": "ok",
-  "message": "Profile updated successfully."
   "user": {
     "userId": 1,
-    "email": "new.email@example.com",
-    "firstName": "New First Name",
-    "lastName": "New Last Name",
-    "relationshipType": "Mother"
+    "email": "john.doe@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "relationshipType": "Father", 
     "created": "2021-11-02T15:09:50.403Z",
-    "updated": "2021-11-02T15:33:00.111Z",
+    "updated": "2021-11-02T15:09:50.403Z",
     "numberOfBabies": 2
   }
 }
 ```
 
-#### 3.5.1 Example using `curl`
+#### 4.5.1 Example using `curl`
 
-### 3.6 `DELETE /users/:userId`
+### 4.5 `DELETE /users/:id`
 
-Allows deleting one of the existing users with the given `userId`.
+Allows deleting one of their existing users with the given `id`.
 
-If the `userId` is not found, returns an HTTP `404`- `Not Found` status with an appropriate error message.
+If the `id` is not found, returns an HTTP `404` with an appropriate error message.
 
-Once the fragment is deleted, an HTTP `200` is returned, along with the`ok` status:
+Once the fragment is deleted, an HTTP `200` is returned, along with the `ok` status:
 
 ```json
-{
- "status": "ok",
-  "message": "User deleted successfully."
-}
+{ "status": "ok" }
 ```
 
-#### 3.6.1 Example using `curl`
+#### 4.8.1 Example using `curl`
 
 ```sh
 curl -i \
-  -u email:password \
   -X DELETE \
   https://tummytime-api.com/v1/users/4dcc65b6-9d57-453a-bd3a-63c107a51698
 
 HTTP/1.1 200 OK
 Content-Type: application/json; charset=utf-8
-
 Content-Length: 15
 
-{ 
-  "status": "ok"
-  "message": "User deleted successfully."
-}
+{ "status": "ok" }
 ```
-
----
-
-## 3.3 Babies

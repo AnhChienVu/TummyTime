@@ -1,21 +1,31 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "It is back-end of Tummy Time Application",
-  "main": "server.js",
+  "description": "TummyTime back-end API",
+  "main": "./src/server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js",
+    "lint": "eslint \"./src/**/*.js\"",
+    "start": "node src/index.js",
     "dev": "nodemon server.js"
   },
   "author": "T6-PRJ666",
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "compression": "^1.7.5",
     "cors": "^2.8.5",
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "helmet": "^8.0.0",
+    "pino": "^9.6.0",
+    "pino-http": "^10.4.0",
+    "pino-pretty": "^13.0.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.9"
+    "@eslint/js": "^9.18.0",
+    "eslint": "^9.18.0",
+    "globals": "^15.14.0",
+    "nodemon": "^3.1.9",
+    "prettier": "3.4.2"
   }
 }
