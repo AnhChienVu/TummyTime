@@ -1,0 +1,19 @@
+// src/index.js
+
+require('dotenv').config();
+const logger = require('./logger');
+
+// If we're going to crash because of an uncaught exception, log it first.
+process.on('uncaughtException', (err, origin) => {
+  logger.fatal({ err, origin }, 'uncaughtException');
+  throw err;
+});
+
+// If we're going to crash because of an unhandled promise rejection, log it first.
+process.on('unhandledRejection', (reason, promise) => {
+  logger.fatal({ reason, promise }, 'unhandledRejection');
+  throw reason;
+});
+
+// Start our server
+require('./server');

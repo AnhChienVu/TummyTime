@@ -1,0 +1,5 @@
+# .prettierignore file: tells Prettier which files and folders to ignore when formatting. I
+
+node_modules/
+package.json
+package-lock.json

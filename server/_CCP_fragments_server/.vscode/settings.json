@@ -1,0 +1,19 @@
+// .vscode/settings.json file: These settings will override how VSCode works when you are working on this project
+
+{
+  "editor.insertSpaces": true,
+  "editor.tabSize": 2,
+  "editor.detectIndentation": false,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit"
+  },
+  "files.eol": "\n",
+  "files.insertFinalNewline": true,
+  "editor.tokenColorCustomizations": {
+    "comments": "",
+    "textMateRules": []
+  },
+  "github-actions.workflows.pinned.workflows": [".github/workflows/cd.yml"]
+}

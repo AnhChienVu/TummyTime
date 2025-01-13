@@ -1,0 +1,19 @@
+# .dockerignore
+
+# ignore the dependencies in /node_modules
+node_modules/
+# dev tools, configs, and other files
+.vscode/
+coverage/
+.prettier*
+eslint.config.mjs
+.github/
+.git*
+*.md
+fragments-0.0.1.tgz
+.env* 
+jest*
+env.jest
+tests/
+# Include the .htpasswd in /tests
+!tests/.htpasswd

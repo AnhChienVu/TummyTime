@@ -1,0 +1,89 @@
+# .github/workflows/cd.yml
+name: cd
+
+on:
+  push:
+    tags:
+      # Any tag starting with v... should trigger this workflow.
+      - 'v**'
+
+jobs:
+  # NOTE-: this assumes our CI jobs have already passed previously
+  aws:
+    name: AWS
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # NOTE-: ending and restarting the Learner Lab will void these secrets,
+      # update them if you are doing this during a new session:
+      # `Error: The security token included in the request is expired`
+      - name: Configure AWS Credentials using Secrets
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push to Amazon ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPO: fragments
+          VERSION_TAG: ${{ github.ref_name }}
+        uses: docker/build-push-action@v4
+        with:
+          push: true
+          # Use the git tag version and `latest`
+          tags: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ env.VERSION_TAG }}, ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:latest
+
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: update-task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPO: fragments
+          VERSION_TAG: ${{ github.ref_name }}
+          API_URL: ${{ secrets.API_URL }}
+          AWS_COGNITO_POOL_ID: ${{ secrets.AWS_COGNITO_POOL_ID }}
+          AWS_COGNITO_CLIENT_ID: ${{ secrets.AWS_COGNITO_CLIENT_ID }}
+          AWS_COGNITO_HOSTED_UI_DOMAIN: ${{ secrets.AWS_COGNITO_HOSTED_UI_DOMAIN }}
+          AWS_REGION: us-east-1
+          AWS_DYNAMODB_TABLE_NAME: ${{ secrets.AWS_DYNAMODB_TABLE_NAME }}
+        with:
+          task-definition: fragments-definition.json
+          container-name: fragments-container
+          # Use the image we just built and pushed to ECR for this tag
+          image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO }}:${{ env.VERSION_TAG }}
+          environment-variables: |
+            LOG_LEVEL=debug
+            NODE_ENV=production
+
+            API_URL=${{ env.API_URL }}
+            AWS_REGION=${{ env.AWS_REGION }}
+            AWS_COGNITO_POOL_ID=${{ env.AWS_COGNITO_POOL_ID }}
+            AWS_COGNITO_CLIENT_ID=${{ env.AWS_COGNITO_CLIENT_ID }}
+            AWS_COGNITO_HOSTED_UI_DOMAIN=${{ env.AWS_COGNITO_HOSTED_UI_DOMAIN }}
+
+            AWS_S3_BUCKET_NAME=lluong7-fragments
+            AWS_DYNAMODB_TABLE_NAME=${{ env.AWS_DYNAMODB_TABLE_NAME }}
+
+            AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }}
+            AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            AWS_SESSION_TOKEN=${{ secrets.AWS_SESSION_TOKEN }}
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.update-task-def.outputs.task-definition }}
+          cluster: fragments-cluster
+          service: fragments-service
+          wait-for-service-stability: true

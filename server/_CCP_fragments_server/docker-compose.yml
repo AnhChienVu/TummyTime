@@ -1,0 +1,32 @@
+# docker-compose.yml
+
+services:
+  fragments:
+    init: true
+    build: .
+    environment:
+      - API_URL=http://localhost:8080
+      - HTPASSWD_FILE=tests/.htpasswd
+      - LOG_LEVEL=${LOG_LEVEL:-debug}
+      - AWS_REGION=us-east-1
+      - AWS_S3_ENDPOINT_URL=http://localstack:4566
+      - AWS_DYNAMODB_ENDPOINT_URL=http://dynamodb-local:8000
+      - AWS_S3_BUCKET_NAME=${AWS_S3_BUCKET_NAME:-fragments}
+      - AWS_DYNAMODB_TABLE_NAME=${AWS_DYNAMODB_TABLE_NAME:-fragments}
+    ports:
+      - '8080:80'
+
+  dynamodb-local:
+    image: amazon/dynamodb-local:2.5.3@sha256:c884c806c3de4b9aa05dea0b3827137bd16e70bb5b72f14ad132cbe27a786d26
+    ports:
+      - '8000:8000'
+    command: ['-jar', 'DynamoDBLocal.jar', '-inMemory']
+
+  localstack:
+    image: localstack/localstack:3.8.1@sha256:b279c01f4cfb8f985a482e4014cabc1e2697b9d7a6c8c8db2e40f4d9f93687c7
+    ports:
+      - '4566:4566'
+    environment:
+      # We only want to run S3
+      - SERVICES=s3
+      - DEFAULT_REGION=us-east-1

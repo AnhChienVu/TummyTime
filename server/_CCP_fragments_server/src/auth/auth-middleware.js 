@@ -1,0 +1,39 @@
+// src/auth/auth-middleware.js
+
+const passport = require('passport');
+
+const { createErrorResponse } = require('../response');
+const hash = require('../hash');
+const logger = require('../logger');
+
+/**
+ * @param {'bearer' | 'http'} strategyName : the passport strategy to use
+ * @returns {Function} : the middleware function to use for authentication
+ */
+module.exports = (strategyName) => {
+  return function (req, res, next) {
+    /**
+     * a custom callback to run AFTER the USER has been AUTHENTICATED
+     * where we can modify the way that errors are handled, and hash emails.
+     * @param {Error} err : an error object
+     * @param {string} email : an authenticated user's email address
+     */
+    function callback(err, email) {
+      // Something failed, let the the error handling middleware deal with it
+      if (err) {
+        return next(createErrorResponse(500, 'Unable to authenticate user'));
+      }
+
+      // Not authorized, return a 401
+      if (!email) {
+        return res.status(401).json(createErrorResponse(401, 'Unauthorized'));
+      }
+
+      req.user = hash(email); // put the hashed email on req.user
+
+      next();
+    }
+
+    passport.authenticate(strategyName, { session: false }, callback)(req, res, next);
+  };
+};
