@@ -28,7 +28,7 @@ app.get("/", (req, res) => {
   res.json({ message: "Hello World" });
 });
 
-// GET /users route for getting all users
+// POST "/login" route for logging in a user
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
