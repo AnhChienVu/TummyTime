@@ -1,155 +1,177 @@
 // src/server.js
+// This file server.js will start the server with Stoppable to gracefully shut down the server.
 
-// INDEX.JS is the ENTRY POINT for this API server: src/index.js.
 // ----------------------------
-// NOTE:ORDER OF LOADING THE SERVER: Index.js <- Server.js <- App.js
+// NOTE:INDEX.JS is the ENTRY POINT for this API server: src/index.js.
+// We'll change the default entry point of our server, from src/server.js to use a new file: src/index.js.
+
+// ----------------------------
+// NOTE:ORDER OF LOADING THE SERVER: Index.js <- Server.js <- App.js <- Routes.js <- Auth.js
 // First, APP.JS is loaded: src/app.js –to start Express server, middleware, authentication, and all routes.
 // Second, SERVER.JS is loaded: src/server.js –to start the server with Stoppable
 // Finally, INDEX.JS is loaded: src/index.js –to load the environment variables from .ENV file, set up Error Handling, then start the server.
-
 // ----------------------------
-// This file server.js will:
-// 1-
 
-const express = require("express");
-const cors = require("cors");
-const bcrypt = require("bcryptjs");
+// We want to gracefully shutdown our server
+const stoppable = require("stoppable");
 
-const mockData = require("../mockData/mockData");
-const validatePassword = require("./utils/validatePassword");
+const logger = require("./logger");
+const app = require("./app");
+// Get the port from the environment, or default to 8080
+const port = parseInt(process.env.PORT || "8080", 10);
 
-const app = express();
-const PORT = 8080;
-const mockUser = {
-  users: [
-    {
-      user_id: 1,
-      firstName: "John",
-      lastName: "Doe",
-      email: "test@example.com",
-      password: "password", // ==> SHOULD BE STORED AS HASHED PASSWORD + IN A SEPARATE SQL TABLE
-      // because server should NOT LOAD THE REAL USER DATA UNLESS AUTHORIZED (SECURITY RISK)
-      role: "Parent",
-    },
-  ],
-};
+// Start a server listening on this port
+const server = stoppable(
+  app.listen(port, () => {
+    logger.info(`Server started on port ${port}`);
+  })
+);
 
-app.use(express.json());
-app.use(cors());
+module.exports = server;
 
-// GET "/" route for health check
-app.get("/", (req, res) => {
-  res.json({ message: "Hello World" });
-});
+// ============================
+// ==> TRANFERING MIDDLEWARES TO APP.JS
+// ============================
 
-// POST "/login" route for logging in a user
-app.post("/login", async (req, res) => {
-  const { email, password } = req.body;
+// const express = require("express");
+// const cors = require("cors");
+// const bcrypt = require("bcryptjs");
 
-  // Find the user with the given email
-  const user = mockUser.users.find((user) => user.email === email);
+// const mockData = require("../mockData/mockData");
+// const validatePassword = require("./utils/validatePassword");
 
-  // If the user is found and the password is correct, return a success message
-  if (user && (await bcrypt.compare(password, user.password))) {
-    res.json({ success: true });
-  } else {
-    res.status(401).json({ message: "Invalid credentials" });
-  }
-});
+// const app = express();
+// const PORT = 8080;
+// const mockUser = {
+//   users: [
+//     {
+//       user_id: 1,
+//       firstName: "John",
+//       lastName: "Doe",
+//       email: "test@example.com",
+//       password: "password", // ==> SHOULD BE STORED AS HASHED PASSWORD + IN A SEPARATE SQL TABLE
+//       // because server should NOT LOAD THE REAL USER DATA UNLESS AUTHORIZED (SECURITY RISK)
+//       role: "Parent",
+//     },
+//   ],
+// };
 
-// POST /register route for registering a new user
-app.post("/register", async (req, res) => {
-  const { firstName, lastName, email, password, confirmPassword, role } =
-    req.body;
-  if (password !== confirmPassword) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Passwords do not match" });
-  }
+// app.use(express.json());
+// app.use(cors());
 
-  if (mockUser.users.find((user) => user.email === email)) {
-    return res
-      .status(400)
-      .json({ success: false, message: "User already exists" });
-  }
+// // GET "/" route for health check
+// app.get("/", (req, res) => {
+//   res.json({ message: "Hello World" });
+// });
 
-  const passwordValidation = validatePassword(password);
-  if (!passwordValidation.valid) {
-    return res
-      .status(400)
-      .json({ success: false, message: passwordValidation.message });
-  }
+// // POST "/login" route for logging in a user
+// app.post("/login", async (req, res) => {
+//   const { email, password } = req.body;
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+//   // Find the user with the given email
+//   const user = mockUser.users.find((user) => user.email === email);
 
-  const newUser = {
-    id: mockUser.users.length + 1,
-    firstName,
-    lastName,
-    email,
-    password: hashedPassword,
-    role,
-  };
+//   // If the user is found and the password is correct, return a success message
+//   if (user && (await bcrypt.compare(password, user.password))) {
+//     res.json({ success: true });
+//   } else {
+//     res.status(401).json({ message: "Invalid credentials" });
+//   }
+// });
 
-  mockUser.users.push(newUser);
+// // POST /register route for registering a new user
+// app.post("/register", async (req, res) => {
+//   const { firstName, lastName, email, password, confirmPassword, role } =
+//     req.body;
+//   if (password !== confirmPassword) {
+//     return res
+//       .status(400)
+//       .json({ success: false, message: "Passwords do not match" });
+//   }
 
-  return res.json({ success: true });
-});
+//   if (mockUser.users.find((user) => user.email === email)) {
+//     return res
+//       .status(400)
+//       .json({ success: false, message: "User already exists" });
+//   }
 
-// PUT /users/:id route for updating a user
-app.put("/users/:id", async (req, res) => {
-  const { id } = req.params;
-  const { firstName, lastName, email, password, role } = req.body;
+//   const passwordValidation = validatePassword(password);
+//   if (!passwordValidation.valid) {
+//     return res
+//       .status(400)
+//       .json({ success: false, message: passwordValidation.message });
+//   }
 
-  const userIndex = mockUser.users.findIndex((user) => user.user_id == id);
+//   const hashedPassword = await bcrypt.hash(password, 10);
 
-  if (userIndex === -1) {
-    return res.status(404).json({ success: false, message: "User not found" });
-  }
+//   const newUser = {
+//     id: mockUser.users.length + 1,
+//     firstName,
+//     lastName,
+//     email,
+//     password: hashedPassword,
+//     role,
+//   };
 
-  if (password) {
-    const passwordValidation = validatePassword(password);
+//   mockUser.users.push(newUser);
 
-    if (!passwordValidation.valid) {
-      return res
-        .status(400)
-        .json({ success: false, message: passwordValidation.message });
-    }
-    mockUser.users[userIndex].password = await bcrypt.hash(password, 10);
-  }
+//   return res.json({ success: true });
+// });
 
-  mockUser.users[userIndex] = {
-    ...mockUser.users[userIndex], // keep the existing user data
-    firstName: firstName || mockUser.users[userIndex].firstName,
-    lastName: lastName || mockUser.users[userIndex].lastName,
-    email: email || mockUser.users[userIndex].email,
-    role: role || mockUser.users[userIndex].role,
-  };
+// // PUT /users/:id route for updating a user
+// app.put("/users/:id", async (req, res) => {
+//   const { id } = req.params;
+//   const { firstName, lastName, email, password, role } = req.body;
 
-  return res.json({ success: true, user: mockUser.users[userIndex] });
-});
+//   const userIndex = mockUser.users.findIndex((user) => user.user_id == id);
 
-// DELETE /users/:id route for deleting a user
-app.delete("/users/:id", (req, res) => {
-  const { id } = req.params;
+//   if (userIndex === -1) {
+//     return res.status(404).json({ success: false, message: "User not found" });
+//   }
 
-  const userIndex = mockUser.users.findIndex((user) => user.user_id == id);
+//   if (password) {
+//     const passwordValidation = validatePassword(password);
 
-  if (userIndex === -1) {
-    // if user not found from findIndex()
-    return res.status(404).json({ success: false, message: "User not found" });
-  }
+//     if (!passwordValidation.valid) {
+//       return res
+//         .status(400)
+//         .json({ success: false, message: passwordValidation.message });
+//     }
+//     mockUser.users[userIndex].password = await bcrypt.hash(password, 10);
+//   }
 
-  // delete the user from the array and get the deleted user
-  const deletedUser = mockUser.users.splice(userIndex, 1);
+//   mockUser.users[userIndex] = {
+//     ...mockUser.users[userIndex], // keep the existing user data
+//     firstName: firstName || mockUser.users[userIndex].firstName,
+//     lastName: lastName || mockUser.users[userIndex].lastName,
+//     email: email || mockUser.users[userIndex].email,
+//     role: role || mockUser.users[userIndex].role,
+//   };
 
-  return res.json({
-    success: true,
-    message: "User deleted",
-    user: deletedUser,
-  });
-});
+//   return res.json({ success: true, user: mockUser.users[userIndex] });
+// });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+// // DELETE /users/:id route for deleting a user
+// app.delete("/users/:id", (req, res) => {
+//   const { id } = req.params;
+
+//   const userIndex = mockUser.users.findIndex((user) => user.user_id == id);
+
+//   if (userIndex === -1) {
+//     // if user not found from findIndex()
+//     return res.status(404).json({ success: false, message: "User not found" });
+//   }
+
+//   // delete the user from the array and get the deleted user
+//   const deletedUser = mockUser.users.splice(userIndex, 1);
+
+//   return res.json({
+//     success: true,
+//     message: "User deleted",
+//     user: deletedUser,
+//   });
+// });
+
+// app.listen(PORT, () => {
+//   console.log(`Server is running on port ${PORT}`);
+// });
