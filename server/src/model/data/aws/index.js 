@@ -1,0 +1,148 @@
+// src/model/data/AWS/index.js
+
+const path = require('path');
+
+const logger = require(path.join(__dirname, '..', '..', '..', 'logger'));
+
+const s3Client = require(path.join(__dirname, 's3Client.js'));
+const ddbDocClient = require(path.join(__dirname, 'ddbDocClient.js'));
+const { PutObjectCommand, GetObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
+const { PutCommand, GetCommand, QueryCommand, DeleteCommand } = require('@aws-sdk/lib-dynamodb');
+
+logger.info('========= Using AWS S3 for DATA storage =========');
+logger.info('========= Using AWS DYNAMODB for METADATA storage ========= ');
+
+// Write a fragment's metadata to memory db. Returns a Promise
+function writeFragment(fragment) {
+  const params = {
+    TableName: process.env.AWS_DYNAMODB_TABLE_NAME,
+    Item: fragment,
+  };
+
+  const command = new PutCommand(params);
+
+  try {
+    return ddbDocClient.send(command);
+  } catch (err) {
+    throw err;
+  }
+}
+
+// Read a fragment's metadata from memory db. Returns a Promise
+async function readFragment(ownerId, id) {
+  const params = {
+    TableName: process.env.AWS_DYNAMODB_TABLE_NAME,
+    Key: { ownerId, id },
+  };
+
+  const command = new GetCommand(params);
+
+  try {
+    const data = await ddbDocClient.send(command);
+    return data?.Item;
+  } catch (err) {
+    throw err;
+  }
+}
+
+// Writes a fragment's data to an S3 Object in a Bucket
+async function writeFragmentData(ownerId, id, buffer) {
+  const params = {
+    Bucket: process.env.AWS_S3_BUCKET_NAME,
+    Key: `${ownerId}/${id}`,
+    Body: buffer,
+  };
+
+  const command = new PutObjectCommand(params);
+
+  try {
+    await s3Client.send(command);
+  } catch (err) {
+    const { Bucket, Key } = params;
+    throw new Error('unable to upload fragment data');
+  }
+}
+
+// Convert a stream of data into a Buffer
+const streamToBuffer = (stream) =>
+  new Promise((resolve, reject) => {
+    const chunks = [];
+
+    stream.on('data', (chunk) => chunks.push(chunk));
+    stream.on('error', reject);
+    stream.on('end', () => resolve(Buffer.concat(chunks)));
+  });
+
+// Read a fragment's data from an S3 Object in a Bucket
+async function readFragmentData(ownerId, id) {
+  const params = {
+    Bucket: process.env.AWS_S3_BUCKET_NAME,
+    Key: `${ownerId}/${id}`,
+  };
+
+  const command = new GetObjectCommand(params);
+
+  try {
+    const data = await s3Client.send(command);
+    return streamToBuffer(data.Body);
+  } catch (err) {
+    const { Bucket, Key } = params;
+    throw new Error('unable to read fragment data');
+  }
+}
+
+// List all fragments for a given ownerId
+async function listFragments(ownerId, expand = false) {
+  const params = {
+    TableName: process.env.AWS_DYNAMODB_TABLE_NAME,
+    KeyConditionExpression: 'ownerId = :ownerId',
+    ExpressionAttributeValues: {
+      ':ownerId': ownerId,
+    },
+  };
+
+  if (!expand) {
+    params.ProjectionExpression = 'id';
+  }
+
+  const command = new QueryCommand(params);
+
+  try {
+    const data = await ddbDocClient.send(command);
+
+    return !expand ? data?.Items.map((item) => item.id) : data?.Items;
+  } catch (err) {
+    throw err;
+  }
+}
+
+// Delete a fragment's metadata from DynamoDB and its data from S3
+async function deleteFragment(ownerId, id) {
+  const s3Params = {
+    Bucket: process.env.AWS_S3_BUCKET_NAME,
+    Key: `${ownerId}/${id}`,
+  };
+
+  const s3Command = new DeleteObjectCommand(s3Params);
+
+  const dynamoParams = {
+    TableName: process.env.AWS_DYNAMODB_TABLE_NAME,
+    Key: { ownerId, id },
+  };
+
+  const dynamoCommand = new DeleteCommand(dynamoParams);
+
+  try {
+    await Promise.all([s3Client.send(s3Command), ddbDocClient.send(dynamoCommand)]);
+  } catch (err) {
+    const { Bucket, Key } = params;
+    throw new Error('unable to DELETE fragment data from S3 and/or metadata from DYNAMODB');
+  }
+}
+
+module.exports.listFragments = listFragments;
+module.exports.writeFragment = writeFragment;
+module.exports.readFragment = readFragment;
+module.exports.writeFragmentData = writeFragmentData;
+module.exports.readFragmentData = readFragmentData;
+module.exports.deleteFragment = deleteFragment;

@@ -8,7 +8,7 @@
 // Load environment variables from a .env file into process.env
 require("dotenv").config();
 
-const logger = require("./logger");
+const logger = require("./utils/logger");
 
 // If we're going to crash because of an uncaught exception, log it first.
 process.on("uncaughtException", (err, origin) => {

@@ -15,7 +15,7 @@
 // We want to gracefully shutdown our server
 const stoppable = require("stoppable");
 
-const logger = require("./logger");
+const logger = require("./utils/logger");
 const app = require("./app");
 // Get the port from the environment, or default to 8080
 const port = parseInt(process.env.PORT || "8080", 10);
