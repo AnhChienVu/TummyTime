@@ -2,14 +2,14 @@
 // // This file server.js will start the server with Stoppable to gracefully shut down the server.
 
 // // ----------------------------
-// // NOTE:INDEX.JS is the ENTRY POINT for this API server: src/index.js.
+// // NOTE:INDEX.JS is the MAIN ENTRY POINT for this API server: src/index.js.
 // // We'll change the default entry point of our server, from src/server.js to use a new file: src/index.js.
 
 // // ----------------------------
 // // NOTE:ORDER OF LOADING THE SERVER: Index.js <- Server.js <- App.js <- Auth.js(login) <- Routes.js(GET, POST, PUT, DELETE)
-// // First, APP.JS is loaded: src/app.js –to start Express server, middleware, authentication, and all routes.
-// // Second, SERVER.JS is loaded: src/server.js –to start the server with Stoppable
-// // Finally, INDEX.JS is loaded: src/index.js –to load the environment variables from .ENV file, set up Error Handling, then start the server.
+// // - First, APP.JS is loaded: src/app.js –to start Express server, middleware, authentication, and all routes.
+// // - Second, SERVER.JS is loaded: src/server.js –to start the server with Stoppable
+// // - Finally, INDEX.JS is loaded: src/index.js –to load the environment variables from .ENV file, set up Error Handling, then start the server.
 // // ----------------------------
 
 // // We want to gracefully shutdown our server
