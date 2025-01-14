@@ -1,4 +1,5 @@
 // src/auth/auth-middleware.js
+// After the user is authenticated, this middleware hashes the user's email and puts it on req.user
 
 const passport = require('passport');
 
