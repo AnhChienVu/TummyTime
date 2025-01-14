@@ -4,7 +4,7 @@ import { Row, Col, Form, Button, Container } from "react-bootstrap";
 import { useRouter } from "next/router";
 import styles from "./about.module.css";
 
-export default function AdvancedSearch() {
+export default function AddBaby() {
   const {
     register,
     handleSubmit,
@@ -98,7 +98,7 @@ export default function AdvancedSearch() {
           <Button
             variant="primary"
             type="submit"
-            className={styles.loginButton}
+            className={styles.submitButton}
           >
             Create baby profile
           </Button>
