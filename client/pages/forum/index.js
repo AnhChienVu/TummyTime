@@ -106,7 +106,7 @@ export default function CommunityForum() {
                     <Card.Img
                       variant="bottom"
                       src={post.image}
-                      alt="journal post"
+                      alt="forum post"
                     />
                   )}
                   <Card.Footer className="text-muted">{post.date}</Card.Footer>
