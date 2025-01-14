@@ -1,4 +1,5 @@
 // src/auth/basic-auth.js
+// This module provides a basic authentication strategy for Passport.js.
 
 const path = require('path');
 const authorize = require(path.join(__dirname, 'auth-middleware.js '));
