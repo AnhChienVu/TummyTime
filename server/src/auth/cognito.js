@@ -1,4 +1,5 @@
 // src/auth/cognito.js
+// This file provides an authentication strategy for Passport.js based on Amazon Cognito.
 
 const path = require('path');
 const authorize = require(path.join(__dirname, 'auth-middleware.js '));
