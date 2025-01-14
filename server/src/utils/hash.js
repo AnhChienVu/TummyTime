@@ -1,4 +1,5 @@
 // src/hash.js
+// export a function that hashes an email address
 
 const crypto = require('crypto');
 
