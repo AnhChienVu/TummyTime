@@ -1,1 +1,22 @@
+# Node.js dependencies
 node_modules/
+
+# Environment variables
+.env
+
+# Coverage directory
+coverage/
+
+# Build directory
+dist/
+build/
+
+# Jest cache and coverage
+jest/
+.jest/
+
+# Ignore npm package-lock files
+package-lock.json
+
+# Ignore database files
+*.sql
