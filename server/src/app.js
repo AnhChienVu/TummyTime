@@ -1,8 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const bcrypt = require('bcryptjs');
 
-const validatePassword = require('./utils/validatePassword');
 const { createErrorResponse } = require('./utils/response');
 
 const mainRouter = require('./routes'); // Import the API router
@@ -17,18 +15,6 @@ app.use(pino);
 app.use(cors());
 app.use(express.json());
 app.use('/', mainRouter); // Mount the main router
-const mockUser = {
-  users: [
-    {
-      user_id: 1,
-      firstName: 'John',
-      lastName: 'Doe',
-      email: 'test@example.com',
-      password: 'password',
-      role: 'Parent',
-    },
-  ],
-};
 
 // Define our routes
 // The second parameter passed to app.use is the middleware function or the module containing middelware
