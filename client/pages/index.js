@@ -19,7 +19,7 @@ export default function Home() {
     if (form.checkValidity() === true) {
       setValidated(true);
 
-      const res = await fetch("http://localhost:8080/login", {
+      const res = await fetch("http://localhost:8080/v1/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
