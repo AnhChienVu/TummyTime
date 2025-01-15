@@ -1,186 +1,238 @@
 const mockData = {
   users: [
     {
-      user_id: 1,
+      userId: 1,
       email: 'john.doe@example.com',
-      first_name: 'John',
-      last_name: 'Doe',
-      created_at: '2024-11-26T00:00:00Z',
+      firstName: 'John',
+      lastName: 'Doe',
+      relationshipType: 'Father',
+      userBabyId: 1,
     },
     {
-      user_id: 2,
+      userId: 2,
       email: 'jane.smith@example.com',
-      first_name: 'Jane',
-      last_name: 'Smith',
-      created_at: '2024-12-17T00:00:00Z',
-    },
-    {
-      user_id: 3,
-      email: 'alice.johnson@example.com',
-      first_name: 'Alice',
-      last_name: 'Johnson',
-      created_at: '2025-01-13T00:00:00Z',
-    },
-    {
-      user_id: 4,
-      email: 'bob.brown@example.com',
-      first_name: 'Bob',
-      last_name: 'Brown',
-      created_at: '2026-07-09T00:00:00Z',
+      firstName: 'Jane',
+      lastName: 'Smith',
+      relationshipType: 'Mother',
+      userBabyId: 2,
     },
   ],
 
-  parent: [
-    {
-      user_id: 1,
-      relationship_type: 'Father',
-      created_at: '2024-11-26T00:00:00Z',
-    },
-    {
-      user_id: 2,
-      relationship_type: 'Mother',
-      created_at: '2024-12-17T00:00:00Z',
-    },
+  userBaby: [
+    { userBabyId: 1, userId: 1, babyId: 1 },
+    { userBabyId: 2, userId: 2, babyId: 2 },
   ],
 
-  medical_professional: [
+  babies: [
     {
-      user_id: 3,
-      location: '123 Medical Plaza, Springfield',
-      phone_number: '555-123-4567',
-      specialty: 'Pediatrician',
-    },
-    {
-      user_id: 4,
-      location: '456 Health Blvd, Metropolis',
-      phone_number: '555-987-6543',
-      specialty: 'Nutritionist',
-    },
-  ],
-
-  baby: [
-    {
-      baby_id: 1,
-      full_name: 'Baby Doe',
-      date_of_birth: '2023-01-01',
+      babyId: 1,
+      firstName: 'Baby',
+      lastName: 'Doe',
+      age: 1,
       weight: 3.5,
       height: 50.0,
       sex: 'M',
-      created_at: '2024-11-17T00:00:00Z',
+      dateOfBirth: '2023-01-01',
+      userBabyId: 1,
     },
     {
-      baby_id: 2,
-      full_name: 'Baby Smith',
-      date_of_birth: '2023-05-15',
+      babyId: 2,
+      firstName: 'Baby',
+      lastName: 'Smith',
+      age: 1,
       weight: 3.2,
       height: 48.0,
       sex: 'F',
-      created_at: '2024-11-17T00:00:00Z',
+      dateOfBirth: '2023-05-15',
+      userBabyId: 2,
     },
   ],
 
-  baby_parent: [
-    { baby_id: 1, parent_id: 1, parent_role: 'Father' },
-    { baby_id: 1, parent_id: 2, parent_role: 'Mother' },
-    { baby_id: 2, parent_id: 1, parent_role: 'Father' },
-    { baby_id: 2, parent_id: 2, parent_role: 'Mother' },
-  ],
-
-  feeding_schedule: [
-    { feeding_schedule_id: 1, schedule_date: '2024-11-17', baby_id: 1 },
-    { feeding_schedule_id: 2, schedule_date: '2024-11-17', baby_id: 2 },
-  ],
-
-  meal: [
+  healthAnomalies: [
     {
-      meal_id: 1,
-      meal_name: 'Milk Feed',
-      meal_type: 'Breast Milk',
+      anomalyId: 1,
+      babyId: 1,
+      description: 'Mild rash on left cheek',
+      anomalyDate: '2024-11-10',
+      createdAt: '2024-11-10T00:00:00Z',
+    },
+    {
+      anomalyId: 2,
+      babyId: 2,
+      description: 'Slight fever',
+      anomalyDate: '2024-11-11',
+      createdAt: '2024-11-11T00:00:00Z',
+    },
+  ],
+
+  feedingSchedules: [
+    { feedingScheduleId: 1, babyId: 1, scheduleDate: '2024-11-17' },
+    { feedingScheduleId: 2, babyId: 2, scheduleDate: '2024-11-17' },
+  ],
+
+  meals: [
+    {
+      mealId: 1,
+      mealName: 'Milk Feed',
+      mealType: 'Breast Milk',
       amount: 200.0,
       note: 'Morning feeding',
       date: '2024-11-17',
-      feeding_schedule_id: 1,
+      feedingScheduleId: 1,
     },
     {
-      meal_id: 2,
-      meal_name: 'Solid Food',
-      meal_type: 'Puree',
+      mealId: 2,
+      mealName: 'Solid Food',
+      mealType: 'Puree',
       amount: 150.0,
       note: 'First solid food',
       date: '2024-11-17',
-      feeding_schedule_id: 1,
+      feedingScheduleId: 1,
     },
     {
-      meal_id: 3,
-      meal_name: 'Milk Feed',
-      meal_type: 'Formula',
+      mealId: 3,
+      mealName: 'Milk Feed',
+      mealType: 'Formula',
       amount: 180.0,
       note: 'Evening feeding',
       date: '2024-11-17',
-      feeding_schedule_id: 2,
+      feedingScheduleId: 2,
     },
   ],
 
-  journal_entries: [
-    {
-      entry_id: 1,
-      user_id: 1,
-      title: 'Entry No. 1',
-      content: 'Hello, World!',
-      entry_date: '2024-11-15',
-      created_at: '2024-11-15T00:00:00Z',
-    },
-    {
-      entry_id: 2,
-      user_id: 1,
-      title: "Doctor's Appointment Update",
-      content: 'Went smoothly. Baby is healthy and happy.',
-      entry_date: '2024-11-17',
-      created_at: '2024-11-17T00:00:00Z',
-    },
-    {
-      entry_id: 3,
-      user_id: 1,
-      title: "Today's Thoughts",
-      content: 'Tired but in-laws offered to help with looking after the baby!',
-      entry_date: '2024-11-17',
-      created_at: '2024-11-17T00:00:00Z',
-    },
+  feedingDocuments: [
+    { feedingDocumentId: 1, documentId: 1, feedingScheduleId: 1 },
+    { feedingDocumentId: 2, documentId: 2, feedingScheduleId: 2 },
   ],
 
-  tags: [
-    { tag_id: 1, tag_name: 'Baby' },
-    { tag_id: 2, tag_name: 'Parent' },
-    { tag_id: 3, tag_name: 'Medical' },
-    { tag_id: 4, tag_name: 'Mood' },
-    { tag_id: 5, tag_name: 'Health' },
-    { tag_id: 6, tag_name: 'Miscellaneous' },
-  ],
-
-  journal_entry_tags: [
-    { entry_id: 1, tag_id: 6 },
-    { entry_id: 2, tag_id: 1 },
-    { entry_id: 2, tag_id: 3 },
-    { entry_id: 3, tag_id: 4 },
+  exportedDocuments: [
+    { documentId: 1, fileName: 'feeding_schedule_1.pdf', format: 'PDF', date: '2024-11-18' },
+    { documentId: 2, fileName: 'feeding_schedule_2.pdf', format: 'PDF', date: '2024-11-18' },
   ],
 
   reminders: [
     {
-      reminder_id: 1,
-      parent_id: 1,
-      baby_id: 1,
-      reminder_type: 'Doctor Appointment',
-      reminder_date: '2024-12-01T10:00:00Z',
-      created_at: '2024-11-15T00:00:00Z',
+      reminderId: 1,
+      babyId: 1,
+      reminderType: 'Doctor Appointment',
+      reminderInterval: '1 month',
+      reminderEnd: '2025-01-01',
+      createdAt: '2024-11-15T00:00:00Z',
     },
     {
-      reminder_id: 2,
-      parent_id: 2,
-      baby_id: 2,
-      reminder_type: 'Vaccination',
-      reminder_date: '2024-12-05T09:00:00Z',
-      created_at: '2024-11-15T00:00:00Z',
+      reminderId: 2,
+      babyId: 2,
+      reminderType: 'Vaccination',
+      reminderInterval: '6 weeks',
+      reminderEnd: '2025-01-15',
+      createdAt: '2024-11-15T00:00:00Z',
     },
+  ],
+
+  medicalProfessionals: [
+    {
+      medicalProfId: 1,
+      firstName: 'Alice',
+      lastName: 'Johnson',
+      location: '123 Medical Plaza, Springfield',
+      phone: '555-123-4567',
+      specialty: 'Pediatrician',
+      userId: 3,
+    },
+    {
+      medicalProfId: 2,
+      firstName: 'Bob',
+      lastName: 'Brown',
+      location: '456 Health Blvd, Metropolis',
+      phone: '555-987-6543',
+      specialty: 'Nutritionist',
+      userId: 4,
+    },
+  ],
+
+  healthInsights: [
+    {
+      insightId: 1,
+      babyId: 1,
+      insightType: 'Weight Gain',
+      insightValue: '+0.5kg',
+      insightDate: '2024-11-20',
+      createdAt: '2024-11-20T00:00:00Z',
+    },
+    {
+      insightId: 2,
+      babyId: 2,
+      insightType: 'Height Growth',
+      insightValue: '+2cm',
+      insightDate: '2024-11-21',
+      createdAt: '2024-11-21T00:00:00Z',
+    },
+  ],
+
+  curatedTips: [
+    {
+      tipId: 1,
+      minAge: 0,
+      maxAge: 12,
+      category: 'Health',
+      description: 'Always keep your baby hydrated.',
+    },
+    {
+      tipId: 2,
+      minAge: 6,
+      maxAge: 24,
+      category: 'Feeding',
+      description: 'Introduce solid foods gradually to prevent allergies.',
+    },
+  ],
+
+  journalEntries: [
+    {
+      journalId: 1,
+      date: '2024-11-15',
+      content: "Baby's first smile today!",
+      image: null,
+      userId: 1,
+    },
+    {
+      journalId: 2,
+      date: '2024-11-17',
+      content: 'Doctor said baby is healthy.',
+      image: 'doctor_visit.jpg',
+      userId: 2,
+    },
+  ],
+
+  journalTags: [
+    { journalTagId: 1, journalId: 1, tagId: 1 },
+    { journalTagId: 2, journalId: 2, tagId: 5 },
+  ],
+
+  tags: [
+    { tagId: 1, tagName: 'Milestone', userId: 1 },
+    { tagId: 2, tagName: 'Health', userId: 2 },
+  ],
+
+  forumPosts: [
+    {
+      postId: 1,
+      title: 'Best Baby Food Recipes',
+      content: 'Looking for baby food recipes.',
+      date: '2024-11-15',
+      userId: 1,
+    },
+    {
+      postId: 2,
+      title: 'Managing Baby Sleep',
+      content: 'Tips for getting my baby to sleep through the night.',
+      date: '2024-11-16',
+      userId: 2,
+    },
+  ],
+
+  forumReplies: [
+    { replyId: 1, date: '2024-11-15', content: 'Try mashed avocado!', postId: 1 },
+    { replyId: 2, date: '2024-11-16', content: 'Create a consistent bedtime routine.', postId: 2 },
   ],
 };
 
