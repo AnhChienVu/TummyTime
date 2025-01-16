@@ -6,11 +6,11 @@
     height: 100vh;
   }
 
-    .hero-section {
-      margin-top: 80px; /* Offset for fixed navbar */
-      background-color: #f8f9fa;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
+.hero-section {
+    margin-top: 80px; /* Offset for fixed navbar */
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
