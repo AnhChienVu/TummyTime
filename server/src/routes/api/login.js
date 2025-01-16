@@ -10,7 +10,6 @@ const {
 const pool = require('../../../database/db');
 const { generateToken } = require('../../utils/jwt');
 
-
 module.exports = async (req, res) => {
   const { email, password } = req.body;
 
@@ -21,22 +20,25 @@ module.exports = async (req, res) => {
 
     const user = result.rows[0];
 
+    if (!user) {
+      return res
+        .status(401)
+        .json(createErrorResponse(401, "User doesn't exist"));
+    }
+
     if (user && (await bcrypt.compare(password, user.password))) {
+      const token = generateToken(user);
       res.json(
-        const token = generateToken(user);
-        res.json(
-          createSuccessResponse({
-            success: true,
-            token,
-            message: 'Login successfully',
-          })
-        );
+        createSuccessResponse({
+          success: true,
+          token,
+          message: 'Login successfully',
+        })
       );
     } else {
       res.status(401).json(createErrorResponse(401, 'Invalid credentials'));
     }
   } catch (error) {
-    logger.error(error);
     return res
       .status(500)
       .json(createErrorResponse(500, 'Internal server error'));
