@@ -7,6 +7,7 @@ const {
   createErrorResponse,
 } = require('../../utils/response');
 const mockData = require('../../model/mockDb');
+const { generateToken } = require('../../utils/jwt');
 
 const users = mockData.users;
 
@@ -16,8 +17,13 @@ module.exports = async (req, res) => {
   const user = users.find((user) => user.email === email);
 
   if (user && (await bcrypt.compare(password, user.password))) {
+    const token = generateToken(user);
     res.json(
-      createSuccessResponse({ success: true, message: 'Login successfully' })
+      createSuccessResponse({
+        success: true,
+        token,
+        message: 'Login successfully',
+      })
     );
   } else {
     res.status(401).json(createErrorResponse(401, 'Invalid credentials'));
