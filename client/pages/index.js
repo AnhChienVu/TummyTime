@@ -30,6 +30,7 @@ export default function Home() {
       const data = await res.json();
 
       if (data.success) {
+        localStorage.setItem("token", data.token); // Save the token to localStorage
         console.log("Success");
         router.push("/about");
       } else {

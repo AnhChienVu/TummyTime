@@ -6,7 +6,10 @@ const {
   createSuccessResponse,
   createErrorResponse,
 } = require('../../utils/response');
+
 const pool = require('../../../database/db');
+const { generateToken } = require('../../utils/jwt');
+
 
 module.exports = async (req, res) => {
   const { email, password } = req.body;
@@ -20,7 +23,14 @@ module.exports = async (req, res) => {
 
     if (user && (await bcrypt.compare(password, user.password))) {
       res.json(
-        createSuccessResponse({ success: true, message: 'Login successfully' })
+        const token = generateToken(user);
+        res.json(
+          createSuccessResponse({
+            success: true,
+            token,
+            message: 'Login successfully',
+          })
+        );
       );
     } else {
       res.status(401).json(createErrorResponse(401, 'Invalid credentials'));
