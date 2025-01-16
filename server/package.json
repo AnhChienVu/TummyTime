@@ -17,6 +17,7 @@
     "express": "^4.21.2",
     "http-auth": "^4.2.0",
     "http-auth-passport": "^1.0.7",
+    "jsonwebtoken": "^9.0.2",
     "passport": "^0.7.0",
     "pino": "^9.6.0",
     "pino-http": "^10.4.0",
