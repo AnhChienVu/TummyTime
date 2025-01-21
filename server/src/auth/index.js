@@ -1,12 +1,12 @@
 // src/auth/index.js
 
 // Prefer Amazon Cognito
-if (process.env.AWS_COGNITO_POOL_ID && process.env.AWS_COGNITO_CLIENT_ID) {
+if (process.env.AUTH_METHOD === 'cognito') {
   module.exports = require('./cognito');
 }
 // Also allow for an .htpasswd file to be used, but not in production
-else if (process.env.HTPASSWD_FILE && process.NODE_ENV !== 'production') {
-  module.exports = require('./basic-auth');
+else if (process.env.AUTH_METHOD === 'postgres') {
+  module.exports = require('./jwt-middleware');
 }
 // In all other cases, we need to stop now and fix our config
 else {

@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
-
+const authenticate = require('./auth');
+const passport = require('passport');
 const { createErrorResponse } = require('./utils/response');
 
 const mainRouter = require('./routes'); // Import the API router
@@ -14,12 +15,15 @@ const app = express();
 app.use(pino);
 app.use(cors());
 app.use(express.json());
-app.use('/', mainRouter); // Mount the main router
+
+// Set up our passport authentication middleware
+passport.use(authenticate.strategy());
+app.use(passport.initialize());
 
 // Define our routes
 // The second parameter passed to app.use is the middleware function or the module containing middelware
 // functions
-// app.get('/', require('./routes'));
+app.use('/', mainRouter); // Mount the main router
 
 app.use((req, res) => {
   res.status(404).json(

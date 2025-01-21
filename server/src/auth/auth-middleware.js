@@ -1,7 +1,7 @@
 const passport = require('passport');
 
-const { createErrorResponse } = require('../response');
-const hash = require('../hash');
+const { createErrorResponse } = require('../utils/response');
+const hash = require('../utils/hash');
 
 /**
  * @param {'bearer' | 'http'} strategyName - the passport strategy to use
