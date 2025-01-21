@@ -1,99 +1,33 @@
-import React, { useEffect, useState } from "react";
-import { useRouter } from "next/router";
-import { Button, Form, Container } from "react-bootstrap";
+import React from "react";
+import { Container, Row, Col } from "react-bootstrap";
+import NavBar from "@/components/Navbar/NavBar";
+import Footer from "@/components/Footer/Footer";
 import styles from "./index.module.css";
-import Link from "next/link";
 
 export default function Home() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [validated, setValidated] = useState(false);
-
-  const router = useRouter();
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
-    const form = event.currentTarget;
-    if (form.checkValidity() === true) {
-      setValidated(true);
-
-      const res = await fetch("http://localhost:8080/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await res.json();
-
-      if (data.success) {
-        console.log("Success");
-        router.push("/about");
-      } else {
-        setError("Invalid credentials");
-      }
-    }
-  };
-
   return (
-    <Container className={styles.container} fluid>
-      <div className={styles.formContainer}>
-        <Form
-          noValidate
-          validated={validated}
-          className={styles.form}
-          onSubmit={handleSubmit}
-        >
-          <p className={styles.title}>Welcome back !</p>
+    <div className={styles.container}>
+      {/* Navbar */}
+      <NavBar />
 
-          <Form.Group className="mb-3" controlId="emailLogin">
-            <Form.Control
-              type="email"
-              placeholder="Enter email"
-              className={styles.formControl}
-              value={email}
-              required
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <Form.Control.Feedback>Looks good!</Form.Control.Feedback>
-          </Form.Group>
-
-          <Form.Group className="mb-3" controlId="passwordLogin">
-            <Form.Control
-              type="password"
-              placeholder="Password"
-              className={styles.formControl}
-              value={password}
-              required
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <Form.Control.Feedback>Looks good!</Form.Control.Feedback>
-          </Form.Group>
-
-          <Button
-            variant="primary"
-            type="submit"
-            className={styles.loginButton}
-          >
-            Login
-          </Button>
-
-          <div className="mt-3">
-            <Link href="/" className={styles.link}>
-              Forgot password ?
-            </Link>
-            <p>
-              Dont have an account ?{" "}
-              <Link href="/register" className={styles.link}>
-                Sign up
-              </Link>
+      {/* Hero Section */}
+      <Container fluid className="hero-section text-center py-5 flex-grow-1">
+        <Row className="justify-content-center align-items-center">
+          <Col md={6} className="mt-5 pt-5">
+            <h1 className="display-4">Tummy Time</h1>
+            <p className="lead">
+              A baby care app for parents, caregivers, and medical
+              professionals. Features dynamic feeding schedules, diaper and
+              growth tracking, journaling, AI-driven assistance, exportable
+              health reports, and a gamified quiz to engage users in baby care
+              tracking.
             </p>
-          </div>
-        </Form>
-      </div>
-    </Container>
+          </Col>
+        </Row>
+      </Container>
+
+      {/* Footer */}
+      <Footer />
+    </div>
   );
 }

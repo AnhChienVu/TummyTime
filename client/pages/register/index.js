@@ -38,7 +38,7 @@ function Register() {
     if (form.checkValidity() === true) {
       setValidated(true);
 
-      const res = await fetch("http://localhost:8080/register", {
+      const res = await fetch("http://localhost:8080/v1/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -47,18 +47,16 @@ function Register() {
           firstName,
           lastName,
           email,
-          password,
-          confirmPassword,
           role,
         }),
       });
 
       const data = await res.json();
 
-      if (data.success) {
-        console.log("Register success");
+      if (data.status === "ok") {
+        console.log("User's information has been created successfully");
         handleClose();
-        router.push("/");
+        router.push("/dashboard");
       } else {
         setError(data.message);
       }
@@ -158,30 +156,6 @@ function Register() {
                 value={email}
                 required
                 onChange={(e) => setEmail(e.target.value)}
-              />
-              <Form.Control.Feedback>Looks good!</Form.Control.Feedback>
-            </Form.Group>
-
-            <Form.Group className="mb-3" controlId="password">
-              <Form.Control
-                type="password"
-                placeholder="Password"
-                className={styles.formControl}
-                value={password}
-                required
-                onChange={(e) => setPassword(e.target.value)}
-              />
-              <Form.Control.Feedback>Looks good!</Form.Control.Feedback>
-            </Form.Group>
-
-            <Form.Group className="mb-3" controlId="confirmPassword">
-              <Form.Control
-                type="password"
-                placeholder="Confirm password"
-                className={styles.formControl}
-                value={confirmPassword}
-                required
-                onChange={(e) => setConfirmPassword(e.target.value)}
               />
               <Form.Control.Feedback>Looks good!</Form.Control.Feedback>
             </Form.Group>

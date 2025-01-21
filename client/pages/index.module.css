@@ -1,58 +1,16 @@
 .container {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     height: 100vh;
   }
 
-.formContainer {
-    width: 396px;
-    height: 368px;
-    margin: auto;
-    align-self: center;
-}
-  
-.row {
-    margin: auto;
-    align-self: center;
-}
-
-.form {
-    border: 1px solid #ced4da;
-    padding: 1rem;
-    border-radius: 0.25rem;
-    font-size: 1rem;
-    width: 100%;
-
-}
-
-.formControl {
-    border: 1px solid #ced4da;
-    font-size: 1.25rem;
-}
-
-.formControl:focus {
-    border-color: #80bdff;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-    
-}
-
-.title {
-    text-align: center;
-    font-size: 1.5rem;
-    font-weight: bold;
-    margin-bottom: 1rem;
-}
-
-.loginButton {
-    align-items: center;
-    width: 100%;
-    font-size: 1.5rem;
-    background-color: #65558F;
-}
-
-.link {
-    text-decoration: none;
-    color: black;
-    font-weight: 500;
+.hero-section {
+    margin-top: 80px; /* Offset for fixed navbar */
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
