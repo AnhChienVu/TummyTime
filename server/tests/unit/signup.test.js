@@ -20,46 +20,7 @@ describe('POST /signup', () => {
     jest.clearAllMocks();
   });
 
-  test('should return 400 if passwords do not match', async () => {
-    const res = await request(app).post('/signup').send({
-      firstName: 'John',
-      lastName: 'Doe',
-      email: 'john.doe@example.com',
-      password: 'Password1@',
-      confirmPassword: 'Password1',
-      role: 'Parent',
-    });
-
-    expect(res.status).toBe(400);
-    expect(createErrorResponse).toHaveBeenCalledWith(
-      400,
-      'Passwords do not match'
-    );
-  });
-
-  test('should return 400 if user already exists with the email', async () => {
-    pool.query.mockResolvedValueOnce({
-      rows: [{ email: 'john.doe@example.com' }],
-    });
-
-    const res = await request(app).post('/signup').send({
-      firstName: 'John',
-      lastName: 'Doe',
-      email: 'john.doe@example.com',
-      password: 'Password1@',
-      confirmPassword: 'Password1@',
-      role: 'Parent',
-    });
-
-    expect(res.status).toBe(400);
-    expect(createErrorResponse).toHaveBeenCalledWith(
-      400,
-      'User already exists'
-    );
-  });
-
   test('should return 200 and create a new user', async () => {
-    pool.query.mockResolvedValueOnce({ rows: [] });
     pool.query.mockResolvedValueOnce({
       rows: [
         {
@@ -67,7 +28,6 @@ describe('POST /signup', () => {
           first_name: 'John',
           last_name: 'Doe',
           email: 'john.doe@example.com',
-          password: 'hashedpassword',
           role: 'Parent',
         },
       ],
@@ -77,8 +37,6 @@ describe('POST /signup', () => {
       firstName: 'John',
       lastName: 'Doe',
       email: 'john.doe@example.com',
-      password: 'Password1@',
-      confirmPassword: 'Password1@',
       role: 'Parent',
     });
 
@@ -88,7 +46,6 @@ describe('POST /signup', () => {
       first_name: 'John',
       last_name: 'Doe',
       email: 'john.doe@example.com',
-      password: 'hashedpassword',
       role: 'Parent',
     });
   });

@@ -7,7 +7,6 @@ const {
   createSuccessResponse,
   createErrorResponse,
 } = require('../../src/utils/response');
-const bcrypt = require('bcryptjs');
 
 jest.mock('../../database/db');
 jest.mock('../../src/utils/response');
@@ -18,29 +17,14 @@ app.post('/login', loginRoute);
 
 describe('POST /login', () => {
   beforeEach(() => {
+    process.env.AUTH_METHOD = 'postgres';
     jest.clearAllMocks();
-  });
-
-  test('should return 401 if user does not exist', async () => {
-    pool.query.mockResolvedValueOnce({
-      rows: [],
-    });
-
-    const res = await request(app).post('/login').send({
-      email: 'john.doe@example.com',
-      password: 'Password1@',
-    });
-
-    expect(res.status).toBe(401);
-    expect(createErrorResponse).toHaveBeenCalledWith(401, "User doesn't exist");
   });
 
   test('should return 401 if password is incorrect', async () => {
     pool.query.mockResolvedValueOnce({
-      rows: [{ email: 'john.doe@example.com', password: 'hashedPassword' }],
+      rows: [{ email: 'john.doe@example.com', password: 'password' }],
     });
-
-    jest.spyOn(bcrypt, 'compare').mockResolvedValueOnce(false);
 
     const res = await request(app).post('/login').send({
       email: 'john.doe@example.com',
@@ -56,10 +40,8 @@ describe('POST /login', () => {
 
   test('should return 200 and login successfully', async () => {
     pool.query.mockResolvedValueOnce({
-      rows: [{ email: 'john.doe@example.com', password: 'hashedPassword' }],
+      rows: [{ email: 'john.doe@example.com', password: 'Password1@' }],
     });
-
-    jest.spyOn(bcrypt, 'compare').mockResolvedValueOnce(true);
 
     const res = await request(app)
       .post('/login')
@@ -85,5 +67,42 @@ describe('POST /login', () => {
       500,
       'Internal server error'
     );
+  });
+
+  test('should return 401 if user does not exist', async () => {
+    pool.query.mockResolvedValueOnce({
+      rows: [],
+    });
+    const res = await request(app).post('/login').send({
+      email: 'john.doe@example.com',
+      password: 'Password1@',
+    });
+
+    expect(res.status).toBe(401);
+    expect(createErrorResponse).toHaveBeenCalledWith(401, "User doesn't exist");
+  });
+
+  test('should return 500 if invalid authentication method', async () => {
+    // Mock the environment variable
+    const originalAuthMethod = process.env.AUTH_METHOD;
+    process.env.AUTH_METHOD = 'invalid';
+
+    pool.query.mockRejectedValueOnce(
+      new Error('Invalid authentication method')
+    );
+
+    const res = await request(app).post('/login').send({
+      email: 'john.doe@example.com',
+      password: 'password123',
+    });
+
+    expect(res.status).toBe(500);
+    expect(createErrorResponse).toHaveBeenCalledWith(
+      500,
+      'Invalid authentication method'
+    );
+
+    // Restore the original environment variable
+    process.env.AUTH_METHOD = originalAuthMethod;
   });
 });
