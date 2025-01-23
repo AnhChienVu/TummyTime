@@ -2,9 +2,9 @@
   "name": "server",
   "version": "1.0.0",
   "description": "It is back-end of Tummy Time Application",
-  "main": "server.js",
+  "main": "index.js",
   "scripts": {
-    "test": "jest --watchAll --coverage",
+    "test": "jest --coverage",
     "start": "node src/index.js",
     "dev": "cross-env LOG_LEVEL=debug nodemon src/index.js"
   },
@@ -14,6 +14,7 @@
   "author": "T6-PRJ666",
   "license": "ISC",
   "dependencies": {
+    "aws-sdk": "^2.1692.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
@@ -22,6 +23,7 @@
     "http-auth-passport": "^1.0.7",
     "jsonwebtoken": "^9.0.2",
     "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
     "pg": "^8.13.1",
     "pino": "^9.6.0",
     "pino-http": "^10.4.0",
