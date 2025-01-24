@@ -5,7 +5,12 @@ import styles from "./login.module.css";
 import Link from "next/link";
 import { Container } from "react-bootstrap";
 
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+
 export default function Login() {
+  const { t, i18n } = useTranslation("common");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -54,12 +59,12 @@ export default function Login() {
           className={styles.form}
           onSubmit={handleSubmit}
         >
-          <p className={styles.title}>Welcome back !</p>
+          <p className={styles.title}>{t("Welcome back !")}</p>
 
           <Form.Group className="mb-3" controlId="emailLogin">
             <Form.Control
               type="email"
-              placeholder="Enter email"
+              placeholder={t("Enter email")}
               className={styles.formControl}
               value={email}
               required
@@ -71,7 +76,7 @@ export default function Login() {
           <Form.Group className="mb-3" controlId="passwordLogin">
             <Form.Control
               type="password"
-              placeholder="Password"
+              placeholder={t("Password")}
               className={styles.formControl}
               value={password}
               required
@@ -85,17 +90,17 @@ export default function Login() {
             type="submit"
             className={styles.loginButton}
           >
-            Login
+            {t("Login")}
           </Button>
 
           <div className="mt-3">
             <p>
-              Dont have an account ?{" "}
+              {t("Dont have an account ?")}{" "}
               <Link
                 href="https://us-east-26an90qfwo.auth.us-east-2.amazoncognito.com/signup?client_id=aiir77i4edaaitkoi3l132an0&redirect_uri=https%3A%2F%2Flocalhost%3A3000%2Flogin&response_type=code&scope=openid"
                 className={styles.link}
               >
-                Sign up
+                {t("Sign up")}
               </Link>
             </p>
           </div>
@@ -108,3 +113,11 @@ export default function Login() {
 Login.getLayout = function getLayout(page) {
   return <>{page}</>;
 };
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
+  };
+}
