@@ -7,7 +7,6 @@ import styles from "./settings.module.css";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { useRouter } from "next/router";
-import Link from "next/link";
 
 function Settings() {
   const { t, i18n } = useTranslation("common");
