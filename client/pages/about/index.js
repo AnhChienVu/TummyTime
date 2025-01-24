@@ -21,8 +21,26 @@ export default function AddBaby() {
   const router = useRouter();
 
   async function submitForm(data) {
-    console.log("form submitted: ", data);
-    router.push(`/`); // Should go to another page that's not the login page
+    // Send the data to the API endpoint
+    try {
+      const res = await fetch("http://localhost:8080/v1/addBaby", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (res.ok) {
+        const result = await res.json();
+        console.log("Baby added:", result);
+        router.push(`/profile`); // Redirect to another page
+      } else {
+        console.error("Failed to add baby: ", res);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
   }
 
   return (

@@ -1,0 +1,114 @@
+import React, { useEffect, useState } from "react";
+import { Container, Row, Col, Card, Button, Image } from "react-bootstrap";
+
+function ProfilePage() {
+  const [profile, setProfile] = useState(null);
+  const [babyProfiles, setBabyProfiles] = useState([]);
+
+  useEffect(() => {
+    async function fetchProfile() {
+      // Fetches the user's profile
+      try {
+        const res = await fetch("http://localhost:8080/v1/getProfile");
+        const data = await res.json();
+        // console.log("Fetched user profile data:", data); // Log the response data
+        if (res.ok) {
+          setProfile(data);
+        } else {
+          console.error("Failed to fetch profile:", data);
+        }
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      }
+    }
+
+    async function fetchBabyProfiles() {
+      try {
+        const res = await fetch("http://localhost:8080/v1/getBabyProfiles");
+        const data = await res.json();
+        // console.log("Fetched baby profiles data:", data); // Log the response data
+        if (res.ok) {
+          // Convert the object to an array of baby profiles
+          const babyProfilesArray = Object.keys(data)
+            .filter((key) => key !== "status")
+            .map((key) => data[key]);
+          setBabyProfiles(babyProfilesArray);
+        } else {
+          console.error("Failed to fetch baby profiles:", data);
+        }
+      } catch (error) {
+        console.error("Error fetching baby profiles:", error);
+      }
+    }
+
+    fetchProfile();
+    fetchBabyProfiles();
+  }, []); // Ensure the dependency array is empty to run only once on mount
+
+  return (
+    <Container className="mt-5">
+      {/* Profile Section */}
+      <Row className="mb-4">
+        <Col className="mt-4 pt-4">
+          <h2>Profile</h2>
+          <Card className="mb-3">
+            <Card.Body className="d-flex align-items-center">
+              <Image
+                src="https://fastly.picsum.photos/id/177/2515/1830.jpg?hmac=G8-2Q3-YPB2TreOK-4ofcmS-z5F6chIA0GHYAe5yzDY"
+                alt="Profile"
+                className="rounded-circle me-3"
+                style={{ width: "80px", height: "80px" }}
+              />
+              <div className="flex-grow-1">
+                <Card.Title>
+                  {profile
+                    ? `${profile.first_name} ${profile.last_name}`
+                    : "Loading..."}
+                </Card.Title>
+                <Card.Text>{profile ? profile.role : "Loading..."}</Card.Text>
+              </div>
+              <Button variant="outline-secondary">Edit</Button>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+
+      {/* Baby Profiles Section */}
+      <Row className="mb-4">
+        <Col>
+          <div className="d-flex justify-content-between align-items-center mb-3">
+            <h2>Baby Profiles</h2>
+            <Button variant="primary" href="http://localhost:3000/about">
+              Create New
+            </Button>
+          </div>
+          {babyProfiles.length > 0 ? (
+            babyProfiles.map((baby) => (
+              <Card key={baby.baby_id} className="mb-3">
+                <Card.Body className="d-flex align-items-center">
+                  <Image
+                    src="https://images.unsplash.com/photo-1674650638555-8a2c68584ddc?q=80&w=2027&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                    alt="Profile"
+                    className="rounded-circle me-3"
+                    style={{ width: "80px", height: "80px" }}
+                  />
+                  <div className="flex-grow-1">
+                    <Card.Title>
+                      {baby.first_name} {baby.last_name}
+                    </Card.Title>
+                    <Card.Text>Gender: {baby.gender}</Card.Text>
+                    <Card.Text>Weight: {baby.weight}lbs</Card.Text>
+                  </div>
+                </Card.Body>
+              </Card>
+            ))
+          ) : (
+            <p>No baby profiles found.</p>
+          )}
+        </Col>
+      </Row>
+    </Container>
+  );
+}
+
+export default ProfilePage;

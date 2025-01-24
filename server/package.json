@@ -2,9 +2,9 @@
   "name": "server",
   "version": "1.0.0",
   "description": "It is back-end of Tummy Time Application",
-  "main": "server.js",
+  "main": "index.js",
   "scripts": {
-    "test": "jest --watchAll --coverage",
+    "test": "jest --coverage",
     "start": "node src/index.js",
     "dev": "cross-env LOG_LEVEL=debug nodemon src/index.js"
   },
