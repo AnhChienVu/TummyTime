@@ -19,6 +19,14 @@ router.get("/getProfile", require("./getProfile"));
 
 router.get("/getBabyProfiles", require("./getBabyProfiles"));
 
+
+//************ /users routes ************
+router.get('/users/:id', require('./users/getUsers').getUserById);
+
+router.put('/users/:id', require('./users/putUsers').updateUserById);
+
+router.delete('/users/:id', require('./users/deleteUsers').deleteUserById);
+
 // Testing the authentication middleware
 // router.get('/test', authenticate(), require('./test'));
 module.exports = router;

@@ -1,4 +1,5 @@
 // tests/unit/users/getUsers.test.js
+// Tests the GET /users/:id route
 
 const request = require('supertest');
 const express = require('express');

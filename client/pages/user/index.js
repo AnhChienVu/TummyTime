@@ -1,20 +1,22 @@
 // client/pages/user/index.js        languageMode: JSX
-/* User Profile Edit page */
+/* User Information Edit page */
 
 import { useState, useEffect } from "react";
 import { Row, Col, Container, Button, Modal, Form } from "react-bootstrap";
 import styles from "./user.module.css";
 import { set, useForm } from "react-hook-form";
-import { useRouter } from "next/router"; // useRouter hook: to access the router object inside any function
+import { useRouter } from "next/router";
 
 // MOCK DATA
-// NOTE-ASSUMPTION: The user is already logged in with a valid session
-// The userID is stored in the session after l
+// NOTE:-ASSUMPTION: The user is already logged in with a valid session
+// The userID is stored in the session after login
 const userID = 1;
-// NOTE-ASSUMMING: API url is http://localhost:8080/
+// NOTE:-ASSUMMING: API url is http://localhost:8080/
 const API_URL = "http://localhost:8080";
 
 export default function EditUserProfile() {
+  let userData; // store all fields of user data in database
+
   const {
     register,
     handleSubmit,
@@ -22,25 +24,20 @@ export default function EditUserProfile() {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      firstname: "",
-      lastname: "",
+      first_name: "",
+      last_name: "",
       email: "",
       role: "",
     },
   });
 
   const router = useRouter();
-  const [showDeleteModal, setShowDeleteModal] = useState(false); // state to show/hide delete modal window when clicking delete-user button
-
-  useEffect(() => {
-    // load user data first
-    async function fetchUser() {
-      let userData;
-
-      // Fetches the user's data from the API
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  
+  useEffect(() => { 
+    async function fetchUser() { 
       try {
-        //DEBUG: => NEED TESTING fetch FOR User data +API `GET USER`
-        //TODO-: ===> NEED to change to RETRIEVE User data with the correct userID
+        //TODO-: ===> NEED to change to RETRIEVE User data with the correct userID from session cache
         const res = await fetch(`${API_URL}/v1/users/${userID}`);
 
         if (res.ok) {
@@ -53,18 +50,22 @@ export default function EditUserProfile() {
         console.error("Error fetching user:", error);
       }
 
-      setValue("firstname", userData?.firstname);
-      setValue("lastname", userData?.lastname);
+      setValue("first_name", userData?.first_name);
+      setValue("last_name", userData?.last_name);
       setValue("email", userData?.email);
       setValue("role", userData?.role);
     }
 
     fetchUser();
-  }, [setValue]); // [setValue] is a dependency array to prevent infinite loop, meaning useEffect will only run once
+  }, [setValue]); // [setValue] will only run once
 
   const submitForm = async (data) => {
+    //submitting form of user data
     try {
-      //DEBUG: => NEED TESTING fetch FOR save-changes BUTTON +API `PUT /users/:id`
+      // add "created_at" key
+      data.created_at = new Date().toISOString();
+      console.log("Submitting form with data: ", data);
+
       await fetch(`${API_URL}/v1/users/${userID}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -73,7 +74,7 @@ export default function EditUserProfile() {
 
       console.log(`User ${userID} updated successfully with this data: `, data);
       alert("User information updated successfully!");
-      router.push("/profile");
+      router.push("/profile");  // redirect to /profile page (showing user and babies)
     } catch (err) {
       console.error(`Error updating user ${userID}: `, err);
       alert("Error updating user information. Please try again.");
@@ -82,7 +83,6 @@ export default function EditUserProfile() {
 
   const handleDelete = async () => {
     try {
-      //DEBUG: => NEED TESTING fetch FOR delete-user BUTTON +API `DELETE /users/:id`
       // deleting User
       await fetch(`${API_URL}/v1/users/${userID}`, {
         method: "DELETE",
@@ -96,8 +96,7 @@ export default function EditUserProfile() {
   };
 
   return (
-    <Container className={styles.container} fluid>
-      {/* "fluid" means .container-fluid class: a full-width container, spanning the entire width of the viewport */}
+    <Container className={styles.container} fluid> 
       <div className={styles.formContainer}>
         <Form onSubmit={handleSubmit(submitForm)}>
           {/* Title */}
@@ -106,23 +105,19 @@ export default function EditUserProfile() {
           {/* Name Field */}
           <Row className="mb-3">
             <Col md={6}>
-              <Form.Group className="mb-3">
-                {/* mb-3 means margin-bottom: 3rem 
-                - margin-bottom means spacing under this element
-                - (3x the default font-size 16px = 48px) */}
+              <Form.Group className="mb-3"> 
                 <Form.Control
                   type="text"
                   placeholder="First name"
-                  {...register("firstname", {
+                  {...register("first_name", {
                     required: "First name is required.",
-                  })} // set validation rules for Name
+                  })} 
                   isInvalid={
-                    !!errors?.firstname
-                  } /* Highlight field if there's an error. `!!` converts the value to a boolean true/false. */
+                    !!errors?.first_name
+                  }
                 />
                 <Form.Control.Feedback type="invalid">
-                  {errors?.firstname?.message}
-                  {/* if name is empty, it will show errors.name.message: "Name is required." */}
+                  {errors?.first_name?.message} 
                 </Form.Control.Feedback>
               </Form.Group>
             </Col>
@@ -132,13 +127,13 @@ export default function EditUserProfile() {
                 <Form.Control
                   type="text"
                   placeholder="Last name"
-                  {...register("lastname", {
+                  {...register("last_name", {
                     required: "Last name is required.",
                   })}
-                  isInvalid={!!errors?.lastname}
+                  isInvalid={!!errors?.last_name}
                 />
                 <Form.Control.Feedback type="invalid">
-                  {errors?.lastname?.message}
+                  {errors?.last_name?.message}
                 </Form.Control.Feedback>
               </Form.Group>
             </Col>
@@ -156,11 +151,8 @@ export default function EditUserProfile() {
                     required: "Email is required.",
                     pattern: {
                       value:
-                        /^[^\s@]+@[^\s@]+\.[^\s@]+$/ /* Validation rule for email format:
-                                        - ^[^\s@]+: start with any character except whitespace `^\s` and `^@`
-                                        - @[^\s@]+: followed by `@` and any character except whitespace `^\s` and `^@`
-                                        - \.[^\s@]+$: end with `.` and any character except whitespace `^\s` and `^@`
-                                        */,
+                        /^[^\s@]+@[^\s@]+\.[^\s@]+$/ 
+                      ,
                       message: "Email is not valid.",
                     },
                   })}

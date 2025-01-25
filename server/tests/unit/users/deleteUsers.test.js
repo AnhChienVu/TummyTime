@@ -1,4 +1,5 @@
 // tests/unit/users/deleteUsers.test.js
+// Tests the DELETE /users/:id route
 
 const request = require('supertest');
 const express = require('express');
