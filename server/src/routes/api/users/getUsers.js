@@ -14,10 +14,10 @@ module.exports.getUserById = async (req, res) => {
 
   try { 
     const user = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
-    
+
     return res.status(200).json(createSuccessResponse(user.rows[0]));
   } catch (err) {
-    logger.error(err, `ERROR in GET /users/:id with id ${req.params.id}`);
+    logger.error(err, `ERROR in GET /users/:id, Error getting user with id ${req.params.id}`);
 
     return res.status(500).json(createErrorResponse(500, 'Internal server error'));
   }

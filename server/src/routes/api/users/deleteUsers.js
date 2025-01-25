@@ -16,7 +16,7 @@ module.exports.deleteUserById = async function (req, res) {
     const deletedUser = await pool.query('DELETE FROM users WHERE id = $1', [id]);
     return res.status(200).json(createSuccessResponse()); // 200 OK
   } catch (err) {
-    logger.error(err, `ERROR in DELETE /users/:id, with id ${req.params.id}`);
+    logger.error(err, `ERROR in DELETE /users/:id, Error deleting user with id ${req.params.id}`);
 
     return res.status(500).json(createErrorResponse(500, `Internal server error`)); // 500 Internal Server Error
   }
