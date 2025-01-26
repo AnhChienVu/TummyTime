@@ -1,3 +1,5 @@
+// pages/profile/index.js
+import Sidebar from "@/components/Sidebar/Sidebar";
 import React, { useEffect, useState } from "react";
 import { Container, Row, Col, Card, Button, Image } from "react-bootstrap";
 
@@ -23,6 +25,7 @@ function ProfilePage() {
     }
 
     async function fetchBabyProfiles() {
+      // Fetches the user's baby profiles
       try {
         const res = await fetch("http://localhost:8080/v1/getBabyProfiles");
         const data = await res.json();
@@ -49,6 +52,7 @@ function ProfilePage() {
     <Container className="mt-5">
       {/* Profile Section */}
       <Row className="mb-4">
+        <Sidebar />
         <Col className="mt-4 pt-4">
           <h2>Profile</h2>
           <Card className="mb-3">
@@ -70,15 +74,9 @@ function ProfilePage() {
               <Button variant="outline-secondary">Edit</Button>
             </Card.Body>
           </Card>
-        </Col>
-      </Row>
-
-      {/* Baby Profiles Section */}
-      <Row className="mb-4">
-        <Col>
           <div className="d-flex justify-content-between align-items-center mb-3">
             <h2>Baby Profiles</h2>
-            <Button variant="primary" href="http://localhost:3000/about">
+            <Button variant="primary" href="http://localhost:3000/addBaby">
               Create New
             </Button>
           </div>

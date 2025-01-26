@@ -1,8 +1,9 @@
-// client/pages/about/index.js
+// pages/addBaby/index.js
 import { useForm } from "react-hook-form";
 import { Row, Col, Form, Button, Container } from "react-bootstrap";
 import { useRouter } from "next/router";
-import styles from "./about.module.css";
+import styles from "./addBaby.module.css";
+import Sidebar from "@/components/Sidebar/Sidebar";
 
 export default function AddBaby() {
   const {
@@ -12,8 +13,8 @@ export default function AddBaby() {
   } = useForm({
     defaultValues: {
       gender: "",
-      firstName: "",
-      lastName: "",
+      first_name: "",
+      last_name: "",
       weight: "",
     },
   });
@@ -21,7 +22,6 @@ export default function AddBaby() {
   const router = useRouter();
 
   async function submitForm(data) {
-    // Send the data to the API endpoint
     try {
       const res = await fetch("http://localhost:8080/v1/addBaby", {
         method: "POST",
@@ -30,11 +30,12 @@ export default function AddBaby() {
         },
         body: JSON.stringify(data),
       });
+      console.log("Data:", data);
 
       if (res.ok) {
         const result = await res.json();
         console.log("Baby added:", result);
-        router.push(`/profile`); // Redirect to another page
+        router.push(`/profile`);
       } else {
         console.error("Failed to add baby: ", res);
       }
@@ -59,7 +60,7 @@ export default function AddBaby() {
                   type="text"
                   placeholder="First name"
                   name="firstName"
-                  {...register("firstName")}
+                  {...register("first_name")}
                   required
                 />
               </Form.Group>
@@ -70,7 +71,7 @@ export default function AddBaby() {
                   type="text"
                   placeholder="Last name"
                   name="lastName"
-                  {...register("lastName")}
+                  {...register("last_name")}
                   required
                 />
               </Form.Group>
@@ -86,7 +87,7 @@ export default function AddBaby() {
                   name="weight"
                   type="number"
                   placeholder="Weight at birth (lb)"
-                  min={5} // Accept a minimum weight of 5lbs
+                  min={5}
                   {...register("weight")}
                   required
                 />

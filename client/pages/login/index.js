@@ -1,3 +1,4 @@
+// pages/login/index.js
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { Button, Form } from "react-bootstrap";
@@ -74,7 +75,7 @@ export default function Login() {
         } else {
           console.log("Login successfully");
           localStorage.setItem("token", data.token);
-          router.push("/dashboard");
+          router.push("/profile");
         }
       } else {
         setError("Invalid credentials");
@@ -127,7 +128,7 @@ export default function Login() {
 
           <div className="mt-3">
             <p>
-              Dont have an account ?{" "}
+              Don&apos;t have an account ?{" "}
               <Link
                 href="https://us-east-26an90qfwo.auth.us-east-2.amazoncognito.com/signup?client_id=aiir77i4edaaitkoi3l132an0&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Flogin&response_type=code&scope=openid"
                 className={styles.link}
