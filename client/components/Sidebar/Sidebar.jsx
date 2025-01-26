@@ -1,10 +1,5 @@
 import React from "react";
-import {   
-  Col,
-
-  Nav,
-
-  Dropdown, } from "react-bootstrap";
+import { Col, Nav, Dropdown} from "react-bootstrap";
 import styles from "./Sidebar.module.css";
 import { useTranslation } from "next-i18next";
 import Link from "next/link";
