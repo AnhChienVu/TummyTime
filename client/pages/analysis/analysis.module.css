@@ -1,9 +1,6 @@
-/* analysis.module.css (full) */
 .analysisContainer {
   /* Increase margin-top to offset the navbar */
-  margin-top: 80px; /* or 5rem, or 100px, etc. */
-
-  /* everything else remains the same */
+  margin-top: 80px;
 }
 
 /**************
