@@ -199,7 +199,7 @@ function HealthInsights() {
                     name="Weight (kg)"
                   />
                   <CartesianGrid stroke="#ccc" />
-                  <XAxis dataKey="month" />
+                  <XAxis dataKey="date" />
                   <YAxis
                     label={{
                       value: "Weight (kg)",
@@ -234,7 +234,7 @@ function HealthInsights() {
                     name="Height (cm)"
                   />
                   <CartesianGrid stroke="#ccc" />
-                  <XAxis dataKey="month" />
+                  <XAxis dataKey="date" />
                   <YAxis
                     label={{
                       value: "Height (cm)",
