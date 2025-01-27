@@ -46,6 +46,7 @@ export default function AddBaby() {
 
   return (
     <Container className={styles.container} fluid>
+      <Sidebar />
       <div className={styles.formContainer}>
         <Form onSubmit={handleSubmit(submitForm)}>
           <p className={styles.title}>Welcome!</p>
