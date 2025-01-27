@@ -4,7 +4,6 @@ import { Modal, Button, Table } from "react-bootstrap";
 import { format, parseISO } from "date-fns";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-// Import CSS module
 import styles from "./growth.module.css";
 
 const mockAPI = () => {
@@ -96,8 +95,8 @@ const Growth = () => {
       const entry = data[index];
       setModalData({
         date: entry.date,
-        height: entry.height.replace(" in", ""), // Remove units for editing
-        weight: entry.weight.replace(" lbs", ""), // Remove units for editing
+        height: entry.height.replace(" in", ""),
+        weight: entry.weight.replace(" lbs", ""),
         notes: entry.notes,
       });
       setEditIndex(index);
