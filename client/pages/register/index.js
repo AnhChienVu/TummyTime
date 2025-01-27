@@ -1,3 +1,4 @@
+// pages/register/index.js
 import React, { useState } from "react";
 import { Button, Container, Form, Modal } from "react-bootstrap";
 import styles from "./register.module.css";

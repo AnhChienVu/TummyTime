@@ -1,15 +1,41 @@
 import React from "react";
-import { Nav } from "react-bootstrap";
+import { Col, Nav, Dropdown} from "react-bootstrap";
 import styles from "./Sidebar.module.css";
 import { useTranslation } from "next-i18next";
 import Link from "next/link";
+
+
 function Sidebar() {
   const { t, i18n } = useTranslation("common");
   const locale = i18n.language;
 
   return (
-    <div className={styles.sidebar}>
-      <Nav className="flex-column">
+
+    <Col md={2} className={styles.sidebar}>
+      <Nav defaultActiveKey="/" className="flex-column">
+
+        {/* Dropdown menu */}
+            <Dropdown className="mb-3">
+              <Dropdown.Toggle
+                variant="light"
+                id="dropdown-basic"
+                className={styles.dropdownToggle}
+              >
+                Resources
+              </Dropdown.Toggle>
+              <Dropdown.Menu>
+                <Dropdown.Item href="/forum">Forum</Dropdown.Item>
+                <Dropdown.Item href="/analytics">Analytics</Dropdown.Item>
+                <Dropdown.Item href="/coupons">Coupons</Dropdown.Item>
+                <Dropdown.Item href="/directory">Directory</Dropdown.Item>
+                <Dropdown.Item href="/safety-hazards">
+                  Safety & Hazards
+                </Dropdown.Item>
+                <Dropdown.Item href="/quizzes">Quizzes</Dropdown.Item>
+                <Dropdown.Item href="/curated-tips">Curated Tips</Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
+
         <Nav.Link
           as={Link}
           href="/dashboard"
@@ -30,8 +56,8 @@ function Sidebar() {
         <Nav.Link as={Link} href="/" locale={locale} className={styles.navlink}>
           {t("Milestones")}
         </Nav.Link>
-        <Nav.Link as={Link} href="/" locale={locale} className={styles.navlink}>
-          {t("User")}
+        <Nav.Link as={Link} href="/profile" locale={locale} className={styles.navlink}>
+          {t("Profile")}
         </Nav.Link>
         <Nav.Link
           as={Link}
@@ -42,7 +68,9 @@ function Sidebar() {
           {t("Settings")}
         </Nav.Link>
       </Nav>
-    </div>
+
+      </Col>
+
   );
 }
 
