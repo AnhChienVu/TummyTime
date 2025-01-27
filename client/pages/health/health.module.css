@@ -1,0 +1,42 @@
+/* client/pages/health/health.module.css */
+/* Health Insights page */
+
+.container {
+  margin-top: 5rem;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column; 
+  align-items: left; 
+}
+
+.tabContent {
+  margin-top: 1rem;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.tabs {
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 1rem;
+}
+
+.content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.chartContainer {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+  background-color: #fafafa;
+  margin-top: 16px;
+}
+
+.chartContainerNoBorder {
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+}
