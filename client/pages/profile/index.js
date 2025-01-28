@@ -3,6 +3,7 @@ import Sidebar from "@/components/Sidebar/Sidebar";
 import React, { useEffect, useState } from "react";
 import { Container, Row, Col, Card, Button, Image } from "react-bootstrap";
 import { useRouter } from "next/router";
+import styles from "./profile.module.css";
 
 function ProfilePage() {
   const [profile, setProfile] = useState(null);
@@ -33,7 +34,9 @@ function ProfilePage() {
     async function fetchBabyProfiles() {
       // Fetches the user's baby profiles
       try {
-        const res = await fetch("http://localhost:8080/v1/getBabyProfiles");
+        const res = await fetch(
+          `http://localhost:8080/v1/user/${userId}/getBabyProfiles`,
+        );
         const data = await res.json();
         // console.log("Fetched baby profiles data:", data); // Log the response data
         if (res.ok) {
@@ -111,6 +114,11 @@ function ProfilePage() {
                     <Card.Text>Gender: {baby.gender}</Card.Text>
                     <Card.Text>Weight: {baby.weight}lbs</Card.Text>
                   </div>
+
+                  <Button className={`${styles.customButton} me-2`}>
+                    Analysis
+                  </Button>
+                  <Button className={styles.customButton}>Growth</Button>
                 </Card.Body>
               </Card>
             ))

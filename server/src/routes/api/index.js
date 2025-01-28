@@ -15,7 +15,7 @@ router.post('/signup', require('./signup'));
 
 router.post('/addBaby', require('./addBaby'));
 
-router.get('/getBabyProfiles', require('./getBabyProfiles'));
+router.get('/user/:id/getBabyProfiles', require('./getBabyProfiles'));
 
 //************ /user routes ************
 router.get('/user/:id', require('./user/getUser').getUserById);
