@@ -65,6 +65,7 @@ module.exports = async (req, res) => {
       return res.json(
         createSuccessResponse({
           success: true,
+          userId: user.user_id,
           message: 'Login successfully',
           accessToken: AccessToken,
           token: IdToken,
