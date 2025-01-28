@@ -2,16 +2,22 @@
 import Sidebar from "@/components/Sidebar/Sidebar";
 import React, { useEffect, useState } from "react";
 import { Container, Row, Col, Card, Button, Image } from "react-bootstrap";
+import { useRouter } from "next/router";
 
 function ProfilePage() {
   const [profile, setProfile] = useState(null);
   const [babyProfiles, setBabyProfiles] = useState([]);
-
+  const router = useRouter();
+  console.log(profile);
   useEffect(() => {
+    const userId = localStorage.getItem("userId");
     async function fetchProfile() {
       // Fetches the user's profile
       try {
-        const res = await fetch("http://localhost:8080/v1/getProfile");
+        // const res = await fetch(
+        //   `http://localhost:8080/v1/getProfile?userId=${userId}`,
+        // );
+        const res = await fetch(`http://localhost:8080/v1/user/${userId}`);
         const data = await res.json();
         // console.log("Fetched user profile data:", data); // Log the response data
         if (res.ok) {
@@ -48,6 +54,12 @@ function ProfilePage() {
     fetchBabyProfiles();
   }, []); // Ensure the dependency array is empty to run only once on mount
 
+  const handleEditButton = () => {
+    router.push({
+      pathname: `user/${profile.user_id}/edit`,
+      query: { profile: JSON.stringify(profile) },
+    });
+  };
   return (
     <Container className="mt-5">
       {/* Profile Section */}
@@ -71,7 +83,9 @@ function ProfilePage() {
                 </Card.Title>
                 <Card.Text>{profile ? profile.role : "Loading..."}</Card.Text>
               </div>
-              <Button variant="outline-secondary">Edit</Button>
+              <Button variant="outline-secondary" onClick={handleEditButton}>
+                Edit
+              </Button>
             </Card.Body>
           </Card>
           <div className="d-flex justify-content-between align-items-center mb-3">
