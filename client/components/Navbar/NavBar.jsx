@@ -6,7 +6,7 @@ function NavBar() {
   return (
     <Navbar expand="lg" fixed="top" className={styles.navbar}>
         <Container>
-          <Navbar.Brand href="#home">Tummy Time</Navbar.Brand>
+          <Navbar.Brand href="/dashboard">Tummy Time</Navbar.Brand>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
             <Nav className="ms-auto">
