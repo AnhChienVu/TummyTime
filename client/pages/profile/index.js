@@ -2,16 +2,23 @@
 import Sidebar from "@/components/Sidebar/Sidebar";
 import React, { useEffect, useState } from "react";
 import { Container, Row, Col, Card, Button, Image } from "react-bootstrap";
+import { useRouter } from "next/router";
+import styles from "./profile.module.css";
 
 function ProfilePage() {
   const [profile, setProfile] = useState(null);
   const [babyProfiles, setBabyProfiles] = useState([]);
-
+  const router = useRouter();
+  console.log(profile);
   useEffect(() => {
+    const userId = localStorage.getItem("userId");
     async function fetchProfile() {
       // Fetches the user's profile
       try {
-        const res = await fetch("http://localhost:8080/v1/getProfile");
+        // const res = await fetch(
+        //   `http://localhost:8080/v1/getProfile?userId=${userId}`,
+        // );
+        const res = await fetch(`http://localhost:8080/v1/user/${userId}`);
         const data = await res.json();
         // console.log("Fetched user profile data:", data); // Log the response data
         if (res.ok) {
@@ -27,7 +34,9 @@ function ProfilePage() {
     async function fetchBabyProfiles() {
       // Fetches the user's baby profiles
       try {
-        const res = await fetch("http://localhost:8080/v1/getBabyProfiles");
+        const res = await fetch(
+          `http://localhost:8080/v1/user/${userId}/getBabyProfiles`,
+        );
         const data = await res.json();
         // console.log("Fetched baby profiles data:", data); // Log the response data
         if (res.ok) {
@@ -48,6 +57,12 @@ function ProfilePage() {
     fetchBabyProfiles();
   }, []); // Ensure the dependency array is empty to run only once on mount
 
+  const handleEditButton = () => {
+    router.push({
+      pathname: `user/${profile.user_id}/edit`,
+      query: { profile: JSON.stringify(profile) },
+    });
+  };
   return (
     <Container className="mt-5">
       {/* Profile Section */}
@@ -71,10 +86,7 @@ function ProfilePage() {
                 </Card.Title>
                 <Card.Text>{profile ? profile.role : "Loading..."}</Card.Text>
               </div>
-              <Button
-                variant="outline-secondary"
-                href="http://localhost:3000/user"
-              >
+              <Button variant="outline-secondary" onClick={handleEditButton}>
                 Edit
               </Button>
             </Card.Body>
@@ -102,6 +114,11 @@ function ProfilePage() {
                     <Card.Text>Gender: {baby.gender}</Card.Text>
                     <Card.Text>Weight: {baby.weight}lbs</Card.Text>
                   </div>
+
+                  <Button className={`${styles.customButton} me-2`}>
+                    Analysis
+                  </Button>
+                  <Button className={styles.customButton}>Growth</Button>
                 </Card.Body>
               </Card>
             ))
