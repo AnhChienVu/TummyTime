@@ -25,9 +25,8 @@ function Sidebar() {
               </Dropdown.Toggle>
               <Dropdown.Menu>
                 <Dropdown.Item href="/forum">Forum</Dropdown.Item>
-                <Dropdown.Item href="/analytics">Analytics</Dropdown.Item>
                 <Dropdown.Item href="/coupons">Coupons</Dropdown.Item>
-                <Dropdown.Item href="/directory">Directory</Dropdown.Item>
+                <Dropdown.Item href="/directory">Service Directory</Dropdown.Item>
                 <Dropdown.Item href="/safety-hazards">
                   Safety & Hazards
                 </Dropdown.Item>
@@ -44,18 +43,18 @@ function Sidebar() {
         >
           {t("Dashboard")}
         </Nav.Link>
-        <Nav.Link as={Link} href="/" locale={locale} className={styles.navlink}>
-          {t("Growth Tracker")}
+        <Nav.Link as={Link} href="/analysis" locale={locale} className={styles.navlink}>
+          {t("Analytics")}
         </Nav.Link>
-        <Nav.Link as={Link} href="/" locale={locale} className={styles.navlink}>
+        <Nav.Link as={Link} href="/feeding-schedule" locale={locale} className={styles.navlink}>
+          {t("Feeding Schedule")}
+        </Nav.Link>
+        {/* <Nav.Link as={Link} href="/" locale={locale} className={styles.navlink}>
           {t("Health Records")}
         </Nav.Link>
         <Nav.Link as={Link} href="/" locale={locale} className={styles.navlink}>
-          {t("Schedules")}
-        </Nav.Link>
-        <Nav.Link as={Link} href="/" locale={locale} className={styles.navlink}>
           {t("Milestones")}
-        </Nav.Link>
+        </Nav.Link> */}
         <Nav.Link as={Link} href="/profile" locale={locale} className={styles.navlink}>
           {t("Profile")}
         </Nav.Link>

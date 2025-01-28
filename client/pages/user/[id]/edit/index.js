@@ -6,6 +6,7 @@ import { Row, Col, Container, Button, Modal, Form } from "react-bootstrap";
 import styles from "./user.module.css";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/router";
+import Sidebar from "@/components/Sidebar/Sidebar";
 
 export default function EditUserProfile() {
   const {
