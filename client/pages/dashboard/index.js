@@ -10,10 +10,11 @@ import {
   Alert,
   Nav,
   Image,
-  Dropdown,
 } from "react-bootstrap";
 import styles from "./dashboard.module.css";
 import Sidebar from "@/components/Sidebar/Sidebar";
+// import { Link } from "react-router-dom";
+import Link from "next/link";
 
 const Dashboard = () => {
   return (
@@ -61,7 +62,11 @@ const Dashboard = () => {
                       </tr>
                     </tbody>
                   </Table>
-                  <Button variant="primary" className={styles.addButton}>
+                  <Button
+                    variant="primary"
+                    className={styles.addButton}
+                    href="http://localhost:3000/feeding-schedule"
+                  >
                     + Add
                   </Button>
                 </Card.Body>
@@ -72,71 +77,95 @@ const Dashboard = () => {
           <Row>
             {/* Feed Chart */}
             <Col md={6}>
-              <Card className="mb-4">
-                <Card.Body>
-                  <Card.Title>Feedings</Card.Title>
-                  <div style={{ height: "200px", backgroundColor: "#f7f7f7" }}>
-                    {/* Placeholder for Chart */}
-                    <Image
-                      src="https://experience.sap.com/fiori-design-web/wp-content/uploads/sites/5/2017/11/Line-chart-using-pallettes_012.png"
-                      alt="feeding schedule"
-                      style={{ height: "105%", width: "100%" }}
-                    />
-                  </div>
-                </Card.Body>
-              </Card>
+              <Nav.Link
+                as={Link}
+                href="/feeding-schedule"
+                className={styles.navlink}
+              >
+                <Card className={`${styles.cardHover} mb-4`}>
+                  <Card.Body>
+                    <Card.Title>Feedings</Card.Title>
+                    <div
+                      style={{ height: "200px", backgroundColor: "#f7f7f7" }}
+                    >
+                      {/* Placeholder for Chart */}
+                      <Image
+                        src="https://experience.sap.com/fiori-design-web/wp-content/uploads/sites/5/2017/11/Line-chart-using-pallettes_012.png"
+                        alt="feeding schedule"
+                        style={{ height: "105%", width: "100%" }}
+                      />
+                    </div>
+                  </Card.Body>
+                </Card>
+              </Nav.Link>
             </Col>
 
             {/* Height Chart */}
             <Col md={6}>
-              <Card className="mb-4">
-                <Card.Body>
-                  <Card.Title>Height</Card.Title>
-                  <div style={{ height: "200px", backgroundColor: "#f7f7f7" }}>
-                    {/* Placeholder for Chart */}
-                    <Image
-                      src="https://miro.medium.com/v2/resize:fit:4800/format:webp/1*7vT2GwcznErKQUARBw5fVQ.png"
-                      alt="height chart"
-                      style={{ height: "105%", width: "100%" }}
-                    />
-                  </div>
-                </Card.Body>
-              </Card>
+              <Nav.Link as={Link} href="/height" className={styles.navlink}>
+                <Card className={`${styles.cardHover} mb-4`}>
+                  <Card.Body>
+                    <Card.Title>Height</Card.Title>
+                    <div
+                      style={{ height: "200px", backgroundColor: "#f7f7f7" }}
+                    >
+                      {/* Placeholder for Chart */}
+                      <Image
+                        src="https://miro.medium.com/v2/resize:fit:4800/format:webp/1*7vT2GwcznErKQUARBw5fVQ.png"
+                        alt="height chart"
+                        style={{ height: "105%", width: "100%" }}
+                      />
+                    </div>
+                  </Card.Body>
+                </Card>
+              </Nav.Link>
             </Col>
           </Row>
 
           <Row>
             {/* Weight Chart */}
             <Col md={6}>
-              <Card className="mb-4">
-                <Card.Body>
-                  <Card.Title>Weight</Card.Title>
-                  <div style={{ height: "200px", backgroundColor: "#f7f7f7" }}>
-                    {/* Placeholder for Chart */}
-                    <Image
-                      src="https://miro.medium.com/v2/resize:fit:4800/format:webp/1*7vT2GwcznErKQUARBw5fVQ.png"
-                      alt="weight chart"
-                      style={{ height: "105%", width: "100%" }}
-                    />
-                  </div>
-                </Card.Body>
-              </Card>
+              <Nav.Link as={Link} href="/weight" className={styles.navlink}>
+                <Card className={`${styles.cardHover} mb-4`}>
+                  <Card.Body>
+                    <Card.Title>Weight</Card.Title>
+                    <div
+                      style={{ height: "200px", backgroundColor: "#f7f7f7" }}
+                    >
+                      {/* Placeholder for Chart */}
+                      <Image
+                        src="https://miro.medium.com/v2/resize:fit:4800/format:webp/1*7vT2GwcznErKQUARBw5fVQ.png"
+                        alt="weight chart"
+                        style={{ height: "105%", width: "100%" }}
+                      />
+                    </div>
+                  </Card.Body>
+                </Card>
+              </Nav.Link>
             </Col>
             {/* Stool Colour Chart */}
             <Col md={6}>
-              <Card className="mb-4">
-                <Card.Body>
-                  <Card.Title>Stool Color</Card.Title>
-                  <div style={{ height: "200px", backgroundColor: "#f7f7f7" }}>
-                    {/* Placeholder for Chart */}
-                    <Image
-                      src="https://www.tableau.com/sites/default/files/2021-06/DataGlossary_Icons_Pie%20Chart.jpg"
-                      alt="stool colour chart"
-                      style={{ height: "108%", width: "100%" }}
-                    />
-                  </div>
-                </Card.Body>
-              </Card>
+              <Nav.Link
+                as={Link}
+                href="/stool-colour"
+                className={styles.navlink}
+              >
+                <Card className={`${styles.cardHover} mb-4`}>
+                  <Card.Body>
+                    <Card.Title>Stool Color</Card.Title>
+                    <div
+                      style={{ height: "200px", backgroundColor: "#f7f7f7" }}
+                    >
+                      {/* Placeholder for Chart */}
+                      <Image
+                        src="https://www.tableau.com/sites/default/files/2021-06/DataGlossary_Icons_Pie%20Chart.jpg"
+                        alt="stool colour chart"
+                        style={{ height: "108%", width: "100%" }}
+                      />
+                    </div>
+                  </Card.Body>
+                </Card>
+              </Nav.Link>
             </Col>
           </Row>
         </Col>
