@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Modal, Form, Button, Alert } from "react-bootstrap";
 import {
@@ -36,18 +35,6 @@ function getCurrentLocalTimeParts() {
 function formatTime(h, m, ampm) {
   return `${h}:${m} ${ampm}`;
 }
-
-const mockApi = {
-  fetchSchedule: () =>
-    Promise.resolve([
-      {
-        date: getLocalTodayString(),
-        meals: [],
-      },
-    ]),
-  updateSchedule: (updatedSchedule) =>
-    Promise.resolve({ success: true, data: updatedSchedule }),
-};
 
 function generateCSV(dayArray) {
   let csv = "Date,Meal,Time,Type,Amount,Issue,Notes\n";
@@ -154,8 +141,32 @@ const FeedingSchedule = () => {
   const [remindMinutes, setRemindMinutes] = useState("30");
   const [toasts, setToasts] = useState([]);
 
+  const mockApi = {
+    updateSchedule: (updatedSchedule) =>
+      Promise.resolve({ success: true, data: updatedSchedule }),
+  };
+
   useEffect(() => {
-    mockApi.fetchSchedule().then((data) => setScheduleData(data));
+    async function fetchFeedingSchedules() {
+      try {
+        const res = await fetch("http://localhost:8080/v1/getFeedingSchedules");
+        const data = await res.json();
+        console.log("Fetched data:", data);
+        if (res.ok) {
+          // Convert the response to an array of feeding schedules
+          const feedingScheduleArray = Object.keys(data)
+            .filter((key) => key !== "status")
+            .map((key) => data[key]);
+          setScheduleData(feedingScheduleArray);
+        } else {
+          console.error("Failed to fetch feeding schedule data:", data);
+        }
+      } catch (error) {
+        console.error("Error fetching feeding schedules:", error);
+      }
+    }
+
+    fetchFeedingSchedules();
   }, []);
 
   const formatDate = (dateString) => {
@@ -166,11 +177,15 @@ const FeedingSchedule = () => {
     };
   };
 
-  const sortedData = [...scheduleData].sort((a, b) =>
+  console.log("LINE 180: scheduleData", scheduleData);
+  let sortedData = [...scheduleData].sort((a, b) =>
     compareDesc(parseISO(a.date), parseISO(b.date)),
   );
 
-  const hasAnyMeals = sortedData.some((d) => d.meals && d.meals.length > 0);
+  console.log("sortedData", sortedData);
+
+  let hasAnyMeals = sortedData.some((d) => d.meal && d.meal.length > 0);
+  console.log("hasAnyMeals", hasAnyMeals);
 
   const showToast = (message, variant = "success") => {
     const id = createToastId();
@@ -195,6 +210,7 @@ const FeedingSchedule = () => {
     setExportModalShow(true);
   };
 
+  // EXPORT data
   const handleExport = () => {
     if (!startDate || !endDate) {
       setExportError("Please select a valid start and end date.");
@@ -256,7 +272,8 @@ const FeedingSchedule = () => {
     setModalShow(true);
   };
 
-  const handleSaveMeal = () => {
+  // SAVE meal
+  const handleSaveMeal = async () => {
     setModalError("");
     const parsedHour = parseInt(hour, 10);
     const parsedMinute = parseInt(minute, 10);
@@ -311,15 +328,45 @@ const FeedingSchedule = () => {
       }
       return day;
     });
-    mockApi.updateSchedule(updated).then((resp) => {
-      if (resp.success) {
-        setScheduleData(resp.data);
+    try {
+      const res = await mockApi.updateSchedule(updated);
+      if (res.success) {
+        setScheduleData(res.data);
         setModalShow(false);
         showToast("Feed saved! The next feed is due in 2 hours.");
       }
-    });
+
+      // Make API call to add schedule
+      const response = await fetch("http://localhost:8080/v1/addSchedule", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          date: selectedDate,
+          time: timeStr,
+          meal: meal,
+          amount: parsedAmount,
+          type,
+          issues,
+          notes,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        showToast("Feed saved to server!");
+      } else {
+        showToast("Failed to save feed to server.", "danger");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      showToast("Error saving feed to server.", "danger");
+    }
   };
 
+  // DELETE meal
   const handleDeleteMeal = (mealItem, date) => {
     const updated = scheduleData.map((day) => {
       if (day.date === date) {
@@ -330,9 +377,9 @@ const FeedingSchedule = () => {
       }
       return day;
     });
-    mockApi.updateSchedule(updated).then((resp) => {
-      if (resp.success) {
-        setScheduleData(resp.data);
+    mockApi.updateSchedule(updated).then((res) => {
+      if (res.success) {
+        setScheduleData(res.data);
         showToast("Feed deleted.", "warning");
       }
     });
@@ -401,13 +448,42 @@ const FeedingSchedule = () => {
     if (!foundToday) {
       updated.push({ date: todayString, meals: [newFeed] });
     }
-    mockApi.updateSchedule(updated).then((resp) => {
-      if (resp.success) {
-        setScheduleData(resp.data);
+    mockApi.updateSchedule(updated).then((res) => {
+      if (res.success) {
+        setScheduleData(res.data);
         setAddFeedModalShow(false);
         showToast("Feed added! The next feed is due in 2 hours.");
       }
     });
+
+    // Make API call to add schedule
+    fetch("http://localhost:8080/v1/addSchedule", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        date: todayString,
+        time: timeStr,
+        meal: newMeal,
+        amount: parsedAmount,
+        type: newType,
+        issues: newIssues,
+        notes: newNote,
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          showToast("Feed added to server!");
+        } else {
+          showToast("Failed to add feed to server.", "danger");
+        }
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+        showToast("Error adding feed to server.", "danger");
+      });
   };
 
   return (
@@ -450,7 +526,9 @@ const FeedingSchedule = () => {
         {!hasAnyMeals && (
           <div className={styles.noDataContainer}>
             <p>No feed data found.</p>
-            <p>Click "+ Add Entry" to create your first feed entry!</p>
+            <p>
+              Click &quot;+ Add Entry&quot; to create your first feed entry!
+            </p>
           </div>
         )}
 
