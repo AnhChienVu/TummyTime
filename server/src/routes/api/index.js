@@ -15,17 +15,19 @@ router.post("/signup", require("./signup"));
 
 router.post("/addBaby", require("./addBaby"));
 
+router.get("/getFeedingSchedules", require("./getFeedingSchedules"));
+router.post("/addSchedule", require("./addSchedule"));
+
 router.get("/getProfile", require("./getProfile"));
 
 router.get("/getBabyProfiles", require("./getBabyProfiles"));
 
-
 //************ /users routes ************
-router.get('/users/:id', require('./users/getUsers').getUserById);
+router.get("/users/:id", require("./users/getUsers").getUserById);
 
-router.put('/users/:id', require('./users/putUsers').updateUserById);
+router.put("/users/:id", require("./users/putUsers").updateUserById);
 
-router.delete('/users/:id', require('./users/deleteUsers').deleteUserById);
+router.delete("/users/:id", require("./users/deleteUsers").deleteUserById);
 
 // Testing the authentication middleware
 // router.get('/test', authenticate(), require('./test'));
