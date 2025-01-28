@@ -17,6 +17,7 @@ import { parseISO, isWithinInterval } from "date-fns";
 
 import mockAnalysisData from "./mockAnalysisData.json";
 import styles from "./analysis.module.css";
+import Sidebar from "@/components/Sidebar/Sidebar";
 
 function Analysis() {
   const [feedData, setFeedData] = useState([]);
@@ -122,271 +123,85 @@ function Analysis() {
 
   // E) RENDER
   return (
-    <Container className={styles.analysisContainer}>
-      <h1>Analytics</h1>
-      <p className="text-muted">
-        Select a tab to view Feed, Stool, or Growth charts.
-      </p>
+    <Container className={styles.analysisContainer} fluid>
+      <Row>
+        <Sidebar />
 
-      <Tab.Container defaultActiveKey="feed">
-        <Nav variant="tabs" className={styles.customNavTabs}>
-          <Nav.Item>
-            <Nav.Link eventKey="feed">Feed</Nav.Link>
-          </Nav.Item>
-          <Nav.Item>
-            <Nav.Link eventKey="stool">Stool</Nav.Link>
-          </Nav.Item>
-          <Nav.Item>
-            <Nav.Link eventKey="growth">Growth</Nav.Link>
-          </Nav.Item>
-        </Nav>
+        <Col>
+          <h1>Analytics</h1>
+          <p className="text-muted">
+            Select a tab to view Feed, Stool, or Growth charts.
+          </p>
 
-        <Tab.Content className={`py-4 ${styles.noPaneBorder}`}>
-          {/* FEED TAB */}
-          <Tab.Pane eventKey="feed">
-            <Row className="mb-3">
-              <Col xs="auto">
-                <Form.Label>From</Form.Label>
-                <Form.Control
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                />
-              </Col>
-              <Col xs="auto">
-                <Form.Label>To</Form.Label>
-                <Form.Control
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                />
-              </Col>
-              <Col xs="auto" className="d-flex align-items-end">
-                <div className={styles.buttonGroup}>
-                  <button
-                    onClick={() => setTimeRange("week")}
-                    className={`${styles.toggleButton} ${
-                      timeRange === "week" ? styles.toggleButtonActive : ""
-                    }`}
-                  >
-                    Week
-                  </button>
-                  <button
-                    onClick={() => setTimeRange("month")}
-                    className={`${styles.toggleButton} ${
-                      timeRange === "month" ? styles.toggleButtonActive : ""
-                    }`}
-                  >
-                    Month
-                  </button>
-                </div>
-              </Col>
-            </Row>
+          <Tab.Container defaultActiveKey="feed">
+            <Nav variant="tabs" className={styles.customNavTabs}>
+              <Nav.Item>
+                <Nav.Link eventKey="feed">Feed</Nav.Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Nav.Link eventKey="stool">Stool</Nav.Link>
+              </Nav.Item>
+              <Nav.Item>
+                <Nav.Link eventKey="growth">Growth</Nav.Link>
+              </Nav.Item>
+            </Nav>
 
-            <Card>
-              <Card.Body>
-                <Card.Title>Feed Chart (Daily Total)</Card.Title>
-                {!hasEnoughFeedData ? (
-                  <p>
-                    You need at least 20 feed records before this chart can be
-                    displayed.
-                  </p>
-                ) : filteredFeedChartData.length === 0 ? (
-                  <p>No feed data found for your selected date range.</p>
-                ) : (
-                  <div className={styles.chartContainer}>
-                    <ResponsiveContainer>
-                      <LineChart data={filteredFeedChartData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="date" />
-                        <YAxis />
-                        <Tooltip />
-                        <Legend />
-                        <Line
-                          type="monotone"
-                          dataKey="total"
-                          stroke="#8884d8"
-                          strokeWidth={2}
-                          name="Total Ounces"
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                )}
-              </Card.Body>
-            </Card>
-          </Tab.Pane>
+            <Tab.Content className={`py-4 ${styles.noPaneBorder}`}>
+              {/* FEED TAB */}
+              <Tab.Pane eventKey="feed">
+                <Row className="mb-3">
+                  <Col xs="auto">
+                    <Form.Label>From</Form.Label>
+                    <Form.Control
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                    />
+                  </Col>
+                  <Col xs="auto">
+                    <Form.Label>To</Form.Label>
+                    <Form.Control
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                    />
+                  </Col>
+                  <Col xs="auto" className="d-flex align-items-end">
+                    <div className={styles.buttonGroup}>
+                      <button
+                        onClick={() => setTimeRange("week")}
+                        className={`${styles.toggleButton} ${
+                          timeRange === "week" ? styles.toggleButtonActive : ""
+                        }`}
+                      >
+                        Week
+                      </button>
+                      <button
+                        onClick={() => setTimeRange("month")}
+                        className={`${styles.toggleButton} ${
+                          timeRange === "month" ? styles.toggleButtonActive : ""
+                        }`}
+                      >
+                        Month
+                      </button>
+                    </div>
+                  </Col>
+                </Row>
 
-          {/* STOOL TAB */}
-          <Tab.Pane eventKey="stool">
-            <Row className="mb-3">
-              <Col xs="auto">
-                <Form.Label>From</Form.Label>
-                <Form.Control
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                />
-              </Col>
-              <Col xs="auto">
-                <Form.Label>To</Form.Label>
-                <Form.Control
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                />
-              </Col>
-              <Col xs="auto" className="d-flex align-items-end">
-                <div className={styles.buttonGroup}>
-                  <button
-                    onClick={() => setTimeRange("week")}
-                    className={`${styles.toggleButton} ${
-                      timeRange === "week" ? styles.toggleButtonActive : ""
-                    }`}
-                  >
-                    Week
-                  </button>
-                  <button
-                    onClick={() => setTimeRange("month")}
-                    className={`${styles.toggleButton} ${
-                      timeRange === "month" ? styles.toggleButtonActive : ""
-                    }`}
-                  >
-                    Month
-                  </button>
-                </div>
-              </Col>
-            </Row>
-
-            <Card>
-              <Card.Body>
-                <Card.Title>Stool Color Chart</Card.Title>
-                {!hasEnoughStoolData ? (
-                  <p>
-                    You need at least 20 stool records before this chart can be
-                    displayed.
-                  </p>
-                ) : stoolColorData.length === 0 ? (
-                  <p>No stool data found for your selected date range.</p>
-                ) : (
-                  <div className={styles.chartContainer}>
-                    <ResponsiveContainer>
-                      <PieChart>
-                        <Pie
-                          data={stoolColorData}
-                          dataKey="value"
-                          nameKey="name"
-                          outerRadius={100}
-                          label
-                        >
-                          {stoolColorData.map((entry, index) => (
-                            <Cell
-                              key={`cell-${index}`}
-                              fill={PIE_COLORS[index % PIE_COLORS.length]}
-                            />
-                          ))}
-                        </Pie>
-                        <Legend />
-                        <Tooltip />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                )}
-              </Card.Body>
-            </Card>
-          </Tab.Pane>
-
-          {/* GROWTH TAB */}
-          <Tab.Pane eventKey="growth">
-            <Row className="mb-3">
-              <Col xs="auto">
-                <Form.Label>From</Form.Label>
-                <Form.Control
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                />
-              </Col>
-              <Col xs="auto">
-                <Form.Label>To</Form.Label>
-                <Form.Control
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                />
-              </Col>
-              <Col xs="auto" className="d-flex align-items-end">
-                <div className={styles.buttonGroup}>
-                  <button
-                    onClick={() => setTimeRange("week")}
-                    className={`${styles.toggleButton} ${
-                      timeRange === "week" ? styles.toggleButtonActive : ""
-                    }`}
-                  >
-                    Week
-                  </button>
-                  <button
-                    onClick={() => setTimeRange("month")}
-                    className={`${styles.toggleButton} ${
-                      timeRange === "month" ? styles.toggleButtonActive : ""
-                    }`}
-                  >
-                    Month
-                  </button>
-                </div>
-              </Col>
-            </Row>
-
-            <Row>
-              <Col md={6}>
-                <Card className="mb-4">
-                  <Card.Body>
-                    <Card.Title>Height Growth</Card.Title>
-                    {!hasEnoughGrowthData ? (
-                      <p>
-                        You need at least 20 growth records before this chart
-                        can be displayed.
-                      </p>
-                    ) : growthChartData.length === 0 ? (
-                      <p>No growth data found for your selected date range.</p>
-                    ) : (
-                      <div className={styles.chartContainer}>
-                        <ResponsiveContainer>
-                          <LineChart data={growthChartData}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="date" />
-                            <YAxis />
-                            <Tooltip />
-                            <Legend />
-                            <Line
-                              type="monotone"
-                              dataKey="height"
-                              stroke="#82ca9d"
-                              strokeWidth={2}
-                              name="Height (inches)"
-                            />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      </div>
-                    )}
-                  </Card.Body>
-                </Card>
-              </Col>
-              <Col md={6}>
                 <Card>
                   <Card.Body>
-                    <Card.Title>Weight Growth</Card.Title>
-                    {!hasEnoughGrowthData ? (
+                    <Card.Title>Feed Chart (Daily Total)</Card.Title>
+                    {!hasEnoughFeedData ? (
                       <p>
-                        You need at least 20 growth records before this chart
-                        can be displayed.
+                        You need at least 20 feed records before this chart can
+                        be displayed.
                       </p>
-                    ) : growthChartData.length === 0 ? (
-                      <p>No growth data found for your selected date range.</p>
+                    ) : filteredFeedChartData.length === 0 ? (
+                      <p>No feed data found for your selected date range.</p>
                     ) : (
                       <div className={styles.chartContainer}>
                         <ResponsiveContainer>
-                          <LineChart data={growthChartData}>
+                          <LineChart data={filteredFeedChartData}>
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="date" />
                             <YAxis />
@@ -394,10 +209,10 @@ function Analysis() {
                             <Legend />
                             <Line
                               type="monotone"
-                              dataKey="weight"
-                              stroke="#FF8042"
+                              dataKey="total"
+                              stroke="#8884d8"
                               strokeWidth={2}
-                              name="Weight (lbs)"
+                              name="Total Ounces"
                             />
                           </LineChart>
                         </ResponsiveContainer>
@@ -405,11 +220,207 @@ function Analysis() {
                     )}
                   </Card.Body>
                 </Card>
-              </Col>
-            </Row>
-          </Tab.Pane>
-        </Tab.Content>
-      </Tab.Container>
+              </Tab.Pane>
+
+              {/* STOOL TAB */}
+              <Tab.Pane eventKey="stool">
+                <Row className="mb-3">
+                  <Col xs="auto">
+                    <Form.Label>From</Form.Label>
+                    <Form.Control
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                    />
+                  </Col>
+                  <Col xs="auto">
+                    <Form.Label>To</Form.Label>
+                    <Form.Control
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                    />
+                  </Col>
+                  <Col xs="auto" className="d-flex align-items-end">
+                    <div className={styles.buttonGroup}>
+                      <button
+                        onClick={() => setTimeRange("week")}
+                        className={`${styles.toggleButton} ${
+                          timeRange === "week" ? styles.toggleButtonActive : ""
+                        }`}
+                      >
+                        Week
+                      </button>
+                      <button
+                        onClick={() => setTimeRange("month")}
+                        className={`${styles.toggleButton} ${
+                          timeRange === "month" ? styles.toggleButtonActive : ""
+                        }`}
+                      >
+                        Month
+                      </button>
+                    </div>
+                  </Col>
+                </Row>
+
+                <Card>
+                  <Card.Body>
+                    <Card.Title>Stool Color Chart</Card.Title>
+                    {!hasEnoughStoolData ? (
+                      <p>
+                        You need at least 20 stool records before this chart can
+                        be displayed.
+                      </p>
+                    ) : stoolColorData.length === 0 ? (
+                      <p>No stool data found for your selected date range.</p>
+                    ) : (
+                      <div className={styles.chartContainer}>
+                        <ResponsiveContainer>
+                          <PieChart>
+                            <Pie
+                              data={stoolColorData}
+                              dataKey="value"
+                              nameKey="name"
+                              outerRadius={100}
+                              label
+                            >
+                              {stoolColorData.map((entry, index) => (
+                                <Cell
+                                  key={`cell-${index}`}
+                                  fill={PIE_COLORS[index % PIE_COLORS.length]}
+                                />
+                              ))}
+                            </Pie>
+                            <Legend />
+                            <Tooltip />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                    )}
+                  </Card.Body>
+                </Card>
+              </Tab.Pane>
+
+              {/* GROWTH TAB */}
+              <Tab.Pane eventKey="growth">
+                <Row className="mb-3">
+                  <Col xs="auto">
+                    <Form.Label>From</Form.Label>
+                    <Form.Control
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                    />
+                  </Col>
+                  <Col xs="auto">
+                    <Form.Label>To</Form.Label>
+                    <Form.Control
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                    />
+                  </Col>
+                  <Col xs="auto" className="d-flex align-items-end">
+                    <div className={styles.buttonGroup}>
+                      <button
+                        onClick={() => setTimeRange("week")}
+                        className={`${styles.toggleButton} ${
+                          timeRange === "week" ? styles.toggleButtonActive : ""
+                        }`}
+                      >
+                        Week
+                      </button>
+                      <button
+                        onClick={() => setTimeRange("month")}
+                        className={`${styles.toggleButton} ${
+                          timeRange === "month" ? styles.toggleButtonActive : ""
+                        }`}
+                      >
+                        Month
+                      </button>
+                    </div>
+                  </Col>
+                </Row>
+
+                <Row>
+                  <Col md={6}>
+                    <Card className="mb-4">
+                      <Card.Body>
+                        <Card.Title>Height Growth</Card.Title>
+                        {!hasEnoughGrowthData ? (
+                          <p>
+                            You need at least 20 growth records before this
+                            chart can be displayed.
+                          </p>
+                        ) : growthChartData.length === 0 ? (
+                          <p>
+                            No growth data found for your selected date range.
+                          </p>
+                        ) : (
+                          <div className={styles.chartContainer}>
+                            <ResponsiveContainer>
+                              <LineChart data={growthChartData}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="date" />
+                                <YAxis />
+                                <Tooltip />
+                                <Legend />
+                                <Line
+                                  type="monotone"
+                                  dataKey="height"
+                                  stroke="#82ca9d"
+                                  strokeWidth={2}
+                                  name="Height (inches)"
+                                />
+                              </LineChart>
+                            </ResponsiveContainer>
+                          </div>
+                        )}
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                  <Col md={6}>
+                    <Card>
+                      <Card.Body>
+                        <Card.Title>Weight Growth</Card.Title>
+                        {!hasEnoughGrowthData ? (
+                          <p>
+                            You need at least 20 growth records before this
+                            chart can be displayed.
+                          </p>
+                        ) : growthChartData.length === 0 ? (
+                          <p>
+                            No growth data found for your selected date range.
+                          </p>
+                        ) : (
+                          <div className={styles.chartContainer}>
+                            <ResponsiveContainer>
+                              <LineChart data={growthChartData}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="date" />
+                                <YAxis />
+                                <Tooltip />
+                                <Legend />
+                                <Line
+                                  type="monotone"
+                                  dataKey="weight"
+                                  stroke="#FF8042"
+                                  strokeWidth={2}
+                                  name="Weight (lbs)"
+                                />
+                              </LineChart>
+                            </ResponsiveContainer>
+                          </div>
+                        )}
+                      </Card.Body>
+                    </Card>
+                  </Col>
+                </Row>
+              </Tab.Pane>
+            </Tab.Content>
+          </Tab.Container>
+        </Col>
+      </Row>
     </Container>
   );
 }
