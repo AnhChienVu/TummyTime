@@ -71,13 +71,18 @@ function ProfilePage() {
                 </Card.Title>
                 <Card.Text>{profile ? profile.role : "Loading..."}</Card.Text>
               </div>
-              <Button variant="outline-secondary">Edit</Button>
+              <Button
+                variant="outline-secondary"
+                href="http://localhost:3000/user"
+              >
+                Edit
+              </Button>
             </Card.Body>
           </Card>
           <div className="d-flex justify-content-between align-items-center mb-3">
             <h2>Baby Profiles</h2>
             <Button variant="primary" href="http://localhost:3000/addBaby">
-              Create New
+              Add Baby
             </Button>
           </div>
           {babyProfiles.length > 0 ? (
