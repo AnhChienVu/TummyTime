@@ -6,6 +6,7 @@ import { Row, Col, Container, Button, Modal, Form } from "react-bootstrap";
 import styles from "./user.module.css";
 import { set, useForm } from "react-hook-form";
 import { useRouter } from "next/router";
+import Sidebar from "@/components/Sidebar/Sidebar";
 
 // MOCK DATA
 // NOTE:-ASSUMPTION: The user is already logged in with a valid session
@@ -33,9 +34,9 @@ export default function EditUserProfile() {
 
   const router = useRouter();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  
-  useEffect(() => { 
-    async function fetchUser() { 
+
+  useEffect(() => {
+    async function fetchUser() {
       try {
         //TODO-: ===> NEED to change to RETRIEVE User data with the correct userID from session cache
         const res = await fetch(`${API_URL}/v1/users/${userID}`);
@@ -74,7 +75,7 @@ export default function EditUserProfile() {
 
       console.log(`User ${userID} updated successfully with this data: `, data);
       alert("User information updated successfully!");
-      router.push("/profile");  // redirect to /profile page (showing user and babies)
+      router.push("/profile"); // redirect to /profile page (showing user and babies)
     } catch (err) {
       console.error(`Error updating user ${userID}: `, err);
       alert("Error updating user information. Please try again.");
@@ -96,7 +97,8 @@ export default function EditUserProfile() {
   };
 
   return (
-    <Container className={styles.container} fluid> 
+    <Container className={styles.container} fluid>
+      <Sidebar />
       <div className={styles.formContainer}>
         <Form onSubmit={handleSubmit(submitForm)}>
           {/* Title */}
@@ -105,19 +107,17 @@ export default function EditUserProfile() {
           {/* Name Field */}
           <Row className="mb-3">
             <Col md={6}>
-              <Form.Group className="mb-3"> 
+              <Form.Group className="mb-3">
                 <Form.Control
                   type="text"
                   placeholder="First name"
                   {...register("first_name", {
                     required: "First name is required.",
-                  })} 
-                  isInvalid={
-                    !!errors?.first_name
-                  }
+                  })}
+                  isInvalid={!!errors?.first_name}
                 />
                 <Form.Control.Feedback type="invalid">
-                  {errors?.first_name?.message} 
+                  {errors?.first_name?.message}
                 </Form.Control.Feedback>
               </Form.Group>
             </Col>
@@ -150,9 +150,7 @@ export default function EditUserProfile() {
                   {...register("email", {
                     required: "Email is required.",
                     pattern: {
-                      value:
-                        /^[^\s@]+@[^\s@]+\.[^\s@]+$/ 
-                      ,
+                      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
                       message: "Email is not valid.",
                     },
                   })}
