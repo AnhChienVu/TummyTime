@@ -141,6 +141,7 @@ const FeedingSchedule = () => {
   const [remindMinutes, setRemindMinutes] = useState("30");
   const [toasts, setToasts] = useState([]);
 
+  // TODO Replace with actual API calls (edit and delete operations)
   const mockApi = {
     updateSchedule: (updatedSchedule) =>
       Promise.resolve({ success: true, data: updatedSchedule }),
@@ -151,7 +152,7 @@ const FeedingSchedule = () => {
       try {
         const res = await fetch("http://localhost:8080/v1/getFeedingSchedules");
         const data = await res.json();
-        console.log("Fetched data:", data);
+        console.debug("Fetched data:", data);
         if (res.ok) {
           // Convert the response to an array of feeding schedules
           const feedingScheduleArray = Object.keys(data)
@@ -164,6 +165,11 @@ const FeedingSchedule = () => {
       } catch (error) {
         console.error("Error fetching feeding schedules:", error);
       }
+    }
+
+    async function updateSchedule(updatedSchedule) {
+      const res = await fetch("http://localhost:8080/v1/updateFeedingSchedule");
+      const data = await res.json();
     }
 
     fetchFeedingSchedules();
@@ -182,10 +188,10 @@ const FeedingSchedule = () => {
     compareDesc(parseISO(a.date), parseISO(b.date)),
   );
 
-  console.log("sortedData", sortedData);
+  // console.debug("sortedData", sortedData);
 
   let hasAnyMeals = sortedData.some((d) => d.meal && d.meal.length > 0);
-  console.log("hasAnyMeals", hasAnyMeals);
+  // console.debug("hasAnyMeals", hasAnyMeals);
 
   const showToast = (message, variant = "success") => {
     const id = createToastId();
