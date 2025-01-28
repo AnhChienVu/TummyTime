@@ -75,6 +75,7 @@ export default function Login() {
         } else {
           console.log("Login successfully");
           localStorage.setItem("token", data.token);
+          localStorage.setItem("userId", data.userId);
           router.push("/profile");
         }
       } else {

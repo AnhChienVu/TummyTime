@@ -4,19 +4,10 @@
 import { useState, useEffect } from "react";
 import { Row, Col, Container, Button, Modal, Form } from "react-bootstrap";
 import styles from "./user.module.css";
-import { set, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { useRouter } from "next/router";
 
-// MOCK DATA
-// NOTE:-ASSUMPTION: The user is already logged in with a valid session
-// The userID is stored in the session after login
-const userID = 1;
-// NOTE:-ASSUMMING: API url is http://localhost:8080/
-const API_URL = "http://localhost:8080";
-
 export default function EditUserProfile() {
-  let userData; // store all fields of user data in database
-
   const {
     register,
     handleSubmit,
@@ -32,32 +23,22 @@ export default function EditUserProfile() {
   });
 
   const router = useRouter();
+  const [user, setUser] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  
-  useEffect(() => { 
-    async function fetchUser() { 
-      try {
-        //TODO-: ===> NEED to change to RETRIEVE User data with the correct userID from session cache
-        const res = await fetch(`${API_URL}/v1/users/${userID}`);
 
-        if (res.ok) {
-          userData = await res.json();
-          console.log("Fetched User data:", userData);
-        } else {
-          console.error("Failed to fetch user:", userData);
-        }
-      } catch (error) {
-        console.error("Error fetching user:", error);
-      }
+  useEffect(() => {
+    if (router.isReady) {
+      const userProfile = router.query?.profile
+        ? JSON.parse(router.query.profile)
+        : null;
+      setUser(userProfile);
 
-      setValue("first_name", userData?.first_name);
-      setValue("last_name", userData?.last_name);
-      setValue("email", userData?.email);
-      setValue("role", userData?.role);
+      setValue("first_name", userProfile?.first_name);
+      setValue("last_name", userProfile?.last_name);
+      setValue("email", userProfile?.email);
+      setValue("role", userProfile?.role);
     }
-
-    fetchUser();
-  }, [setValue]); // [setValue] will only run once
+  }, [router.isReady, router.query, setValue]);
 
   const submitForm = async (data) => {
     //submitting form of user data
@@ -66,17 +47,27 @@ export default function EditUserProfile() {
       data.created_at = new Date().toISOString();
       console.log("Submitting form with data: ", data);
 
-      await fetch(`${API_URL}/v1/users/${userID}`, {
+      const res = await fetch(`http://localhost:8080/v1/user/${user.user_id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
 
-      console.log(`User ${userID} updated successfully with this data: `, data);
-      alert("User information updated successfully!");
-      router.push("/profile");  // redirect to /profile page (showing user and babies)
+      if (res.ok) {
+        const updatedUser = await res.json();
+        console.log(
+          `User ${user.user_id} updated successfully with this data: `,
+          updatedUser,
+        );
+        alert("User information updated successfully!");
+        router.push("/profile"); // redirect to /profile page (showing user and babies)
+      } else {
+        const errorData = await res.json();
+        console.error(`Error updating user ${user.user_id}: `, errorData);
+        alert("Error updating user information. Please try again.");
+      }
     } catch (err) {
-      console.error(`Error updating user ${userID}: `, err);
+      console.error(`Error updating user ${user.user_id}: `, err);
       alert("Error updating user information. Please try again.");
     }
   };
@@ -84,7 +75,7 @@ export default function EditUserProfile() {
   const handleDelete = async () => {
     try {
       // deleting User
-      await fetch(`${API_URL}/v1/users/${userID}`, {
+      await fetch(`http://localhost:8080/v1/user/${user.user_id}`, {
         method: "DELETE",
       });
       alert("User deleted successfully!");
@@ -96,7 +87,7 @@ export default function EditUserProfile() {
   };
 
   return (
-    <Container className={styles.container} fluid> 
+    <Container className={styles.container} fluid>
       <div className={styles.formContainer}>
         <Form onSubmit={handleSubmit(submitForm)}>
           {/* Title */}
@@ -105,19 +96,17 @@ export default function EditUserProfile() {
           {/* Name Field */}
           <Row className="mb-3">
             <Col md={6}>
-              <Form.Group className="mb-3"> 
+              <Form.Group className="mb-3">
                 <Form.Control
                   type="text"
                   placeholder="First name"
                   {...register("first_name", {
                     required: "First name is required.",
-                  })} 
-                  isInvalid={
-                    !!errors?.first_name
-                  }
+                  })}
+                  isInvalid={!!errors?.first_name}
                 />
                 <Form.Control.Feedback type="invalid">
-                  {errors?.first_name?.message} 
+                  {errors?.first_name?.message}
                 </Form.Control.Feedback>
               </Form.Group>
             </Col>
@@ -150,9 +139,7 @@ export default function EditUserProfile() {
                   {...register("email", {
                     required: "Email is required.",
                     pattern: {
-                      value:
-                        /^[^\s@]+@[^\s@]+\.[^\s@]+$/ 
-                      ,
+                      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
                       message: "Email is not valid.",
                     },
                   })}
@@ -169,7 +156,7 @@ export default function EditUserProfile() {
           <Row className="mb-3">
             <Col>
               <Form.Group className="mb-3">
-                <Form.Control
+                <Form.Select
                   name="role"
                   type="text"
                   placeholder="Role"
@@ -177,7 +164,10 @@ export default function EditUserProfile() {
                     required: "Role is required.",
                   })}
                   isInvalid={!!errors?.role}
-                />
+                >
+                  <option value="Parent">Parent</option>
+                  <option value="Caregiver">Caregiver</option>
+                </Form.Select>
                 <Form.Control.Feedback type="invalid">
                   {errors?.role?.message}
                 </Form.Control.Feedback>
