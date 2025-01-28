@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Form, Button, Alert } from "react-bootstrap";
+import { Modal, Form, Button, Alert, Row, Col } from "react-bootstrap";
 import {
   parseISO,
   format,
@@ -11,6 +11,7 @@ import {
 import { FaBaby, FaEdit, FaTrash } from "react-icons/fa";
 import { AiOutlineInfoCircle } from "react-icons/ai";
 import styles from "./feeding-schedule.module.css";
+import Sidebar from "@/components/Sidebar/Sidebar";
 
 function getLocalTodayString() {
   const now = new Date();
@@ -492,431 +493,462 @@ const FeedingSchedule = () => {
       });
   };
 
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   return (
     <>
       <ToastContainer toasts={toasts} removeToast={removeToast} />
 
       <div className={styles.container}>
-        {hasAnyMeals && (
-          <div className={styles.feedDueBox}>
-            <div className={styles.feedDueIcon}>
-              <FaBaby size={20} color="#674ea7" />
-            </div>
-            <div>
-              <p className={styles.feedDueMain}>Feed is due in 2 hours</p>
-              <p className={styles.feedDueSub}>Last feed at 9:41 AM • 7 oz</p>
-            </div>
-          </div>
-        )}
-
-        <div className={styles.headerRow}>
-          <h1 className={styles.title}>Feeding Schedule</h1>
-          <div className={styles.headerActions}>
+        <Row>
+          <Sidebar />
+          <Col>
             {hasAnyMeals && (
-              <Button
-                className={styles.exportBtn}
-                onClick={handleOpenExportModal}
-              >
-                Export
-              </Button>
-            )}
-            <Button
-              className={styles.addFeedBtn}
-              onClick={handleOpenAddFeedModal}
-            >
-              + Add Entry
-            </Button>
-          </div>
-        </div>
-
-        {!hasAnyMeals && (
-          <div className={styles.noDataContainer}>
-            <p>No feed data found.</p>
-            <p>
-              Click &quot;+ Add Entry&quot; to create your first feed entry!
-            </p>
-          </div>
-        )}
-
-        {sortedData.map((day, idx) => {
-          if (!day.meals || day.meals.length === 0) return null;
-          const { dayNumber, restOfDate } = formatDate(day.date);
-          const today = isSameDay(new Date(), parseISO(day.date));
-          return (
-            <div key={idx} className={styles.dayCard}>
-              <div className={styles.dayHeader}>
-                <div className={styles.dayInfo}>
-                  {today ? (
-                    <div className={styles.dateCircle}>{dayNumber}</div>
-                  ) : (
-                    <div className={styles.dateNumber}>{dayNumber}</div>
-                  )}
-                  <span className={styles.dateText}>{restOfDate}</span>
+              <div className={styles.feedDueBox}>
+                <div className={styles.feedDueIcon}>
+                  <FaBaby size={20} color="#674ea7" />
                 </div>
-                <div className={styles.dayHeaderRight}>
-                  <span className={styles.todayMeals}>Today’s Meals</span>
+                <div>
+                  <p className={styles.feedDueMain}>Feed is due in 2 hours</p>
+                  <p className={styles.feedDueSub}>
+                    Last feed at 9:41 AM • 7 oz
+                  </p>
                 </div>
               </div>
-              <table className={styles.mealsTable}>
-                <thead>
-                  <tr>
-                    <th>Meal</th>
-                    <th>Time</th>
-                    <th>Type</th>
-                    <th>Amount (oz)</th>
-                    <th>Issue</th>
-                    <th>Notes</th>
-                    <th style={{ width: "60px" }}></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {day.meals.map((mealItem, mealIdx) => (
-                    <tr key={mealIdx}>
-                      <td>{mealItem.meal}</td>
-                      <td>{mealItem.time}</td>
-                      <td>{mealItem.type}</td>
-                      <td>
-                        {mealItem.amount > 0 ? mealItem.amount + " oz" : "0 oz"}
-                      </td>
-                      <td>{mealItem.issues || "None"}</td>
-                      <td>{mealItem.notes || "None"}</td>
-                      <td className={styles.actionCell}>
-                        <button
-                          className={styles.editBtn}
-                          onClick={() => handleOpenModal(mealItem, day.date)}
-                        >
-                          <FaEdit />
-                        </button>
-                        <button
-                          className={styles.deleteBtn}
-                          onClick={() => handleDeleteMeal(mealItem, day.date)}
-                        >
-                          <FaTrash />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            )}
+
+            <div className={styles.headerRow}>
+              <h1 className={styles.title}>Feeding Schedule</h1>
+              <div className={styles.headerActions}>
+                {hasAnyMeals && (
+                  <Button
+                    className={styles.exportBtn}
+                    onClick={handleOpenExportModal}
+                  >
+                    Export
+                  </Button>
+                )}
+                <Button
+                  className={styles.addFeedBtn}
+                  onClick={handleOpenAddFeedModal}
+                >
+                  + Add Entry
+                </Button>
+              </div>
             </div>
-          );
-        })}
 
-        <Modal show={modalShow} onHide={() => setModalShow(false)}>
-          <Modal.Header closeButton>
-            <Modal.Title>{selectedMeal ? "Edit Meal" : "Add Meal"}</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            {modalError && <Alert variant="danger">{modalError}</Alert>}
-            <Form>
-              <Form.Group controlId="meal">
-                <Form.Label>Meal</Form.Label>
-                <Form.Select
-                  value={meal}
-                  onChange={(e) => setMeal(e.target.value)}
-                >
-                  <option>Breakfast</option>
-                  <option>Lunch</option>
-                  <option>Dinner</option>
-                  <option>Snack</option>
-                </Form.Select>
-              </Form.Group>
-              <Form.Group controlId="time" className="mt-3">
-                <Form.Label>Time</Form.Label>
-                <div className={styles.timeRow}>
-                  <div className={styles.timeSegment}>
-                    <input
-                      type="number"
-                      min="1"
-                      max="12"
-                      className={styles.timeBox}
-                      value={hour}
-                      placeholder="Hrs" /* NEW placeholder */
-                      onChange={(e) => setHour(e.target.value)}
-                    />
-                    <span className={styles.colon}>:</span>
-                    <input
-                      type="number"
-                      min="0"
-                      max="59"
-                      className={styles.timeBox}
-                      value={minute}
-                      placeholder="Min" /* NEW placeholder */
-                      onChange={(e) => setMinute(e.target.value)}
-                    />
-                  </div>
-                  <div className={styles.amPmSegment}>
-                    <button
-                      type="button"
-                      className={
-                        amPm === "AM" ? styles.amPmBtnActive : styles.amPmBtn
-                      }
-                      onClick={() => setAmPm("AM")}
-                    >
-                      AM
-                    </button>
-                    <button
-                      type="button"
-                      className={
-                        amPm === "PM" ? styles.amPmBtnActive : styles.amPmBtn
-                      }
-                      onClick={() => setAmPm("PM")}
-                    >
-                      PM
-                    </button>
-                  </div>
-                </div>
-              </Form.Group>
-              <Form.Group controlId="type" className="mt-3">
-                <Form.Label>Type</Form.Label>
-                <Form.Select
-                  value={type}
-                  onChange={(e) => setType(e.target.value)}
-                >
-                  <option>Baby formula</option>
-                  <option>Breastmilk</option>
-                  <option>Solid food</option>
-                  <option>Snack</option>
-                </Form.Select>
-              </Form.Group>
-              <Form.Group controlId="amount" className="mt-3">
-                <Form.Label>Amount (oz)</Form.Label>
-                <Form.Control
-                  type="number"
-                  step="0.1"
-                  placeholder="E.g. 7" /* NEW placeholder */
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                />
-              </Form.Group>
-              <Form.Group controlId="issues" className="mt-3">
-                <Form.Label>Issue</Form.Label>
-                <Form.Control
-                  as="textarea"
-                  rows={2}
-                  placeholder="Describe any feeding issues"
-                  value={issues}
-                  onChange={(e) => setIssues(e.target.value)}
-                />
-              </Form.Group>
-              <Form.Group controlId="notes" className="mt-3">
-                <Form.Label>Notes</Form.Label>
-                <Form.Control
-                  as="textarea"
-                  rows={2}
-                  placeholder="Any additional notes?"
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                />
-              </Form.Group>
-            </Form>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button
-              className={styles.btnCancel}
-              onClick={() => setModalShow(false)}
-            >
-              Cancel
-            </Button>
-            <Button className={styles.btnSave} onClick={handleSaveMeal}>
-              Save
-            </Button>
-          </Modal.Footer>
-        </Modal>
+            {!hasAnyMeals && (
+              <div className={styles.noDataContainer}>
+                <p>No feed data found.</p>
+                <p>
+                  Click &quot;+ Add Entry&quot; to create your first feed entry!
+                </p>
+              </div>
+            )}
 
-        <Modal
-          show={addFeedModalShow}
-          onHide={() => setAddFeedModalShow(false)}
-        >
-          <Modal.Header closeButton>
-            <Modal.Title>Add a feed</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            {newModalError && <Alert variant="danger">{newModalError}</Alert>}
-            <Form>
-              <Form.Group controlId="newMeal">
-                <Form.Label>Meal</Form.Label>
-                <Form.Select
-                  value={newMeal}
-                  onChange={(e) => setNewMeal(e.target.value)}
-                >
-                  <option>Breakfast</option>
-                  <option>Lunch</option>
-                  <option>Dinner</option>
-                  <option>Snack</option>
-                </Form.Select>
-              </Form.Group>
-              <Form.Group controlId="time" className="mt-3">
-                <Form.Label>Time</Form.Label>
-                <div className={styles.timeRow}>
-                  <div className={styles.timeSegment}>
-                    <input
-                      type="number"
-                      min="1"
-                      max="12"
-                      className={styles.timeBox}
-                      value={newHour}
-                      placeholder="Hrs" /* NEW placeholder */
-                      onChange={(e) => setNewHour(e.target.value)}
-                    />
-                    <span className={styles.colon}>:</span>
-                    <input
-                      type="number"
-                      min="0"
-                      max="59"
-                      className={styles.timeBox}
-                      value={newMinute}
-                      placeholder="Min" /* NEW placeholder */
-                      onChange={(e) => setNewMinute(e.target.value)}
-                    />
+            {sortedData.map((day, idx) => {
+              if (!day.meals || day.meals.length === 0) return null;
+              const { dayNumber, restOfDate } = formatDate(day.date);
+              const today = isSameDay(new Date(), parseISO(day.date));
+              return (
+                <div key={idx} className={styles.dayCard}>
+                  <div className={styles.dayHeader}>
+                    <div className={styles.dayInfo}>
+                      {today ? (
+                        <div className={styles.dateCircle}>{dayNumber}</div>
+                      ) : (
+                        <div className={styles.dateNumber}>{dayNumber}</div>
+                      )}
+                      <span className={styles.dateText}>{restOfDate}</span>
+                    </div>
+                    <div className={styles.dayHeaderRight}>
+                      <span className={styles.todayMeals}>Today’s Meals</span>
+                    </div>
                   </div>
-                  <div className={styles.amPmSegment}>
-                    <button
-                      type="button"
-                      className={
-                        newAmPm === "AM" ? styles.amPmBtnActive : styles.amPmBtn
-                      }
-                      onClick={() => setNewAmPm("AM")}
-                    >
-                      AM
-                    </button>
-                    <button
-                      type="button"
-                      className={
-                        newAmPm === "PM" ? styles.amPmBtnActive : styles.amPmBtn
-                      }
-                      onClick={() => setNewAmPm("PM")}
-                    >
-                      PM
-                    </button>
-                  </div>
+                  <table className={styles.mealsTable}>
+                    <thead>
+                      <tr>
+                        <th>Meal</th>
+                        <th>Time</th>
+                        <th>Type</th>
+                        <th>Amount (oz)</th>
+                        <th>Issue</th>
+                        <th>Notes</th>
+                        <th style={{ width: "60px" }}></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {day.meals.map((mealItem, mealIdx) => (
+                        <tr key={mealIdx}>
+                          <td>{mealItem.meal}</td>
+                          <td>{mealItem.time}</td>
+                          <td>{mealItem.type}</td>
+                          <td>
+                            {mealItem.amount > 0
+                              ? mealItem.amount + " oz"
+                              : "0 oz"}
+                          </td>
+                          <td>{mealItem.issues || "None"}</td>
+                          <td>{mealItem.notes || "None"}</td>
+                          <td className={styles.actionCell}>
+                            <button
+                              className={styles.editBtn}
+                              onClick={() =>
+                                handleOpenModal(mealItem, day.date)
+                              }
+                            >
+                              <FaEdit />
+                            </button>
+                            <button
+                              className={styles.deleteBtn}
+                              onClick={() =>
+                                handleDeleteMeal(mealItem, day.date)
+                              }
+                            >
+                              <FaTrash />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              </Form.Group>
-              <Form.Group controlId="newType" className="mt-3">
-                <Form.Label>Type</Form.Label>
-                <Form.Select
-                  value={newType}
-                  onChange={(e) => setNewType(e.target.value)}
-                >
-                  <option>Baby formula</option>
-                  <option>Breastmilk</option>
-                  <option>Solid food</option>
-                  <option>Snack</option>
-                </Form.Select>
-              </Form.Group>
-              <Form.Group controlId="newAmount" className="mt-3">
-                <Form.Label>Amount (oz)</Form.Label>
-                <Form.Control
-                  type="number"
-                  step="0.1"
-                  placeholder="E.g. 7"
-                  value={newAmount}
-                  onChange={(e) => setNewAmount(e.target.value)}
-                />
-              </Form.Group>
-              <Form.Group controlId="newIssues" className="mt-3">
-                <Form.Label>Issue</Form.Label>
-                <Form.Control
-                  as="textarea"
-                  rows={2}
-                  placeholder="Describe any feeding issues"
-                  value={newIssues}
-                  onChange={(e) => setNewIssues(e.target.value)}
-                />
-              </Form.Group>
-              <Form.Group controlId="newNote" className="mt-3">
-                <Form.Label>Notes</Form.Label>
-                <Form.Control
-                  as="textarea"
-                  rows={2}
-                  placeholder="Any additional notes?"
-                  value={newNote}
-                  onChange={(e) => setNewNote(e.target.value)}
-                />
-              </Form.Group>
-              <div className={`${styles.reminderRow} form-switch`}>
-                <Form.Check
-                  type="switch"
-                  id="reminderSwitch"
-                  checked={reminderEnabled}
-                  onChange={() => setReminderEnabled(!reminderEnabled)}
-                  label="Next feed reminder"
-                />
-                {reminderEnabled && (
-                  <>
-                    <p className={styles.reminderInfo}>
-                      You should be feeding your baby every 1–2 hours. Set a
-                      reminder before your next feed.
-                    </p>
-                    <Form.Label>Remind me in</Form.Label>
+              );
+            })}
+
+            <Modal show={modalShow} onHide={() => setModalShow(false)}>
+              <Modal.Header closeButton>
+                <Modal.Title>
+                  {selectedMeal ? "Edit Meal" : "Add Meal"}
+                </Modal.Title>
+              </Modal.Header>
+              <Modal.Body>
+                {modalError && <Alert variant="danger">{modalError}</Alert>}
+                <Form>
+                  <Form.Group controlId="meal">
+                    <Form.Label>Meal</Form.Label>
+                    <Form.Select
+                      value={meal}
+                      onChange={(e) => setMeal(e.target.value)}
+                    >
+                      <option>Breakfast</option>
+                      <option>Lunch</option>
+                      <option>Dinner</option>
+                      <option>Snack</option>
+                    </Form.Select>
+                  </Form.Group>
+                  <Form.Group controlId="time" className="mt-3">
+                    <Form.Label>Time</Form.Label>
+                    <div className={styles.timeRow}>
+                      <div className={styles.timeSegment}>
+                        <input
+                          type="number"
+                          min="1"
+                          max="12"
+                          className={styles.timeBox}
+                          value={hour}
+                          placeholder="Hrs" /* NEW placeholder */
+                          onChange={(e) => setHour(e.target.value)}
+                        />
+                        <span className={styles.colon}>:</span>
+                        <input
+                          type="number"
+                          min="0"
+                          max="59"
+                          className={styles.timeBox}
+                          value={minute}
+                          placeholder="Min" /* NEW placeholder */
+                          onChange={(e) => setMinute(e.target.value)}
+                        />
+                      </div>
+                      <div className={styles.amPmSegment}>
+                        <button
+                          type="button"
+                          className={
+                            amPm === "AM"
+                              ? styles.amPmBtnActive
+                              : styles.amPmBtn
+                          }
+                          onClick={() => setAmPm("AM")}
+                        >
+                          AM
+                        </button>
+                        <button
+                          type="button"
+                          className={
+                            amPm === "PM"
+                              ? styles.amPmBtnActive
+                              : styles.amPmBtn
+                          }
+                          onClick={() => setAmPm("PM")}
+                        >
+                          PM
+                        </button>
+                      </div>
+                    </div>
+                  </Form.Group>
+                  <Form.Group controlId="type" className="mt-3">
+                    <Form.Label>Type</Form.Label>
+                    <Form.Select
+                      value={type}
+                      onChange={(e) => setType(e.target.value)}
+                    >
+                      <option>Baby formula</option>
+                      <option>Breastmilk</option>
+                      <option>Solid food</option>
+                      <option>Snack</option>
+                    </Form.Select>
+                  </Form.Group>
+                  <Form.Group controlId="amount" className="mt-3">
+                    <Form.Label>Amount (oz)</Form.Label>
                     <Form.Control
                       type="number"
-                      placeholder="minutes"
-                      value={remindMinutes}
-                      onChange={(e) => setRemindMinutes(e.target.value)}
+                      step="0.1"
+                      placeholder="E.g. 7" /* NEW placeholder */
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
                     />
-                  </>
-                )}
-              </div>
-            </Form>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button
-              className={styles.btnCancel}
-              onClick={() => setAddFeedModalShow(false)}
-            >
-              Cancel
-            </Button>
-            <Button className={styles.btnSave} onClick={handleSaveNewFeed}>
-              Save
-            </Button>
-          </Modal.Footer>
-        </Modal>
+                  </Form.Group>
+                  <Form.Group controlId="issues" className="mt-3">
+                    <Form.Label>Issue</Form.Label>
+                    <Form.Control
+                      as="textarea"
+                      rows={2}
+                      placeholder="Describe any feeding issues"
+                      value={issues}
+                      onChange={(e) => setIssues(e.target.value)}
+                    />
+                  </Form.Group>
+                  <Form.Group controlId="notes" className="mt-3">
+                    <Form.Label>Notes</Form.Label>
+                    <Form.Control
+                      as="textarea"
+                      rows={2}
+                      placeholder="Any additional notes?"
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                    />
+                  </Form.Group>
+                </Form>
+              </Modal.Body>
+              <Modal.Footer>
+                <Button
+                  className={styles.btnCancel}
+                  onClick={() => setModalShow(false)}
+                >
+                  Cancel
+                </Button>
+                <Button className={styles.btnSave} onClick={handleSaveMeal}>
+                  Save
+                </Button>
+              </Modal.Footer>
+            </Modal>
 
-        <Modal show={exportModalShow} onHide={() => setExportModalShow(false)}>
-          <Modal.Header closeButton>
-            <Modal.Title>Export</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <p className={styles.exportModalSubtext}>
-              Select a date or date range to export feed data. It will be
-              exported to your desktop.
-            </p>
-            <Form>
-              <Form.Group controlId="exportDate" className="mb-3">
-                <Form.Label className={styles.exportModalLabel}>
-                  Date
-                </Form.Label>
-                <div className={styles.exportDateRow}>
-                  <Form.Control
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className={styles.dateInput}
-                  />
-                  <Form.Control
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className={styles.dateInput}
-                  />
-                </div>
-              </Form.Group>
-            </Form>
-            {exportError && <p className={styles.exportError}>{exportError}</p>}
-          </Modal.Body>
-          <Modal.Footer>
-            <Button
-              className={styles.btnCancel}
-              onClick={() => setExportModalShow(false)}
+            <Modal
+              show={addFeedModalShow}
+              onHide={() => setAddFeedModalShow(false)}
             >
-              Cancel
-            </Button>
-            <Button className={styles.btnSave} onClick={handleExport}>
-              Export
-            </Button>
-          </Modal.Footer>
-        </Modal>
+              <Modal.Header closeButton>
+                <Modal.Title>Add a feed</Modal.Title>
+              </Modal.Header>
+              <Modal.Body>
+                {newModalError && (
+                  <Alert variant="danger">{newModalError}</Alert>
+                )}
+                <Form>
+                  <Form.Group controlId="newMeal">
+                    <Form.Label>Meal</Form.Label>
+                    <Form.Select
+                      value={newMeal}
+                      onChange={(e) => setNewMeal(e.target.value)}
+                    >
+                      <option>Breakfast</option>
+                      <option>Lunch</option>
+                      <option>Dinner</option>
+                      <option>Snack</option>
+                    </Form.Select>
+                  </Form.Group>
+                  <Form.Group controlId="time" className="mt-3">
+                    <Form.Label>Time</Form.Label>
+                    <div className={styles.timeRow}>
+                      <div className={styles.timeSegment}>
+                        <input
+                          type="number"
+                          min="1"
+                          max="12"
+                          className={styles.timeBox}
+                          value={newHour}
+                          placeholder="Hrs" /* NEW placeholder */
+                          onChange={(e) => setNewHour(e.target.value)}
+                        />
+                        <span className={styles.colon}>:</span>
+                        <input
+                          type="number"
+                          min="0"
+                          max="59"
+                          className={styles.timeBox}
+                          value={newMinute}
+                          placeholder="Min" /* NEW placeholder */
+                          onChange={(e) => setNewMinute(e.target.value)}
+                        />
+                      </div>
+                      <div className={styles.amPmSegment}>
+                        <button
+                          type="button"
+                          className={
+                            newAmPm === "AM"
+                              ? styles.amPmBtnActive
+                              : styles.amPmBtn
+                          }
+                          onClick={() => setNewAmPm("AM")}
+                        >
+                          AM
+                        </button>
+                        <button
+                          type="button"
+                          className={
+                            newAmPm === "PM"
+                              ? styles.amPmBtnActive
+                              : styles.amPmBtn
+                          }
+                          onClick={() => setNewAmPm("PM")}
+                        >
+                          PM
+                        </button>
+                      </div>
+                    </div>
+                  </Form.Group>
+                  <Form.Group controlId="newType" className="mt-3">
+                    <Form.Label>Type</Form.Label>
+                    <Form.Select
+                      value={newType}
+                      onChange={(e) => setNewType(e.target.value)}
+                    >
+                      <option>Baby formula</option>
+                      <option>Breastmilk</option>
+                      <option>Solid food</option>
+                      <option>Snack</option>
+                    </Form.Select>
+                  </Form.Group>
+                  <Form.Group controlId="newAmount" className="mt-3">
+                    <Form.Label>Amount (oz)</Form.Label>
+                    <Form.Control
+                      type="number"
+                      step="0.1"
+                      placeholder="E.g. 7"
+                      value={newAmount}
+                      onChange={(e) => setNewAmount(e.target.value)}
+                    />
+                  </Form.Group>
+                  <Form.Group controlId="newIssues" className="mt-3">
+                    <Form.Label>Issue</Form.Label>
+                    <Form.Control
+                      as="textarea"
+                      rows={2}
+                      placeholder="Describe any feeding issues"
+                      value={newIssues}
+                      onChange={(e) => setNewIssues(e.target.value)}
+                    />
+                  </Form.Group>
+                  <Form.Group controlId="newNote" className="mt-3">
+                    <Form.Label>Notes</Form.Label>
+                    <Form.Control
+                      as="textarea"
+                      rows={2}
+                      placeholder="Any additional notes?"
+                      value={newNote}
+                      onChange={(e) => setNewNote(e.target.value)}
+                    />
+                  </Form.Group>
+                  <div className={`${styles.reminderRow} form-switch`}>
+                    <Form.Check
+                      type="switch"
+                      id="reminderSwitch"
+                      checked={reminderEnabled}
+                      onChange={() => setReminderEnabled(!reminderEnabled)}
+                      label="Next feed reminder"
+                    />
+                    {reminderEnabled && (
+                      <>
+                        <p className={styles.reminderInfo}>
+                          You should be feeding your baby every 1–2 hours. Set a
+                          reminder before your next feed.
+                        </p>
+                        <Form.Label>Remind me in</Form.Label>
+                        <Form.Control
+                          type="number"
+                          placeholder="minutes"
+                          value={remindMinutes}
+                          onChange={(e) => setRemindMinutes(e.target.value)}
+                        />
+                      </>
+                    )}
+                  </div>
+                </Form>
+              </Modal.Body>
+              <Modal.Footer>
+                <Button
+                  className={styles.btnCancel}
+                  onClick={() => setAddFeedModalShow(false)}
+                >
+                  Cancel
+                </Button>
+                <Button className={styles.btnSave} onClick={handleSaveNewFeed}>
+                  Save
+                </Button>
+              </Modal.Footer>
+            </Modal>
+
+            <Modal
+              show={exportModalShow}
+              onHide={() => setExportModalShow(false)}
+            >
+              <Modal.Header closeButton>
+                <Modal.Title>Export</Modal.Title>
+              </Modal.Header>
+              <Modal.Body>
+                <p className={styles.exportModalSubtext}>
+                  Select a date or date range to export feed data. It will be
+                  exported to your desktop.
+                </p>
+                <Form>
+                  <Form.Group controlId="exportDate" className="mb-3">
+                    <Form.Label className={styles.exportModalLabel}>
+                      Date
+                    </Form.Label>
+                    <div className={styles.exportDateRow}>
+                      <Form.Control
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className={styles.dateInput}
+                      />
+                      <Form.Control
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        className={styles.dateInput}
+                      />
+                    </div>
+                  </Form.Group>
+                </Form>
+                {exportError && (
+                  <p className={styles.exportError}>{exportError}</p>
+                )}
+              </Modal.Body>
+              <Modal.Footer>
+                <Button
+                  className={styles.btnCancel}
+                  onClick={() => setExportModalShow(false)}
+                >
+                  Cancel
+                </Button>
+                <Button className={styles.btnSave} onClick={handleExport}>
+                  Export
+                </Button>
+              </Modal.Footer>
+            </Modal>
+          </Col>
+        </Row>
       </div>
     </>
   );
