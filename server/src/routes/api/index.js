@@ -46,7 +46,7 @@ router.put('/user/:id', require('./user/putUser').updateUserById);
 router.delete('/user/:id', require('./user/deleteUser').deleteUserById);
 
 // ************ /growth routes ************
-router.get('/growth/:growthId', require('./growth/getGrowth').getGrowthById);
+router.get('/growth/:babyId', require('./growth/getGrowth').getGrowthByBabyId); // Get many Growth records by [:babyId]
 
 router.post('/growth', require('./growth/postGrowth').createGrowth);
 
