@@ -1,0 +1,428 @@
+// client/pages/baby/[id]/growth/index.js
+// route /baby/[id]/growth
+
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/router";
+import { FaEdit, FaTrashAlt, FaRulerCombined, FaWeight } from "react-icons/fa";
+import { Modal, Button, Table } from "react-bootstrap";
+import { format, parseISO } from "date-fns";
+import "bootstrap/dist/css/bootstrap.min.css";
+
+import styles from "./growth.module.css";
+
+// MOCK [id] value
+// const babyId = "1";  
+
+const API_URL = "http://localhost:8080/v1";
+
+// Fetch Growth records for a specific baby
+const fetchGrowthData = async (babyId) => {
+  try {
+    const res = await fetch(`${API_URL}/baby/${babyId}/growth`);
+
+    const jsonData = await res.json();
+    console.log(
+      `Fetched growth data for baby ${babyId} from ${API_URL}/baby/${babyId}/growth/ is:`,
+      jsonData,
+    );
+
+    // if Not Found, return empty array
+    if (!res.ok && res.status === 404) return [];
+
+    if (!res.ok) throw new Error("Failed to fetch growth data");
+    return jsonData.data;
+  } catch (err) {
+    console.error("Error fetching growth data:", err);
+    return [];
+  }
+};
+
+// const mockAPI = () => {
+//   return Promise.resolve([
+//     {
+//       date: "2024-10-29",
+//       height: "18 in",
+//       weight: "23 lbs",
+//       notes: "Monthly check-up",
+//     },
+//     {
+//       date: "2024-09-29",
+//       height: "16 in",
+//       weight: "20 lbs",
+//       notes: "Healthy growth",
+//     },
+//     {
+//       date: "2024-08-29",
+//       height: "14 in",
+//       weight: "18 lbs",
+//       notes: "Started crawling",
+//     },
+//     { date: "2024-07-29", height: "12 in", weight: "16 lbs", notes: "" },
+//     { date: "2024-06-29", height: "10 in", weight: "14 lbs", notes: "" },
+//   ]);
+// };
+
+const CustomStatsCard = ({
+  label,
+  value,
+  difference,
+  isHeight = true,
+  lastCheckIn,
+}) => {
+  const icon = isHeight ? (
+    <FaRulerCombined size={24} color="#FFFFFF" />
+  ) : (
+    <FaWeight size={24} color="#FFFFFF" />
+  );
+
+  const differenceArrow = "↑";
+
+  return (
+    <div className={styles.statsCard}>
+      <div className={styles.iconContainer}>{icon}</div>
+      <div className={styles.statsContent}>
+        <div className={styles.statsLabel}>{label}</div>
+        <div className={styles.valueRow}>
+          <div className={styles.valueText}>{value}</div>
+          <div className={styles.differenceContainer}>
+            <span className={styles.differenceArrow}>{differenceArrow}</span>
+            {difference}
+          </div>
+        </div>
+        <div className={styles.lastCheckInRow}>
+          <div>Last check in</div>
+          <div className={styles.lastCheckInDate}>{lastCheckIn}</div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const Growth = () => {
+  const router = useRouter();
+  const { id: babyId } = router.query;
+
+  const [data, setData] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [modalData, setModalData] = useState({
+    date: new Date().toISOString().split("T")[0],
+    height: "",
+    weight: "",
+    notes: "",
+  });
+  const [editIndex, setEditIndex] = useState(null);
+  const [sortConfig, setSortConfig] = useState({
+    key: "date",
+    direction: "descending",
+  });
+  const [validationErrors, setValidationErrors] = useState({
+    height: false,
+    weight: false,
+  });
+
+  useEffect(() => {
+    if (babyId) {
+      fetchGrowthData(babyId).then((fetchedData) => {
+        setData(fetchedData);
+      });
+    }
+  }, [babyId]);
+
+  const handleShowModal = (index = null) => {
+    if (index !== null) {
+      const entry = data[index];
+      setModalData({
+        date: entry.date,
+        height: entry.height.replace(" in", ""),
+        weight: entry.weight.replace(" lbs", ""),
+        notes: entry.notes,
+      });
+      setEditIndex(index);
+    } else {
+      setModalData({
+        date: new Date().toISOString().split("T")[0],
+        height: "",
+        weight: "",
+        notes: "",
+      });
+      setEditIndex(null);
+    }
+    setShowModal(true);
+  };
+
+  const handleSave = () => {
+    const isHeightEmpty = !modalData.height;
+    const isWeightEmpty = !modalData.weight;
+
+    if (isHeightEmpty || isWeightEmpty) {
+      setValidationErrors({ height: isHeightEmpty, weight: isWeightEmpty });
+      return;
+    }
+
+    const updatedEntry = {
+      ...modalData,
+      height: `${modalData.height} in`,
+      weight: `${modalData.weight} lbs`,
+    };
+
+    if (editIndex !== null) {
+      const updatedData = [...data];
+      updatedData[editIndex] = updatedEntry;
+      setData(updatedData);
+    } else {
+      setData([updatedEntry, ...data]);
+    }
+
+    setValidationErrors({ height: false, weight: false });
+    setShowModal(false);
+  };
+
+  const handleDelete = (index) => {
+    setData(data.filter((_, i) => i !== index));
+  };
+
+  const handleSort = (key) => {
+    let direction = "ascending";
+    if (sortConfig.key === key && sortConfig.direction === "ascending") {
+      direction = "descending";
+    }
+
+    const sortedData = [...data].sort((a, b) => {
+      if (key === "date") {
+        return direction === "ascending"
+          ? parseISO(a[key]) - parseISO(b[key])
+          : parseISO(b[key]) - parseISO(a[key]);
+      }
+      return direction === "ascending"
+        ? a[key].localeCompare(b[key])
+        : b[key].localeCompare(a[key]);
+    });
+
+    setSortConfig({ key, direction });
+    setData(sortedData);
+  };
+
+  const renderSortIndicator = (key) => {
+    if (sortConfig.key === key) {
+      return sortConfig.direction === "ascending" ? (
+        <>
+          <span style={{ color: "#b3a6d9", opacity: 0.5 }}>▲</span>
+          <span style={{ color: "#6a5dcb" }}>▼</span>
+        </>
+      ) : (
+        <>
+          <span style={{ color: "#6a5dcb" }}>▲</span>
+          <span style={{ color: "#b3a6d9", opacity: 0.5 }}>▼</span>
+        </>
+      );
+    }
+    return (
+      <>
+        <span style={{ color: "#b3a6d9", opacity: 0.5 }}>▲</span>
+        <span style={{ color: "#b3a6d9", opacity: 0.5 }}>▼</span>
+      </>
+    );
+  };
+
+  const latestEntry = data[0] || {};
+  const previousEntry = data[1] || {};
+
+  return (
+    <div className={styles.growthContainer}>
+      {/* Measurement Cards */}
+      <div className={styles.cardsRow}>
+        <CustomStatsCard
+          label="Height"
+          value={latestEntry.height || "--"}
+          difference={
+            latestEntry.height && previousEntry.height
+              ? parseInt(latestEntry.height) -
+                parseInt(previousEntry.height) +
+                " in"
+              : "--"
+          }
+          isHeight={true}
+          lastCheckIn={
+            latestEntry.date
+              ? format(parseISO(latestEntry.date), "MMM d, yyyy")
+              : "--"
+          }
+        />
+        <CustomStatsCard
+          label="Weight"
+          value={latestEntry.weight || "--"}
+          difference={
+            latestEntry.weight && previousEntry.weight
+              ? parseInt(latestEntry.weight) -
+                parseInt(previousEntry.weight) +
+                " lbs"
+              : "--"
+          }
+          isHeight={false}
+          lastCheckIn={
+            latestEntry.date
+              ? format(parseISO(latestEntry.date), "MMM d, yyyy")
+              : "--"
+          }
+        />
+      </div>
+
+      {/* Chart Header */}
+      <div className={styles.chartHeader}>
+        <div>
+          <h3 className={styles.chartHeaderText}>Chart</h3>
+          <p className={styles.chartSubtext}>
+            Check in is every month after the baby’s birthday
+          </p>
+        </div>
+        <Button
+          onClick={() => handleShowModal()}
+          className={styles.addNewButton}
+        >
+          Add new
+        </Button>
+      </div>
+
+      {/* Table */}
+      <Table hover className={styles.customTable}>
+        <thead>
+          <tr className={styles.tableHeadRow}>
+            <th
+              className={styles.tableHeadCell}
+              onClick={() => handleSort("date")}
+              style={{ cursor: "pointer" }}
+            >
+              Date {renderSortIndicator("date")}
+            </th>
+            <th
+              className={styles.tableHeadCell}
+              onClick={() => handleSort("height")}
+              style={{ cursor: "pointer" }}
+            >
+              Height {renderSortIndicator("height")}
+            </th>
+            <th
+              className={styles.tableHeadCell}
+              onClick={() => handleSort("weight")}
+              style={{ cursor: "pointer" }}
+            >
+              Weight {renderSortIndicator("weight")}
+            </th>
+            <th className={styles.tableHeadCell}>Notes</th>
+            <th className={styles.tableHeadCell}>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Array.isArray(data) && data?.map((row, index) => (
+            <tr key={index}>
+              <td className={styles.tableBodyCell}>
+                {format(parseISO(row.date), "MMM d, yyyy")}
+              </td>
+              <td className={styles.tableBodyCell}>{row.height}</td>
+              <td className={styles.tableBodyCell}>{row.weight}</td>
+              <td className={styles.tableBodyCell}>
+                {row.notes || "No notes provided"}
+              </td>
+              <td className={styles.tableBodyCell}>
+                <Button
+                  size="sm"
+                  className={styles.editButton}
+                  onClick={() => handleShowModal(index)}
+                >
+                  <FaEdit />
+                </Button>
+                <Button
+                  size="sm"
+                  className={styles.deleteButton}
+                  onClick={() => handleDelete(index)}
+                >
+                  <FaTrashAlt />
+                </Button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+
+      <Modal show={showModal} onHide={() => setShowModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>
+            {editIndex !== null ? "Edit Entry" : "Add New Entry"}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="mb-3">
+            <label>Date</label>
+            <input
+              type="date"
+              className="form-control"
+              value={modalData.date}
+              onChange={(e) =>
+                setModalData({ ...modalData, date: e.target.value })
+              }
+            />
+          </div>
+          <div className="mb-3">
+            <label>Height</label>
+            <input
+              type="number"
+              className="form-control"
+              placeholder="Enter height (in inches)"
+              value={modalData.height}
+              onChange={(e) =>
+                setModalData({ ...modalData, height: e.target.value })
+              }
+              style={{
+                borderColor: validationErrors.height ? "red" : "",
+                backgroundColor: validationErrors.height ? "#ffe5e5" : "",
+              }}
+            />
+            {validationErrors.height && (
+              <small style={{ color: "red" }}>Height is required.</small>
+            )}
+          </div>
+          <div className="mb-3">
+            <label>Weight</label>
+            <input
+              type="number"
+              className="form-control"
+              placeholder="Enter weight (in lbs)"
+              value={modalData.weight}
+              onChange={(e) =>
+                setModalData({ ...modalData, weight: e.target.value })
+              }
+              style={{
+                borderColor: validationErrors.weight ? "red" : "",
+                backgroundColor: validationErrors.weight ? "#ffe5e5" : "",
+              }}
+            />
+            {validationErrors.weight && (
+              <small style={{ color: "red" }}>Weight is required.</small>
+            )}
+          </div>
+          <div className="mb-3">
+            <label>Notes</label>
+            <textarea
+              className="form-control"
+              placeholder="Add a note (e.g., Example note: Monthly check-up)"
+              value={modalData.notes}
+              onChange={(e) =>
+                setModalData({ ...modalData, notes: e.target.value })
+              }
+            />
+          </div>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>
+            Cancel
+          </Button>
+          <Button variant="primary" onClick={handleSave}>
+            Save
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </div>
+  );
+};
+
+export default Growth;
