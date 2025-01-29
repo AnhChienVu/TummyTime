@@ -1,4 +1,4 @@
-// client/src/routes/api/milestones/postMilestone.js
+// server/src/routes/api/milestones/postMilestone.js
 // Route for POST /milestones
 
 const logger = require('../../../utils/logger');

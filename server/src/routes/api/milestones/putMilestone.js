@@ -1,4 +1,4 @@
-// client/src/routes/api/milestones/putMilestone.js
+// server/src/routes/api/milestones/putMilestone.js
 // Route for PUT /milestones/:milestoneId
 
 const logger = require('../../../utils/logger');

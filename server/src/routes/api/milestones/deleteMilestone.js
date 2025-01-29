@@ -1,4 +1,4 @@
-// client/src/routes/api/milestones/deleteMilestone.js
+// server/src/routes/api/milestones/deleteMilestone.js
 // Route for DELETE /milestones/:milestoneId
 
 const logger = require('../../../utils/logger');
