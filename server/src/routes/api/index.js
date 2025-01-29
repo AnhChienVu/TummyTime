@@ -30,6 +30,27 @@ router.put("/user/:id", require("./user/putUser").updateUserById);
 
 router.delete("/user/:id", require("./user/deleteUser").deleteUserById);
 
+// ************ /growth routes ************
+router.get('/growth/:growthId', require('./growth/getGrowth').getGrowthById);
+
+router.post('/growth', require('./growth/postGrowth').createGrowth);
+
+router.put('/growth/:growthId', require('./growth/putGrowth').updateGrowthById);
+
+router.delete('/growth/:growthId', require('./growth/deleteGrowth').deleteGrowthById);
+
+// ************ /milestones routes ************
+router.get('/milestones/:milestoneId', require('./milestones/getMilestone').getMilestoneById);
+
+router.post('/milestones', require('./milestones/postMilestone').createMilestone);
+
+router.put('/milestones/:milestoneId', require('./milestones/putMilestone').updateMilestoneById);
+
+router.delete(
+  '/milestones/:milestoneId',
+    require('./milestones/deleteMilestone').deleteMilestoneById
+);
+
 // Testing the authentication middleware
 // router.get('/test', authenticate(), require('./test'));
 module.exports = router;
