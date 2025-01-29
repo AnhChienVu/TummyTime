@@ -2,12 +2,16 @@
 // Route for POST /milestones
 
 const logger = require('../../../utils/logger');
-const { createSuccessResponse, createErrorResponse } = require('../../../utils/response');
+const {
+  createSuccessResponse,
+  createErrorResponse,
+} = require('../../../utils/response');
 const pool = require('../../../../database/db');
 
 // POST /milestones - Create a new Milestone record
 module.exports.createMilestone = async (req, res) => {
-  const { baby_id, date, title, details } = req.body;
+  const { date, title, details } = req.body;
+  const baby_id = req.params.baby_id;
 
   try {
     const result = await pool.query(
