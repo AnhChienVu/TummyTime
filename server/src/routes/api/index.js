@@ -31,13 +31,13 @@ router.put("/user/:id", require("./user/putUser").updateUserById);
 router.delete("/user/:id", require("./user/deleteUser").deleteUserById);
 
 // ************ /growth routes ************
-router.get('/growth/:growthId', require('./growth/editGrowth').getGrowthById);
+router.get('/growth/:growthId', require('./growth/getGrowth').getGrowthById);
 
-router.post('/growth', require('./growth/editGrowth').createGrowth);
+router.post('/growth', require('./growth/postGrowth').createGrowth);
 
-router.put('/growth/:growthId', require('./growth/editGrowth').updateGrowthById);
+router.put('/growth/:growthId', require('./growth/putGrowth').updateGrowthById);
 
-router.delete('/growth/:growthId', require('./growth/editGrowth').deleteGrowthById);
+router.delete('/growth/:growthId', require('./growth/deleteGrowth').deleteGrowthById);
 
 // Testing the authentication middleware
 // router.get('/test', authenticate(), require('./test'));
