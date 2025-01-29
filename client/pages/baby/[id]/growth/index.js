@@ -10,9 +10,6 @@ import "bootstrap/dist/css/bootstrap.min.css";
 
 import styles from "./growth.module.css";
 
-// MOCK [id] value
-// const babyId = "1";  
-
 const API_URL = "http://localhost:8080/v1";
 
 // Fetch Growth records for a specific baby
