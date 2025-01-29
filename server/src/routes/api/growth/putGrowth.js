@@ -10,8 +10,10 @@ module.exports.updateGrowthById = async (req, res) => {
   const { growthId } = req.params;
   const { date, height, weight, notes } = req.body;
 
-  logger.info(`In PUT /growth/:growthId, Updating growth record with growthId ${growthId}`);
-  logger(`date: ${date}, height: ${height}, weight: ${weight}, notes: ${notes}`);
+  logger.info(
+    `In PUT /baby/:babyId/growth/:growthId, Updating growth record with growthId ${growthId}`
+  );
+  logger.info(`date: ${date}, height: ${height}, weight: ${weight}, notes: ${notes}`);
 
   try {
     const result = await pool.query(
@@ -26,7 +28,7 @@ module.exports.updateGrowthById = async (req, res) => {
   } catch (err) {
     logger.error(
       err,
-      `ERROR in PUT /growth/:growthId, Error updating growth record with id ${growthId}`
+      `ERROR in PUT /baby/:babyId/growth/:growthId, Error updating growth record with id ${growthId}`
     );
 
     res.status(500).send(createErrorResponse(500, `Internal server error`)); // 500 Internal Server Error

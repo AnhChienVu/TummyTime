@@ -1,11 +1,11 @@
 // server/src/routes/api/growth/deleteGrowth.js
-// Route for DELETE /growth/:growthId
+// Route for DELETE /baby/:babyId/growth/:growthId
 
 const logger = require('../../../utils/logger');
 const { createSuccessResponse, createErrorResponse } = require('../../../utils/response');
 const pool = require('../../../../database/db');
 
-// DELETE /growth/:growthId    -DELETE a Growth record by growthId
+// DELETE /baby/:babyId/growth/:growthId - Delete a Growth record by growthId
 module.exports.deleteGrowthById = async (req, res) => {
   const { growthId } = req.params;
 
@@ -20,7 +20,7 @@ module.exports.deleteGrowthById = async (req, res) => {
   } catch (err) {
     logger.error(
       err,
-      `ERROR in DELETE /growth/:growthId, Error deleting growth record with id ${growthId}`
+      `ERROR in DELETE /baby/:babyId/growth/:growthId, Error deleting growth record with id ${growthId}`
     );
 
     res.status(500).send(createErrorResponse(500, `Internal server error`)); // 500 Internal Server Error
