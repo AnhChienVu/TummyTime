@@ -54,15 +54,6 @@ router.put('/baby/:babyId/growth/:growthId', require('./growth/putGrowth').updat
 
 router.delete('/baby/:babyId/growth/:growthId', require('./growth/deleteGrowth').deleteGrowthById);
 
-// ************ /growth routes ************
-router.get('/growth/:growthId', require('./growth/getGrowth').getGrowthById);
-
-router.post('/growth', require('./growth/postGrowth').createGrowth);
-
-router.put('/growth/:growthId', require('./growth/putGrowth').updateGrowthById);
-
-router.delete('/growth/:growthId', require('./growth/deleteGrowth').deleteGrowthById);
-
 // ************ /milestones routes ************
 router.get('/milestones/:milestoneId', require('./milestones/getMilestone').getMilestoneById);
 

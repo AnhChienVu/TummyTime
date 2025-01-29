@@ -5,13 +5,10 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { FaEdit, FaTrashAlt, FaRulerCombined, FaWeight } from "react-icons/fa";
 import { Modal, Button, Table } from "react-bootstrap";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, set } from "date-fns";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 import styles from "./growth.module.css";
-
-// MOCK [id] value
-// const babyId = "1";  
 
 const API_URL = "http://localhost:8080/v1";
 
@@ -34,6 +31,49 @@ const fetchGrowthData = async (babyId) => {
   } catch (err) {
     console.error("Error fetching growth data:", err);
     return [];
+  }
+};
+
+// Add or update a growth record
+const saveGrowthRecord = async (babyId, record, isEdit, recordId = null) => {
+  console.log(`In saveGrowthRecord(), babyId: ${babyId}, record:`, record);
+
+  try {
+    const url = isEdit
+      ? `${API_URL}/baby/${babyId}/growth/${recordId}`
+      : `${API_URL}/baby/${babyId}/growth`;
+    const method = isEdit ? "PUT" : "POST";
+
+    const res = await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(record),
+    });
+
+    console.log(
+      `In saveGrowthRecord(), ${method} to ${url} with data:`,
+      record,
+    );
+
+    if (!res.ok) throw new Error("Failed to save growth record");
+    return await res.json();
+  } catch (err) {
+    console.error("Error saving growth record:", err);
+  }
+};
+
+// Delete a growth record
+const deleteGrowthRecord = async (babyId, recordId) => {
+  try {
+    const res = await fetch(`${API_URL}/baby/${babyId}/growth/${recordId}`, {
+      method: "DELETE",
+    });
+
+    if (!res.ok) throw new Error("Failed to delete growth record");
+  } catch (err) {
+    console.error("Error deleting growth record:", err);
   }
 };
 
@@ -121,6 +161,7 @@ const Growth = () => {
   });
 
   useEffect(() => {
+    // fetch growth data for the baby
     if (babyId) {
       fetchGrowthData(babyId).then((fetchedData) => {
         setData(fetchedData);
@@ -130,6 +171,7 @@ const Growth = () => {
 
   const handleShowModal = (index = null) => {
     if (index !== null) {
+      // EDIT GROWTH RECORD => show MODAL to UPDATE
       const entry = data[index];
       setModalData({
         date: entry.date,
@@ -139,6 +181,7 @@ const Growth = () => {
       });
       setEditIndex(index);
     } else {
+      // ADD GROWTH RECORD  => show MODAL to SAVE
       setModalData({
         date: new Date().toISOString().split("T")[0],
         height: "",
@@ -150,21 +193,57 @@ const Growth = () => {
     setShowModal(true);
   };
 
-  const handleSave = () => {
+  // SAVE/UPDATE GROWTH RECORD
+  const handleSave = async () => {
     const isHeightEmpty = !modalData.height;
     const isWeightEmpty = !modalData.weight;
 
+    // Validate height and weight
     if (isHeightEmpty || isWeightEmpty) {
       setValidationErrors({ height: isHeightEmpty, weight: isWeightEmpty });
       return;
     }
 
-    const updatedEntry = {
-      ...modalData,
-      height: `${modalData.height} in`,
-      weight: `${modalData.weight} lbs`,
+    // Validate that height and weight are NUMBER(5,2)
+    const isHeightValid = /^\d{1,3}(\.\d{1,2})?$/.test(modalData.height);
+    const isWeightValid = /^\d{1,3}(\.\d{1,2})?$/.test(modalData.weight);
+
+    if (!isHeightValid || !isWeightValid) {
+      setValidationErrors({
+        height: !isHeightValid,
+        weight: !isWeightValid,
+      });
+      return;
+    }
+
+    const sendingData = {
+      date: modalData.date,
+      height: modalData.height,
+      weight: modalData.weight,
+      notes: modalData.notes || "",
+      // ...modalData,
     };
 
+    // Save the updated entry to db
+    const savedRecord = await saveGrowthRecord(
+      babyId,
+      sendingData,
+      editIndex !== null,
+      data[editIndex]?.id,
+    );
+
+    console.log("After saveGrowthRecord(), savedRecord:", savedRecord);
+
+    // SHOWING THE UPDATED ENTRY
+    const updatedEntry = {
+      date: modalData.date,
+      height: `${modalData.height} in`, // STRING, not Number
+      weight: `${modalData.weight} lbs`, // STRING, not Number
+      notes: modalData.notes || "",
+      // ...modalData,
+    };
+
+    // Save the updated entry (UI-ONLY, not to db)
     if (editIndex !== null) {
       const updatedData = [...data];
       updatedData[editIndex] = updatedEntry;
@@ -173,11 +252,17 @@ const Growth = () => {
       setData([updatedEntry, ...data]);
     }
 
+    // Clear validation errors and close the modal
     setValidationErrors({ height: false, weight: false });
     setShowModal(false);
   };
 
-  const handleDelete = (index) => {
+  const handleDelete = async (index) => {
+    // Delete the entry from db
+    const recordId = data[index]?.id;
+    await deleteGrowthRecord(babyId, recordId);
+
+    // Delete the entry (UI-ONLY, not to db)
     setData(data.filter((_, i) => i !== index));
   };
 
@@ -313,34 +398,40 @@ const Growth = () => {
           </tr>
         </thead>
         <tbody>
-          {Array.isArray(data) && data?.map((row, index) => (
-            <tr key={index}>
-              <td className={styles.tableBodyCell}>
-                {format(parseISO(row.date), "MMM d, yyyy")}
-              </td>
-              <td className={styles.tableBodyCell}>{row.height}</td>
-              <td className={styles.tableBodyCell}>{row.weight}</td>
-              <td className={styles.tableBodyCell}>
-                {row.notes || "No notes provided"}
-              </td>
-              <td className={styles.tableBodyCell}>
-                <Button
-                  size="sm"
-                  className={styles.editButton}
-                  onClick={() => handleShowModal(index)}
-                >
-                  <FaEdit />
-                </Button>
-                <Button
-                  size="sm"
-                  className={styles.deleteButton}
-                  onClick={() => handleDelete(index)}
-                >
-                  <FaTrashAlt />
-                </Button>
-              </td>
-            </tr>
-          ))}
+          {/* Growth data rows */}
+          {Array.isArray(data) &&
+            data?.map((row, index) => (
+              <tr key={index}>
+                <td className={styles.tableBodyCell}>
+                  {row?.date ? format(parseISO(row.date), "MMM d, yyyy") : "--"}
+                </td>
+                <td className={styles.tableBodyCell}>
+                  {row?.height ? `${row.height} in` : "--"}
+                </td>
+                <td className={styles.tableBodyCell}>
+                  {row?.weight ? `${row.weight} lbs` : "--"}
+                </td>
+                <td className={styles.tableBodyCell}>
+                  {(row && row.notes) || "No notes provided"}
+                </td>
+                <td className={styles.tableBodyCell}>
+                  <Button
+                    size="sm"
+                    className={styles.editButton}
+                    onClick={() => handleShowModal(index)}
+                  >
+                    <FaEdit />
+                  </Button>
+                  <Button
+                    size="sm"
+                    className={styles.deleteButton}
+                    onClick={() => handleDelete(index)}
+                  >
+                    <FaTrashAlt />
+                  </Button>
+                </td>
+              </tr>
+            ))}
         </tbody>
       </Table>
 
@@ -378,7 +469,9 @@ const Growth = () => {
               }}
             />
             {validationErrors.height && (
-              <small style={{ color: "red" }}>Height is required.</small>
+              <small style={{ color: "red" }}>
+                Height is required and less than 999.99.
+              </small>
             )}
           </div>
           <div className="mb-3">
@@ -397,7 +490,9 @@ const Growth = () => {
               }}
             />
             {validationErrors.weight && (
-              <small style={{ color: "red" }}>Weight is required.</small>
+              <small style={{ color: "red" }}>
+                Weight is required and less than 999.
+              </small>
             )}
           </div>
           <div className="mb-3">
