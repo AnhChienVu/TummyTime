@@ -1,4 +1,4 @@
-// client/src/routes/api/growth/getGrowth.js
+// server/src/routes/api/growth/getGrowth.js
 // Route for GET /growth/:growthId
 
 const logger = require('../../../utils/logger');

@@ -1,4 +1,4 @@
-// client/src/routes/api/growth/deleteGrowth.js
+// server/src/routes/api/growth/deleteGrowth.js
 // Route for DELETE /growth/:growthId
 
 const logger = require('../../../utils/logger');

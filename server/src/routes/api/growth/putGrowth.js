@@ -1,4 +1,4 @@
-// client/src/routes/api/growth/putGrowth.js
+// server/src/routes/api/growth/putGrowth.js
 // Route for PUT /growth/:growthId
 
 const logger = require('../../../utils/logger');

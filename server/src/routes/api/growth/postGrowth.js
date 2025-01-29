@@ -1,4 +1,4 @@
-// client/src/routes/api/growth/postGrowth.js
+// server/src/routes/api/growth/postGrowth.js
 // Route for POST /growth
 
 const logger = require('../../../utils/logger');
