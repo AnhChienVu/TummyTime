@@ -13,7 +13,7 @@ module.exports.getGrowthById = async (req, res) => {
     const result = await pool.query('SELECT * FROM growth WHERE growth_id = $1', [growthId]);
 
     if (result.rows.length > 0) {
-      res.status(200).send(createSuccessResponse(result.rows[0])); // 200 OK
+      res.status(200).send(createSuccessResponse(result.rows)); // 200 OK
     } else {
       res.status(404).send(createErrorResponse(404, `Growth record not found`)); // 404
     }
