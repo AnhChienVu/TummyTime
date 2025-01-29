@@ -36,7 +36,8 @@ const fetchGrowthData = async (babyId) => {
 
 // Add or update a growth record
 const saveGrowthRecord = async (babyId, record, isEdit, recordId = null) => {
-  console.log(`In saveGrowthRecord(), babyId: ${babyId}, record:`, record);
+  console.log(`Starting saveGrowthRecord(), babyId: ${babyId}, record:`, record);
+  console.log(`isEdit: ${isEdit}, recordId: ${recordId}`);
 
   try {
     const url = isEdit
@@ -150,6 +151,7 @@ const Growth = () => {
     weight: "",
     notes: "",
   });
+  // editIndex is the index of the entry being edited
   const [editIndex, setEditIndex] = useState(null);
   const [sortConfig, setSortConfig] = useState({
     key: "date",
@@ -216,40 +218,53 @@ const Growth = () => {
       return;
     }
 
+    const formattedDate = format(parseISO(modalData.date), "yyyy-MM-dd"); // format date to ISO before "T" in : 2025-01-31T05:00:00.000Z
+
     const sendingData = {
-      date: modalData.date,
+      date: formattedDate,
       height: modalData.height,
       weight: modalData.weight,
-      notes: modalData.notes || "",
-      // ...modalData,
+      notes: modalData.notes || "", 
     };
+
+    console.log(`data[editIndex]?.growth_id  : ${JSON.stringify(data[editIndex])}`);
+    
+    if (editIndex !== null && !data[editIndex]?.growth_id) {
+      console.error("Error: Missing growth_id in data[editIndex].");
+    }
+    
 
     // Save the updated entry to db
     const savedRecord = await saveGrowthRecord(
       babyId,
       sendingData,
-      editIndex !== null,
-      data[editIndex]?.id,
+      editIndex !== null, // isEdit: true if editing an existing record with editIndex
+      data[editIndex]?.growth_id,  // recordId
     );
 
     console.log("After saveGrowthRecord(), savedRecord:", savedRecord);
 
-    // SHOWING THE UPDATED ENTRY
-    const updatedEntry = {
-      date: modalData.date,
-      height: `${modalData.height} in`, // STRING, not Number
-      weight: `${modalData.weight} lbs`, // STRING, not Number
-      notes: modalData.notes || "",
-      // ...modalData,
-    };
+    // SHOWING THE UPDATED ENTRY  
+    if (savedRecord && savedRecord.growth_id) {
+      const updatedEntry = {
+        growth_id: savedRecord.growth_id,
+        date: modalData.date, // Preserve the formatted date
+        height: `${modalData.height}`,
+        weight: `${modalData.weight}`,
+        notes: modalData.notes || "",
+      };
 
-    // Save the updated entry (UI-ONLY, not to db)
-    if (editIndex !== null) {
-      const updatedData = [...data];
-      updatedData[editIndex] = updatedEntry;
-      setData(updatedData);
-    } else {
-      setData([updatedEntry, ...data]);
+      // Save the updated entry (UI-ONLY, not to db)
+      if (editIndex !== null) {
+        const updatedData = [...data];
+        updatedData[editIndex] = updatedEntry;
+        setData(updatedData);
+      } else {
+        setData([updatedEntry, ...data]);
+      }
+      
+    }else {
+      console.error("Error: Missing growth_id in saved record.");
     }
 
     // Clear validation errors and close the modal
@@ -259,7 +274,7 @@ const Growth = () => {
 
   const handleDelete = async (index) => {
     // Delete the entry from db
-    const recordId = data[index]?.id;
+    const recordId = data[index]?.growth_id;
     await deleteGrowthRecord(babyId, recordId);
 
     // Delete the entry (UI-ONLY, not to db)
