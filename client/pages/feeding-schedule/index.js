@@ -12,6 +12,8 @@ import { FaBaby, FaEdit, FaTrash } from "react-icons/fa";
 import { AiOutlineInfoCircle } from "react-icons/ai";
 import styles from "./feeding-schedule.module.css";
 import Sidebar from "@/components/Sidebar/Sidebar";
+import BabyCard from "@/components/BabyCard/BabyCard";
+import { useRouter } from "next/router";
 
 function getLocalTodayString() {
   const now = new Date();
@@ -111,6 +113,7 @@ const createToastId = () => {
 };
 
 const FeedingSchedule = () => {
+  const router = useRouter();
   const [scheduleData, setScheduleData] = useState([]);
   const [modalShow, setModalShow] = useState(false);
   const [selectedMeal, setSelectedMeal] = useState(null);
@@ -141,6 +144,7 @@ const FeedingSchedule = () => {
   const [reminderEnabled, setReminderEnabled] = useState(false);
   const [remindMinutes, setRemindMinutes] = useState("30");
   const [toasts, setToasts] = useState([]);
+  const [selectedBaby, setSelectedBaby] = useState(null);
 
   // TODO Replace with actual API calls (edit and delete operations)
   const mockApi = {
@@ -149,31 +153,31 @@ const FeedingSchedule = () => {
   };
 
   useEffect(() => {
-    async function fetchFeedingSchedules() {
-      try {
-        const res = await fetch("http://localhost:8080/v1/getFeedingSchedules");
-        const data = await res.json();
-        console.debug("Fetched data:", data);
-        if (res.ok) {
-          // Convert the response to an array of feeding schedules
-          const feedingScheduleArray = Object.keys(data)
-            .filter((key) => key !== "status")
-            .map((key) => data[key]);
-          setScheduleData(feedingScheduleArray);
-        } else {
-          console.error("Failed to fetch feeding schedule data:", data);
-        }
-      } catch (error) {
-        console.error("Error fetching feeding schedules:", error);
-      }
-    }
+    // async function fetchFeedingSchedules() {
+    //   try {
+    //     const res = await fetch("http://localhost:8080/v1/getFeedingSchedules");
+    //     const data = await res.json();
+    //     console.debug("Fetched data:", data);
+    //     if (res.ok) {
+    //       // Convert the response to an array of feeding schedules
+    //       const feedingScheduleArray = Object.keys(data)
+    //         .filter((key) => key !== "status")
+    //         .map((key) => data[key]);
+    //       setScheduleData(feedingScheduleArray);
+    //     } else {
+    //       console.error("Failed to fetch feeding schedule data:", data);
+    //     }
+    //   } catch (error) {
+    //     console.error("Error fetching feeding schedules:", error);
+    //   }
+    // }
 
     async function updateSchedule(updatedSchedule) {
       const res = await fetch("http://localhost:8080/v1/updateFeedingSchedule");
       const data = await res.json();
     }
 
-    fetchFeedingSchedules();
+    // fetchFeedingSchedules();
   }, []);
 
   const formatDate = (dateString) => {
@@ -206,16 +210,16 @@ const FeedingSchedule = () => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
-  const handleOpenExportModal = () => {
-    if (!hasAnyMeals) {
-      showToast("No feed data found. Add data before exporting.", "warning");
-      return;
-    }
-    setStartDate("");
-    setEndDate("");
-    setExportError("");
-    setExportModalShow(true);
-  };
+  // const handleOpenExportModal = () => {
+  //   if (!hasAnyMeals) {
+  //     showToast("No feed data found. Add data before exporting.", "warning");
+  //     return;
+  //   }
+  //   setStartDate("");
+  //   setEndDate("");
+  //   setExportError("");
+  //   setExportModalShow(true);
+  // };
 
   // EXPORT data
   const handleExport = () => {
@@ -392,7 +396,7 @@ const FeedingSchedule = () => {
     });
   };
 
-  const handleOpenAddFeedModal = () => {
+  const handleOpenAddFeedModal = (baby_id) => {
     setNewModalError("");
     setNewMeal("Breakfast");
     const { hour, minute, amPm } = getCurrentLocalTimeParts();
@@ -406,9 +410,10 @@ const FeedingSchedule = () => {
     setReminderEnabled(false);
     setRemindMinutes("30");
     setAddFeedModalShow(true);
+    setSelectedBaby(baby_id);
   };
 
-  const handleSaveNewFeed = () => {
+  const handleSaveNewFeed = async () => {
     setNewModalError("");
     const parsedHour = parseInt(newHour, 10);
     const parsedMinute = parseInt(newMinute, 10);
@@ -445,64 +450,54 @@ const FeedingSchedule = () => {
     };
     const todayString = getLocalTodayString();
     let foundToday = false;
-    const updated = scheduleData.map((day) => {
-      if (day.date === todayString) {
-        foundToday = true;
-        return { ...day, meals: [...day.meals, newFeed] };
-      }
-      return day;
-    });
-    if (!foundToday) {
-      updated.push({ date: todayString, meals: [newFeed] });
-    }
-    mockApi.updateSchedule(updated).then((res) => {
-      if (res.success) {
-        setScheduleData(res.data);
-        setAddFeedModalShow(false);
-        showToast("Feed added! The next feed is due in 2 hours.");
-      }
-    });
 
-    // Make API call to add schedule
-    fetch("http://localhost:8080/v1/addSchedule", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        date: todayString,
-        time: timeStr,
-        meal: newMeal,
-        amount: parsedAmount,
-        type: newType,
-        issues: newIssues,
-        notes: newNote,
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        if (data.success) {
-          showToast("Feed added to server!");
-        } else {
-          showToast("Failed to add feed to server.", "danger");
-        }
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        showToast("Error adding feed to server.", "danger");
-      });
+    try {
+      // Add new feed to database
+      const res = await fetch(
+        `http://localhost:8080/v1/baby/${selectedBaby}/addFeedingSchedule`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({
+            meal: newMeal,
+            time: timeStr,
+            type: newType,
+            amount: parsedAmount,
+            issues: newIssues,
+            notes: newNote,
+            date: todayString,
+          }),
+        },
+      );
+
+      const data = await res.json();
+
+      if (data.status === "ok") {
+        setModalShow(false);
+        showToast("Feed added to server!");
+        router.reload();
+      } else {
+        showToast("Failed to add feed to server.", "danger");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      showToast("Error adding feed to server.", "danger");
+    }
   };
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   return (
     <>
-      <ToastContainer toasts={toasts} removeToast={removeToast} />
+      {/* <ToastContainer toasts={toasts} removeToast={removeToast} /> */}
 
       <div className={styles.container}>
         <Row>
           <Sidebar />
           <Col>
-            {hasAnyMeals && (
+            {/* {hasAnyMeals && (
               <div className={styles.feedDueBox}>
                 <div className={styles.feedDueIcon}>
                   <FaBaby size={20} color="#674ea7" />
@@ -514,38 +509,40 @@ const FeedingSchedule = () => {
                   </p>
                 </div>
               </div>
-            )}
+            )} */}
 
             <div className={styles.headerRow}>
               <h1 className={styles.title}>Feeding Schedule</h1>
               <div className={styles.headerActions}>
-                {hasAnyMeals && (
+                {/* {hasAnyMeals && (
                   <Button
                     className={styles.exportBtn}
                     onClick={handleOpenExportModal}
                   >
                     Export
                   </Button>
-                )}
-                <Button
+                )} */}
+                {/* <Button
                   className={styles.addFeedBtn}
                   onClick={handleOpenAddFeedModal}
                 >
                   + Add Entry
-                </Button>
+                </Button> */}
               </div>
             </div>
 
-            {!hasAnyMeals && (
+            {/* {!hasAnyMeals && (
               <div className={styles.noDataContainer}>
                 <p>No feed data found.</p>
                 <p>
                   Click &quot;+ Add Entry&quot; to create your first feed entry!
                 </p>
               </div>
-            )}
+            )} */}
 
-            {sortedData.map((day, idx) => {
+            <BabyCard addMealBtn={handleOpenAddFeedModal} />
+
+            {/* {sortedData.map((day, idx) => {
               if (!day.meals || day.meals.length === 0) return null;
               const { dayNumber, restOfDate } = formatDate(day.date);
               const today = isSameDay(new Date(), parseISO(day.date));
@@ -613,7 +610,7 @@ const FeedingSchedule = () => {
                   </table>
                 </div>
               );
-            })}
+            })} */}
 
             <Modal show={modalShow} onHide={() => setModalShow(false)}>
               <Modal.Header closeButton>
