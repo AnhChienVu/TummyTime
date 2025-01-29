@@ -15,11 +15,26 @@ router.post('/signup', require('./signup'));
 
 router.post('/addBaby', require('./addBaby'));
 
-router.get('/getFeedingSchedules', require('./getFeedingSchedules'));
+// Feeding Schedule routes
+router.get(
+  '/baby/:id/getFeedingSchedules',
+  require('./baby/getFeedingSchedules')
+);
 
-router.post('/addSchedule', require('./addSchedule'));
+router.put(
+  '/baby/:id/updateFeedingSchedule/:mealId',
+  require('./baby/updateFeedingSchedule')
+);
 
-// router.get("/getProfile", require("./getProfile"));
+router.delete(
+  '/baby/:id/deleteFeedingSchedule/:mealId',
+  require('./baby/deleteFeedingSchedule')
+);
+
+router.post(
+  '/baby/:id/addFeedingSchedule',
+  require('./baby/addFeedingSchedule')
+);
 
 router.get('/user/:id/getBabyProfiles', require('./getBabyProfiles'));
 
@@ -50,15 +65,6 @@ router.delete(
   '/milestones/:milestoneId',
     require('./milestones/deleteMilestone').deleteMilestoneById
 );
-
-// ************ /growth routes ************
-router.get('/growth/:growthId', require('./growth/getGrowth').getGrowthById);
-
-router.post('/growth', require('./growth/postGrowth').createGrowth);
-
-router.put('/growth/:growthId', require('./growth/putGrowth').updateGrowthById);
-
-router.delete('/growth/:growthId', require('./growth/deleteGrowth').deleteGrowthById);
 
 // Testing the authentication middleware
 // router.get('/test', authenticate(), require('./test'));
