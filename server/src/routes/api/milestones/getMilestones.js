@@ -1,5 +1,5 @@
-// server/src/routes/api/milestones/deleteMilestone.js
-// Route for DELETE /milestones/:milestoneId
+// server/src/routes/api/milestones/getMilestone.js
+// Route for GET /milestones/:milestoneId
 
 const logger = require('../../../utils/logger');
 const {
@@ -8,18 +8,18 @@ const {
 } = require('../../../utils/response');
 const pool = require('../../../../database/db');
 
-// DELETE /milestones/:milestoneId - Delete a Milestone record by milestoneId
-module.exports.deleteMilestoneById = async (req, res) => {
-  const { milestone_id } = req.params;
+// GET /milestones/:milestoneId - GET a Milestone record by milestoneId
+module.exports.getMilestoneByBabyId = async (req, res) => {
+  const { baby_id } = req.params;
 
   try {
     const result = await pool.query(
-      'DELETE FROM milestones WHERE milestone_id = $1',
-      [milestone_id]
+      'SELECT * FROM milestones WHERE baby_id = $1',
+      [baby_id]
     );
 
-    if (result.rowCount > 0) {
-      res.status(200).send(createSuccessResponse()); // 200 OK
+    if (result.rows.length > 0) {
+      res.status(200).send(createSuccessResponse(result.rows)); // 200 OK
     } else {
       res
         .status(404)
@@ -28,7 +28,7 @@ module.exports.deleteMilestoneById = async (req, res) => {
   } catch (err) {
     logger.error(
       err,
-      `ERROR in DELETE /milestones/:milestoneId, Error deleting milestone`
+      `ERROR in GET /milestones/:milestoneId, Error fetching milestone`
     );
 
     res.status(500).send(createErrorResponse(500, `Internal server error`)); // 500 Internal Server Error
