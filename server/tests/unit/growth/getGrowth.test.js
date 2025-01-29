@@ -21,27 +21,24 @@ describe('GET /growth/:growthId', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
-  test('should return 200 and the growth record', async () => {
-    const mockGrowthRecord = {
-      growth_id: 1,
-      baby_id: 1,
-      date: '2025-01-01',
-      height: 50,
-      weight: 3.5,
-      notes: 'First growth record',
-    };
 
-    pool.query.mockResolvedValueOnce({ rows: [mockGrowthRecord] });
-    createSuccessResponse.mockReturnValue(mockGrowthRecord);
+  test('should return 200 and all growth records for the given ID', async () => {
+    const mockGrowthRecords = [
+      { growth_id: 1, baby_id: 1, date: '2025-01-01', height: 50, weight: 3.5, notes: 'First' },
+      { growth_id: 1, baby_id: 1, date: '2025-02-01', height: 52, weight: 4.0, notes: 'Second' },
+    ];
+
+    pool.query.mockResolvedValueOnce({ rows: mockGrowthRecords });
+    createSuccessResponse.mockReturnValue(mockGrowthRecords);
 
     const res = await request(app).get('/v1/growth/1');
 
     expect(res.status).toBe(200);
     expect(pool.query).toHaveBeenCalledWith('SELECT * FROM growth WHERE growth_id = $1', ['1']);
-    expect(res.body).toEqual(mockGrowthRecord);
+    expect(res.body).toEqual(mockGrowthRecords);
   });
 
-  test('should return 404 if the growth record is not found', async () => {
+  test('should return 404 if no growth records are found', async () => {
     pool.query.mockResolvedValueOnce({ rows: [] });
     createErrorResponse.mockReturnValue({ error: 'Growth record not found' });
 
