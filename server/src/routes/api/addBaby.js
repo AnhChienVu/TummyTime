@@ -7,6 +7,8 @@ const {
 
 module.exports = async (req, res) => {
   const { first_name, last_name, gender, weight } = req.body;
+  console.log("req.params", req.params);
+  console.log("req.user", req.user);
 
   try {
     const newBaby = await pool.query(
@@ -14,7 +16,14 @@ module.exports = async (req, res) => {
       [first_name, last_name, gender, weight]
     );
 
-    return res.json(createSuccessResponse(newBaby.rows[0]));
+    console.log("newBaby.rows[0]", newBaby.rows[0]);
+
+    const newBabyUser = await pool.query(
+      "INSERT INTO Baby_User (user_id, baby_id) VALUES ($1, $2)",
+      [req.user.user_id, newBaby.rows[0].baby_id]
+    );
+
+    return res.json(createSuccessResponse(newBabyUser.rows[0]));
   } catch (error) {
     console.error("Database query error:", error);
     return res
