@@ -16,11 +16,30 @@ module.exports.deleteUserById = async function (req, res) {
   const { id } = req.params;
 
   try {
-    const deletedUser = await pool.query(
-      'DELETE FROM users WHERE user_id = $1',
+    // DELETE entries from user_baby table
+    const userBabyResult = await pool.query(
+      'DELETE FROM user_baby WHERE user_id = $1 RETURNING baby_id',
       [id]
     );
-    return res.status(200).json(createSuccessResponse()); // 200 OK
+
+    // Extract baby_id from the deleted entries
+    const babyIds = userBabyResult.rows.map((row) => row.baby_id);
+
+    // DELETE entries from babies table
+    if (babyIds.length > 0) {
+      await pool.query('DELETE FROM baby WHERE baby_id = ANY($1)', [babyIds]);
+    }
+
+    // DELETE user from users table
+    await pool.query('DELETE FROM users WHERE user_id = $1', [id]);
+
+    return res
+      .status(200)
+      .json(
+        createSuccessResponse({
+          message: 'User and related entries deleted successfully',
+        })
+      ); // 200 OK
   } catch (err) {
     logger.error(
       err,
