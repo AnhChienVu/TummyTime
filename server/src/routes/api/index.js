@@ -13,7 +13,7 @@ router.post('/login', require('./login'));
 
 router.post('/signup', require('./signup'));
 
-router.post('/addBaby', require('./addBaby'));
+router.post('/user/:user_id/addBaby', require('./addBaby'));
 
 // Feeding Schedule routes
 router.get(
