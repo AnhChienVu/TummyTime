@@ -71,6 +71,7 @@ export default function Login() {
       if (data.success) {
         if (data.redirect === "/register") {
           console.log("Login successfully, please complete your registration");
+          localStorage.setItem("token", data.token);
           router.push("/register");
         } else {
           console.log("Login successfully");
