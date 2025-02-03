@@ -1,20 +1,23 @@
 .container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+display: flex;
+    margin-top: 80px;
+    max-width: 1200px;
+    /* Increase max-width to accommodate sidebar and form */
+    margin-left: auto;
+    margin-right: auto;
+    padding: 24px;
 }
 
 .formContainer {
     width: 80%;
     /* height: 368px; */
-    margin: auto;
-    align-self: center;
+    margin-left: auto;
+    /* align-self: center; */
 }
 
 .row {
     margin: auto;
-    align-self: center;
+    /* align-self: center; */
 }
 
 .form {

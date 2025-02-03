@@ -1,0 +1,49 @@
+/* Center the entire Milestones section,
+   limit its width, and add top space so it doesn’t clash with the navbar */
+.container {
+  max-width: 800px;
+  margin: 80px auto 0 auto;
+  padding: 0 16px;
+  font-family: Arial, sans-serif;
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.listItem {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  padding: 16px;
+}
+
+.milestoneContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.iconContainer {
+  display: flex;
+  gap: 8px;
+}
+
+.iconButton {
+  font-size: 0.9rem;
+  color: #65558f;
+  padding: 4px;
+}
+
+.iconButton:hover {
+  color: #333;
+}
+
+.addButton {
+  background-color: #e7e4f2;
+  border-color: #e7e4f2;
+  color: #4a4459;
+}

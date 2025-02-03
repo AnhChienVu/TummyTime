@@ -1,3 +1,4 @@
+// pages/register/index.js
 import React, { useState } from "react";
 import { Button, Container, Form, Modal } from "react-bootstrap";
 import styles from "./register.module.css";
@@ -54,6 +55,7 @@ function Register() {
       const data = await res.json();
 
       if (data.status === "ok") {
+        localStorage.setItem("userId", data.user_id);
         console.log("User's information has been created successfully");
         handleClose();
         router.push("/dashboard");

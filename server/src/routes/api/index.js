@@ -13,6 +13,77 @@ router.post('/login', require('./login'));
 
 router.post('/signup', require('./signup'));
 
+router.post('/user/:user_id/addBaby', require('./addBaby'));
+
+// Feeding Schedule routes
+router.get(
+  '/baby/:id/getFeedingSchedules',
+  require('./baby/getFeedingSchedules')
+);
+
+router.put(
+  '/baby/:id/updateFeedingSchedule/:mealId',
+  require('./baby/updateFeedingSchedule')
+);
+
+router.delete(
+  '/baby/:id/deleteFeedingSchedule/:mealId',
+  require('./baby/deleteFeedingSchedule')
+);
+
+router.post(
+  '/baby/:id/addFeedingSchedule',
+  require('./baby/addFeedingSchedule')
+);
+
+router.get('/user/:id/getBabyProfiles', require('./getBabyProfiles'));
+
+//************ /user routes ************
+router.get('/user/:id', require('./user/getUser').getUserById);
+
+router.put('/user/:id', require('./user/putUser').updateUserById);
+
+router.delete('/user/:id', require('./user/deleteUser').deleteUserById);
+
+// ************ /growth routes ************
+router.get('/baby/:babyId/growth/', require('./growth/getGrowth').getAllGrowth); // Get all Growth records by [:babyId]
+
+router.post(
+  '/baby/:babyId/growth',
+  require('./growth/postGrowth').createGrowth
+);
+
+router.put(
+  '/baby/:babyId/growth/:growthId',
+  require('./growth/putGrowth').updateGrowthById
+);
+
+router.delete(
+  '/baby/:babyId/growth/:growthId',
+  require('./growth/deleteGrowth').deleteGrowthById
+);
+
+// ************ /milestones routes ************
+router.get(
+  '/baby/:baby_id/getMilestones/',
+  require('./milestones/getMilestones').getMilestoneByBabyId
+);
+
+router.post(
+  '/baby/:baby_id/addMilestone/',
+  require('./milestones/postMilestone').createMilestone
+);
+
+router.put(
+  '/baby/:baby_id/updateMilestone/:milestone_id',
+  require('./milestones/putMilestone').updateMilestoneById
+);
+
+router.delete(
+  '/baby/:baby_id/deleteMilestone/:milestone_id',
+  require('./milestones/deleteMilestone').deleteMilestoneById
+);
+
 // Testing the authentication middleware
 // router.get('/test', authenticate(), require('./test'));
 module.exports = router;
