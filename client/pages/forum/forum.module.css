@@ -1,5 +1,5 @@
 .container {
-display: flex;
+    display: flex;
     margin-top: 80px;
     max-width: 1200px;
     /* Increase max-width to accommodate sidebar and form */
