@@ -13,7 +13,7 @@ router.post('/login', require('./login'));
 
 router.post('/signup', require('./signup'));
 
-router.post('/addBaby', require('./addBaby'));
+router.post('/user/:user_id/addBaby', require('./addBaby'));
 
 // Feeding Schedule routes
 router.get(
@@ -48,11 +48,20 @@ router.delete('/user/:id', require('./user/deleteUser').deleteUserById);
 // ************ /growth routes ************
 router.get('/baby/:babyId/growth/', require('./growth/getGrowth').getAllGrowth); // Get all Growth records by [:babyId]
 
-router.post('/baby/:babyId/growth', require('./growth/postGrowth').createGrowth);
+router.post(
+  '/baby/:babyId/growth',
+  require('./growth/postGrowth').createGrowth
+);
 
-router.put('/baby/:babyId/growth/:growthId', require('./growth/putGrowth').updateGrowthById);
+router.put(
+  '/baby/:babyId/growth/:growthId',
+  require('./growth/putGrowth').updateGrowthById
+);
 
-router.delete('/baby/:babyId/growth/:growthId', require('./growth/deleteGrowth').deleteGrowthById);
+router.delete(
+  '/baby/:babyId/growth/:growthId',
+  require('./growth/deleteGrowth').deleteGrowthById
+);
 
 // ************ /milestones routes ************
 router.get(
