@@ -89,7 +89,6 @@ module.exports = async (req, res) => {
       }
     }
   } else if (process.env.AUTH_METHOD === "postgres") {
-    logger.info("Authentication method: Postgres");
     try {
       const result = await pool.query(
         "SELECT * FROM authentication WHERE email = $1",
