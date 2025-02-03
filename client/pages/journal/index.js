@@ -1,6 +1,9 @@
 // client/pages/journal/index.js
 import { useForm } from "react-hook-form";
 import React, { useState } from "react";
+import { useRouter } from "next/router";
+import { localStorage } from "../login";
+
 import {
   Container,
   Form,
@@ -11,18 +14,24 @@ import {
   Image,
 } from "react-bootstrap";
 import styles from "./journal.module.css";
+import Sidebar from "@/components/Sidebar/Sidebar";
 
 export default function Journal() {
   const { register, handleSubmit, reset } = useForm();
   const [entries, setEntries] = useState([]); // Stores journal entries
   const [filePreview, setFilePreview] = useState(null); // Stores image preview
+  const router = useRouter();
+  const userID = router.query.id;
+
+  console.log("***********************localStorage", localStorage);
 
   // Handles form submission
   const onSubmit = (data) => {
     if (data.text.trim() === "" && !data.image[0]) return; // Prevent empty entries
 
     const newEntry = {
-      id: Date.now(),
+      user_id: userID,
+      title: data.title,
       text: data.text,
       image: data.image[0] ? URL.createObjectURL(data.image[0]) : null,
       date: new Date().toLocaleString(),
@@ -44,9 +53,20 @@ export default function Journal() {
 
   return (
     <Container className={styles.container} fluid>
+      <Sidebar />
       <div className={styles.formContainer}>
         <p className={styles.title}>My Journal</p>
         <Form onSubmit={handleSubmit(onSubmit)} className="mb-4">
+          <Row className="mb-3">
+            <Col>
+              <Form.Control
+                type="text"
+                placeholder="Title"
+                required
+                {...register("title")}
+              />
+            </Col>
+          </Row>
           <Row className="mb-3">
             <Col>
               <Form.Control
