@@ -76,11 +76,18 @@ export default function EditUserProfile() {
   const handleDelete = async () => {
     try {
       // deleting User
-      await fetch(`http://localhost:8080/v1/user/${user.user_id}`, {
+      const res = await fetch(`http://localhost:8080/v1/user/${user.user_id}`, {
         method: "DELETE",
       });
-      alert("User deleted successfully!");
-      router.push("/");
+      const data = await res.json();
+      if (data.status == "ok") {
+        alert("User deleted successfully!");
+        localStorage.removeItem("userId");
+        localStorage.removeItem("token");
+        router.push("/");
+      } else {
+        alert("Error deleting user information. Please try again.");
+      }
     } catch (err) {
       console.error(`Error deleting user ${userID}: `, err);
       alert("Error deleting user information. Please try again.");

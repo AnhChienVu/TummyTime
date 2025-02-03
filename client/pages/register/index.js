@@ -55,6 +55,7 @@ function Register() {
       const data = await res.json();
 
       if (data.status === "ok") {
+        localStorage.setItem("userId", data.user_id);
         console.log("User's information has been created successfully");
         handleClose();
         router.push("/dashboard");

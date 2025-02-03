@@ -58,6 +58,9 @@ module.exports = async (req, res) => {
             success: true,
             message: "Login successfully, please complete your registration",
             redirect: "/register",
+            accessToken: AccessToken,
+            token: IdToken,
+            refreshToken: RefreshToken,
           })
         );
       }

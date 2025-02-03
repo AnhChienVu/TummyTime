@@ -22,14 +22,18 @@ export default function AddBaby() {
   const router = useRouter();
 
   async function submitForm(data) {
+    const userId = localStorage.getItem("userId");
     try {
-      const res = await fetch("http://localhost:8080/v1/addBaby", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const res = await fetch(
+        `http://localhost:8080/v1/user/${userId}/addBaby`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
         },
-        body: JSON.stringify(data),
-      });
+      );
       console.log("Data:", data);
 
       if (res.ok) {
