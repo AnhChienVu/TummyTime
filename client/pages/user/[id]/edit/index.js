@@ -7,8 +7,11 @@ import styles from "./user.module.css";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/router";
 import Sidebar from "@/components/Sidebar/Sidebar";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 export default function EditUserProfile() {
+  const { t, i18n } = useTranslation("common");
   const {
     register,
     handleSubmit,
@@ -29,6 +32,9 @@ export default function EditUserProfile() {
 
   useEffect(() => {
     if (router.isReady) {
+      const locale = router.query?.locale;
+
+      console.log(locale);
       const userProfile = router.query?.profile
         ? JSON.parse(router.query.profile)
         : null;
@@ -96,10 +102,11 @@ export default function EditUserProfile() {
 
   return (
     <Container className={styles.container} fluid>
+      <Sidebar />
       <div className={styles.formContainer}>
         <Form onSubmit={handleSubmit(submitForm)}>
           {/* Title */}
-          <p className={styles.title}>Edit Your User Information</p>
+          <p className={styles.title}>{t("Edit Your User Information")}</p>
 
           {/* Name Field */}
           <Row className="mb-3">
@@ -173,8 +180,8 @@ export default function EditUserProfile() {
                   })}
                   isInvalid={!!errors?.role}
                 >
-                  <option value="Parent">Parent</option>
-                  <option value="Caregiver">Caregiver</option>
+                  <option value="Parent">{t("Parent")}</option>
+                  <option value="Caregiver">{t("Caregiver")}</option>
                 </Form.Select>
                 <Form.Control.Feedback type="invalid">
                   {errors?.role?.message}
@@ -191,7 +198,7 @@ export default function EditUserProfile() {
                 type="submit"
                 className={styles.submitButton}
               >
-                Save Changes
+                {t("Save Changes")}
               </Button>
             </Col>
           </Row>
@@ -204,7 +211,7 @@ export default function EditUserProfile() {
                 className={styles.deleteButton}
                 onClick={() => setShowDeleteModal(true)}
               >
-                Delete User Profile
+                {t("Delete User Profile")}
               </Button>
             </Col>
           </Row>
@@ -244,4 +251,12 @@ export default function EditUserProfile() {
       </div>
     </Container>
   );
+}
+
+export async function getServerSideProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
+  };
 }

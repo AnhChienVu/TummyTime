@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Card, Button, Image } from "react-bootstrap";
 import styles from "./BabyCard.module.css";
+import { useTranslation } from "next-i18next";
+import Link from "next/link";
 
 function BabyCard({ addMealBtn }) {
+  const { t, i18n } = useTranslation("common");
+  const locale = i18n.language;
   const [babyProfiles, setBabyProfiles] = useState([]);
 
   useEffect(() => {
@@ -49,21 +53,27 @@ function BabyCard({ addMealBtn }) {
                 <Card.Title>
                   {baby.first_name} {baby.last_name}
                 </Card.Title>
-                <Card.Text>Gender: {baby.gender}</Card.Text>
-                <Card.Text>Weight: {baby.weight}lbs</Card.Text>
+                <Card.Text>
+                  {t("Gender")}: {baby.gender}
+                </Card.Text>
+                <Card.Text>
+                  {t("Weight")}: {baby.weight}lbs
+                </Card.Text>
               </div>
 
-              <Button
-                className={styles.customButton}
+              <Link
                 href={`/baby/${baby.baby_id}/feedingSchedule`}
+                locale={locale}
               >
-                See details
-              </Button>
+                <Button className={styles.customButton}>
+                  {t("See details")}
+                </Button>
+              </Link>
               <Button
                 className={styles.customButton}
                 onClick={() => addMealBtn(baby.baby_id)}
               >
-                Add meal
+                {t("Add meal")}
               </Button>
             </Card.Body>
           </Card>
