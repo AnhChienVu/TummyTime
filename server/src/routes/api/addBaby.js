@@ -8,8 +8,6 @@ const {
 module.exports = async (req, res) => {
   const userId = req.params.user_id;
   const { first_name, last_name, gender, weight } = req.body;
-  console.log("req.params", req.params);
-  console.log("req.user", req.user);
 
   try {
     const newBaby = await pool.query(
