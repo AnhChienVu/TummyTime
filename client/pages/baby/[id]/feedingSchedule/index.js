@@ -13,7 +13,11 @@ import {
 import { FaBaby, FaEdit, FaTrash } from "react-icons/fa";
 import { AiOutlineInfoCircle } from "react-icons/ai";
 
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+
 function Feeding() {
+  const { t, i18n } = useTranslation("common");
   const [feedingSchedule, setFeedingSchedule] = useState([]);
   const [babyId, setBabyId] = useState("");
   const [modalError, setModalError] = useState("");
@@ -394,18 +398,18 @@ function Feeding() {
                 <span className={styles.dateText}>{restOfDate}</span>
               </div>
               <div className={styles.dayHeaderRight}>
-                <span className={styles.todayMeals}>Today’s Meals</span>
+                <span className={styles.todayMeals}>{t("Today’s Meals")}</span>
               </div>
             </div>
             <table className={styles.mealsTable}>
               <thead>
                 <tr>
-                  <th>Meal</th>
-                  <th>Time</th>
-                  <th>Type</th>
-                  <th>Amount (oz)</th>
-                  <th>Issue</th>
-                  <th>Notes</th>
+                  <th>{t("Meal")}</th>
+                  <th>{t("Time")}</th>
+                  <th>{t("Type")}</th>
+                  <th>{t("Amount")} (oz)</th>
+                  <th>{t("Amount")}x</th>
+                  <th>{t("Notes")}</th>
                   <th style={{ width: "60px" }}></th>
                 </tr>
               </thead>
@@ -446,19 +450,19 @@ function Feeding() {
           {modalError && <Alert variant="danger">{modalError}</Alert>}
           <Form>
             <Form.Group controlId="meal">
-              <Form.Label>Meal</Form.Label>
+              <Form.Label>{t("Meal")}</Form.Label>
               <Form.Select
                 value={meal}
                 onChange={(e) => setMeal(e.target.value)}
               >
-                <option>Breakfast</option>
-                <option>Lunch</option>
-                <option>Dinner</option>
-                <option>Snack</option>
+                <option>{t("Breakfast")}</option>
+                <option>{t("Lunch")}</option>
+                <option>{t("Dinner")}</option>
+                <option>{t("Snack")}</option>
               </Form.Select>
             </Form.Group>
             <Form.Group controlId="time" className="mt-3">
-              <Form.Label>Time</Form.Label>
+              <Form.Label>{t("Time")}</Form.Label>
               <div className={styles.timeRow}>
                 <div className={styles.timeSegment}>
                   <input
@@ -504,19 +508,19 @@ function Feeding() {
               </div>
             </Form.Group>
             <Form.Group controlId="type" className="mt-3">
-              <Form.Label>Type</Form.Label>
+              <Form.Label>{t("Type")}</Form.Label>
               <Form.Select
                 value={type}
                 onChange={(e) => setType(e.target.value)}
               >
-                <option>Baby formula</option>
-                <option>Breastmilk</option>
-                <option>Solid food</option>
-                <option>Snack</option>
+                <option>{t("Baby formula")}</option>
+                <option>{t("Breastmilk")}</option>
+                <option>{t("Solid food")}</option>
+                <option>{t("Snack")}</option>
               </Form.Select>
             </Form.Group>
             <Form.Group controlId="amount" className="mt-3">
-              <Form.Label>Amount (oz)</Form.Label>
+              <Form.Label>{t("Amount")} (oz)</Form.Label>
               <Form.Control
                 type="number"
                 step="0.1"
@@ -526,21 +530,21 @@ function Feeding() {
               />
             </Form.Group>
             <Form.Group controlId="issues" className="mt-3">
-              <Form.Label>Issue</Form.Label>
+              <Form.Label>{t("Issue")}</Form.Label>
               <Form.Control
                 as="textarea"
                 rows={2}
-                placeholder="Describe any feeding issues"
+                placeholder={t("Describe any feeding issues")}
                 value={issues}
                 onChange={(e) => setIssues(e.target.value)}
               />
             </Form.Group>
             <Form.Group controlId="notes" className="mt-3">
-              <Form.Label>Notes</Form.Label>
+              <Form.Label>{t("Notes")}</Form.Label>
               <Form.Control
                 as="textarea"
                 rows={2}
-                placeholder="Any additional notes?"
+                placeholder={t("Any additional notes?")}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
               />
@@ -552,10 +556,10 @@ function Feeding() {
             className={styles.btnCancel}
             onClick={() => setModalShow(false)}
           >
-            Cancel
+            {t("Cancel")}
           </Button>
           <Button className={styles.btnSave} onClick={handleSaveMeal}>
-            Save
+            {t("Save")}
           </Button>
         </Modal.Footer>
       </Modal>
@@ -710,3 +714,10 @@ function Feeding() {
 }
 
 export default Feeding;
+export async function getServerSideProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
+  };
+}

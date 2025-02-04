@@ -15,6 +15,9 @@ import Sidebar from "@/components/Sidebar/Sidebar";
 import BabyCard from "@/components/BabyCard/BabyCard";
 import { useRouter } from "next/router";
 
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+
 function getLocalTodayString() {
   const now = new Date();
   const offsetMs = now.getTimezoneOffset() * 60000;
@@ -113,6 +116,7 @@ const createToastId = () => {
 };
 
 const FeedingSchedule = () => {
+  const { t, i18n } = useTranslation("common");
   const router = useRouter();
   const [scheduleData, setScheduleData] = useState([]);
   const [modalShow, setModalShow] = useState(false);
@@ -512,7 +516,7 @@ const FeedingSchedule = () => {
             )} */}
 
             <div className={styles.headerRow}>
-              <h1 className={styles.title}>Feeding Schedule</h1>
+              <h1 className={styles.title}>{t("Feeding Schedule")}</h1>
               <div className={styles.headerActions}>
                 {/* {hasAnyMeals && (
                   <Button
@@ -952,3 +956,10 @@ const FeedingSchedule = () => {
 };
 
 export default FeedingSchedule;
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
+  };
+}
