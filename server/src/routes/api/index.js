@@ -111,6 +111,12 @@ router.delete(
   require('./milestones/deleteMilestone').deleteMilestoneById
 );
 
+// ************ /voiceCommand routes ************
+router.post(
+  '/voiceCommand',
+  require('./voiceCommand/processVoiceCommand').processVoiceCommand
+);
+
 // Testing the authentication middleware
 // router.get('/test', authenticate(), require('./test'));
 module.exports = router;

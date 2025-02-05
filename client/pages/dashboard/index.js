@@ -13,10 +13,12 @@ import {
 } from "react-bootstrap";
 import styles from "./dashboard.module.css";
 import Link from "next/link";
+import VoiceControl from "@/components/VoiceControl/VoiceControl";
 
 const Dashboard = () => {
   return (
     <Container className={`${styles.container} pt-5`}>
+      <VoiceControl />
       <Row>
         {/* Main Content */}
         <Col md={10}>

@@ -46,11 +46,24 @@ display: flex;
     width: 50%;
     background-color: #65558F;
     margin-left: 45%;
+}
 
+.submitButton:hover {
+    background-color: #4D3D7E;
 }
 
 .link {
     text-decoration: none;
     color: black;
     font-weight: 500;
+}
+
+.microphone {
+    width: 50px;
+    font-size: 16px;
+    background-color: #65558F;
+}
+
+.microphone:hover {
+    background-color: #4D3D7E;
 }

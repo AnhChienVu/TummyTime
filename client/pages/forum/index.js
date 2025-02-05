@@ -11,11 +11,42 @@ import {
   Image,
 } from "react-bootstrap";
 import styles from "./forum.module.css";
+import Sidebar from "@/components/Sidebar/Sidebar";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faMicrophone,
+  faMicrophoneSlash,
+} from "@fortawesome/free-solid-svg-icons";
+import useSpeechToText from "@/hooks/useSpeechToText";
 
 export default function CommunityForum() {
   const { register, handleSubmit, reset } = useForm();
   const [posts, setPosts] = useState([]); // Stores posts
   const [filePreview, setFilePreview] = useState(null); // Stores image preview
+  const [text, setText] = useState("");
+  const { isListening, transcript, startListening, stopListening } =
+    useSpeechToText({
+      continuous: true,
+      interimResults: true,
+      lang: "en-US",
+    });
+
+  const startStopListening = () => {
+    if (isListening) {
+      stopVoiceInput();
+    } else {
+      startListening();
+    }
+  };
+
+  const stopVoiceInput = () => {
+    setText(
+      (preVal) =>
+        preVal +
+        (transcript.length ? (preVal.length ? " " : "") + transcript : ""),
+    );
+    stopListening();
+  };
 
   // Handles form submission
   const onSubmit = (data) => {
@@ -55,6 +86,13 @@ export default function CommunityForum() {
                 placeholder="Create a post"
                 required
                 {...register("text")}
+                disabled={isListening}
+                value={
+                  isListening
+                    ? text + (transcript.length ? transcript : "")
+                    : text
+                }
+                onChange={(e) => setText(e.target.value)}
               />
             </Col>
           </Row>
@@ -72,7 +110,7 @@ export default function CommunityForum() {
             </Row>
           )}
           <Row className="mb-3">
-            <Col md={4}>
+            <Col md={4} className="d-flex align-items-center">
               <Form.Control
                 type="file"
                 accept="image/*"
@@ -80,8 +118,19 @@ export default function CommunityForum() {
                 onChange={handleFileChange}
               />
             </Col>
-            <Col md={4}></Col>
-            <Col md={4}>
+            <Col md={4} className="d-flex align-items-center">
+              <Button
+                className={styles.microphone}
+                onClick={startStopListening}
+              >
+                {isListening ? (
+                  <FontAwesomeIcon icon={faMicrophoneSlash} />
+                ) : (
+                  <FontAwesomeIcon icon={faMicrophone} />
+                )}
+              </Button>
+            </Col>
+            <Col md={4} className="d-flex align-items-center">
               <Button
                 variant="primary"
                 type="submit"
