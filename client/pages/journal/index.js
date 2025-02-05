@@ -146,6 +146,8 @@ export default function Journal() {
 
         <hr />
 
+        {/* Display saved journal entries */}
+        <p className={styles.title}>Journal Entries</p>
         <div className={styles.entriesSection}>
           {entries.map((entry) => (
             <Card key={entry.id} className={styles.entryCard}>
@@ -153,7 +155,16 @@ export default function Journal() {
                 <Card.Title className={styles.entryCardTitle}>
                   {entry.title}
                 </Card.Title>
-                <Card.Text className={styles.entryCardText}>
+                <Card.Text
+                  className={styles.entryCardText}
+                  style={{
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
                   {entry.text}
                 </Card.Text>
                 {entry.image && (
@@ -164,7 +175,16 @@ export default function Journal() {
                   />
                 )}
                 <Card.Footer className={styles.entryCardFooter}>
-                  {entry.date}
+                  {new Date(entry.date).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })}{" "}
+                  {new Date(entry.date).toLocaleTimeString("en-US", {
+                    hour: "numeric",
+                    minute: "numeric",
+                    hour12: true,
+                  })}
                 </Card.Footer>
               </Card.Body>
             </Card>
