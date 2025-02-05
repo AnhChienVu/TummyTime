@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { Container } from "react-bootstrap";
-import Sidebar from "@/components/Sidebar/Sidebar";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faToggleOff, faToggleOn } from "@fortawesome/free-solid-svg-icons";
 import styles from "./settings.module.css";
@@ -65,7 +64,6 @@ function Settings() {
 
   return (
     <Container fluid className={styles.container}>
-      <Sidebar />
       <div className={styles.content}>
         <h2>{t("Preferred Languages")}</h2>
         <div className={styles.languageBoard}>

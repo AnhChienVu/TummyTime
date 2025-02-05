@@ -1,17 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Form, Button, Alert, Row, Col } from "react-bootstrap";
-import {
-  parseISO,
-  format,
-  compareDesc,
-  isSameDay,
-  isAfter,
-  isBefore,
-} from "date-fns";
-import { FaBaby, FaEdit, FaTrash } from "react-icons/fa";
+import { parseISO, format, compareDesc, isAfter, isBefore } from "date-fns";
 import { AiOutlineInfoCircle } from "react-icons/ai";
 import styles from "./feeding-schedule.module.css";
-import Sidebar from "@/components/Sidebar/Sidebar";
 import BabyCard from "@/components/BabyCard/BabyCard";
 import { useRouter } from "next/router";
 
@@ -356,6 +347,7 @@ const FeedingSchedule = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify({
           date: selectedDate,
@@ -499,7 +491,6 @@ const FeedingSchedule = () => {
 
       <div className={styles.container}>
         <Row>
-          <Sidebar />
           <Col>
             {/* {hasAnyMeals && (
               <div className={styles.feedDueBox}>

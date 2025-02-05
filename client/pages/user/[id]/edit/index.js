@@ -6,7 +6,6 @@ import { Row, Col, Container, Button, Modal, Form } from "react-bootstrap";
 import styles from "./user.module.css";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/router";
-import Sidebar from "@/components/Sidebar/Sidebar";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
@@ -56,7 +55,10 @@ export default function EditUserProfile() {
 
       const res = await fetch(`http://localhost:8080/v1/user/${user.user_id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
         body: JSON.stringify(data),
       });
 
@@ -84,6 +86,9 @@ export default function EditUserProfile() {
       // deleting User
       const res = await fetch(`http://localhost:8080/v1/user/${user.user_id}`, {
         method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       });
       const data = await res.json();
       if (data.status == "ok") {
@@ -102,7 +107,6 @@ export default function EditUserProfile() {
 
   return (
     <Container className={styles.container} fluid>
-      <Sidebar />
       <div className={styles.formContainer}>
         <Form onSubmit={handleSubmit(submitForm)}>
           {/* Title */}

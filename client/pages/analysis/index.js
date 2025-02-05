@@ -123,10 +123,8 @@ function Analysis() {
 
   // E) RENDER
   return (
-    <Container className={styles.analysisContainer} fluid>
+    <Container className={styles.analysisContainer}>
       <Row>
-        <Sidebar />
-
         <Col>
           <h1>Analytics</h1>
           <p className="text-muted">

@@ -59,6 +59,12 @@ function Feeding() {
         try {
           const res = await fetch(
             `http://localhost:8080/v1/baby/${baby_id}/getFeedingSchedules`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            },
           );
           const data = await res.json();
           console.log("Fetched feeding schedule data:", data);
@@ -260,6 +266,7 @@ function Feeding() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
       body: JSON.stringify({
         date: todayString,

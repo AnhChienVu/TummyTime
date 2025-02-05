@@ -1,5 +1,4 @@
 // pages/profile/index.js
-import Sidebar from "@/components/Sidebar/Sidebar";
 import React, { useEffect, useState } from "react";
 import { Container, Row, Col, Card, Button, Image } from "react-bootstrap";
 import { useRouter } from "next/router";
@@ -21,10 +20,11 @@ function ProfilePage() {
     async function fetchProfile() {
       // Fetches the user's profile
       try {
-        // const res = await fetch(
-        //   `http://localhost:8080/v1/getProfile?userId=${userId}`,
-        // );
-        const res = await fetch(`http://localhost:8080/v1/user/${userId}`);
+        const res = await fetch(`http://localhost:8080/v1/user/${userId}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
         const data = await res.json();
         // console.log("Fetched user profile data:", data); // Log the response data
         if (res.ok) {
@@ -42,6 +42,11 @@ function ProfilePage() {
       try {
         const res = await fetch(
           `http://localhost:8080/v1/user/${userId}/getBabyProfiles`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
         );
         const data = await res.json();
         // console.log("Fetched baby profiles data:", data); // Log the response data
@@ -70,11 +75,10 @@ function ProfilePage() {
     });
   };
   return (
-    <Container className="mt-5">
+    <Container className={styles.container}>
       {/* Profile Section */}
       <Row className="mb-4">
-        <Sidebar />
-        <Col className="mt-4 pt-4">
+        <Col>
           <h2>{t("Profile")}</h2>
           <Card className="mb-3">
             <Card.Body className="d-flex align-items-center">
@@ -93,7 +97,11 @@ function ProfilePage() {
                 <Card.Text>{profile ? profile.role : "Loading..."}</Card.Text>
               </div>
 
-              <Button variant="outline-secondary" onClick={handleEditButton}>
+              <Button
+                variant="outline-secondary"
+                onClick={handleEditButton}
+                className={styles.customButton}
+              >
                 {t("Edit")}
               </Button>
             </Card.Body>
@@ -101,7 +109,9 @@ function ProfilePage() {
           <div className="d-flex justify-content-between align-items-center mb-3">
             <h2>{t("Baby Profiles")}</h2>
             <Link href={`/addBaby`} locale={locale}>
-              <Button variant="primary">{t("Add Baby")}</Button>
+              <Button variant="primary" className={styles.customButton}>
+                {t("Add Baby")}
+              </Button>
             </Link>
           </div>
           {babyProfiles.length > 0 ? (

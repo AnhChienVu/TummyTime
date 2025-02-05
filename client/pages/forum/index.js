@@ -11,7 +11,6 @@ import {
   Image,
 } from "react-bootstrap";
 import styles from "./forum.module.css";
-import Sidebar from "@/components/Sidebar/Sidebar";
 
 export default function CommunityForum() {
   const { register, handleSubmit, reset } = useForm();
@@ -45,7 +44,6 @@ export default function CommunityForum() {
 
   return (
     <Container className={styles.container} fluid>
-      <Sidebar />
       <div className={styles.formContainer}>
         <p className={styles.title}>Community Forums</p>
         <Form onSubmit={handleSubmit(onSubmit)} className="mb-4">
