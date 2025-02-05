@@ -1,4 +1,4 @@
-// src/routes/api/getFeedingSchedules.js
+// src/routes/api/baby/addFeedingSchedule.js
 const pool = require('../../../../database/db');
 const {
   createSuccessResponse,
