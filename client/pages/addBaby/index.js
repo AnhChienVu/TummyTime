@@ -3,9 +3,12 @@ import { useForm } from "react-hook-form";
 import { Row, Col, Form, Button, Container } from "react-bootstrap";
 import { useRouter } from "next/router";
 import styles from "./addBaby.module.css";
-import Sidebar from "@/components/Sidebar/Sidebar";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 export default function AddBaby() {
+  const { t, i18n } = useTranslation("common");
+  console.log(i18n.language);
   const {
     register,
     handleSubmit,
@@ -30,6 +33,7 @@ export default function AddBaby() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
           body: JSON.stringify(data),
         },
@@ -50,20 +54,20 @@ export default function AddBaby() {
 
   return (
     <Container className={styles.container} fluid>
-      <Sidebar />
       <div className={styles.formContainer}>
         <Form onSubmit={handleSubmit(submitForm)}>
-          <p className={styles.title}>Welcome!</p>
+          <p className={styles.title}>{t("Welcome!")}</p>
           <p>
-            Congratulations on growing your family! Let&apos;s start by adding
-            your new baby to Tummy Time.
+            {t(
+              "Congratulations on growing your family! Start by adding your new baby to Tummy Time",
+            )}
           </p>
           <Row className="mb-3">
             <Col md={6}>
               <Form.Group className="mb-3">
                 <Form.Control
                   type="text"
-                  placeholder="First name"
+                  placeholder={t("First name")}
                   name="firstName"
                   {...register("first_name")}
                   required
@@ -74,7 +78,7 @@ export default function AddBaby() {
               <Form.Group className="mb-3">
                 <Form.Control
                   type="text"
-                  placeholder="Last name"
+                  placeholder={t("Last name")}
                   name="lastName"
                   {...register("last_name")}
                   required
@@ -91,7 +95,7 @@ export default function AddBaby() {
                 <Form.Control
                   name="weight"
                   type="number"
-                  placeholder="Weight at birth (lb)"
+                  placeholder={t("Weight at birth (lb)")}
                   min={5}
                   {...register("weight")}
                   required
@@ -107,14 +111,14 @@ export default function AddBaby() {
                 defaultValue=""
                 className="mb-3"
                 {...register("gender")}
-                placeholder="Gender"
+                placeholder={t("Gender")}
                 required
               >
                 <option value="" disabled>
-                  Gender
+                  {t("Gender")}
                 </option>
-                <option value="boy">Boy</option>
-                <option value="girl">Girl</option>
+                <option value="boy">{t("Boy")}</option>
+                <option value="girl">{t("Girl")}</option>
               </Form.Select>
             </Col>
           </Row>
@@ -124,10 +128,18 @@ export default function AddBaby() {
             type="submit"
             className={styles.submitButton}
           >
-            Create baby profile
+            {t("Create baby profile")}
           </Button>
         </Form>
       </div>
     </Container>
   );
+}
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
+  };
 }

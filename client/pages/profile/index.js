@@ -1,11 +1,16 @@
 // pages/profile/index.js
-import Sidebar from "@/components/Sidebar/Sidebar";
 import React, { useEffect, useState } from "react";
 import { Container, Row, Col, Card, Button, Image } from "react-bootstrap";
 import { useRouter } from "next/router";
 import styles from "./profile.module.css";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import Link from "next/link";
 
 function ProfilePage() {
+  const { t, i18n } = useTranslation("common");
+  const locale = i18n.language;
+
   const [profile, setProfile] = useState(null);
   const [babyProfiles, setBabyProfiles] = useState([]);
   const router = useRouter();
@@ -15,10 +20,11 @@ function ProfilePage() {
     async function fetchProfile() {
       // Fetches the user's profile
       try {
-        // const res = await fetch(
-        //   `http://localhost:8080/v1/getProfile?userId=${userId}`,
-        // );
-        const res = await fetch(`http://localhost:8080/v1/user/${userId}`);
+        const res = await fetch(`http://localhost:8080/v1/user/${userId}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
         const data = await res.json();
         // console.log("Fetched user profile data:", data); // Log the response data
         if (res.ok) {
@@ -36,6 +42,11 @@ function ProfilePage() {
       try {
         const res = await fetch(
           `http://localhost:8080/v1/user/${userId}/getBabyProfiles`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
         );
         const data = await res.json();
         // console.log("Fetched baby profiles data:", data); // Log the response data
@@ -60,16 +71,15 @@ function ProfilePage() {
   const handleEditButton = () => {
     router.push({
       pathname: `user/${profile.user_id}/edit`,
-      query: { profile: JSON.stringify(profile) },
+      query: { profile: JSON.stringify(profile), locale },
     });
   };
   return (
-    <Container className="mt-5">
+    <Container className={styles.container}>
       {/* Profile Section */}
       <Row className="mb-4">
-        <Sidebar />
-        <Col className="mt-4 pt-4">
-          <h2>Profile</h2>
+        <Col>
+          <h2>{t("Profile")}</h2>
           <Card className="mb-3">
             <Card.Body className="d-flex align-items-center">
               <Image
@@ -86,16 +96,23 @@ function ProfilePage() {
                 </Card.Title>
                 <Card.Text>{profile ? profile.role : "Loading..."}</Card.Text>
               </div>
-              <Button variant="outline-secondary" onClick={handleEditButton}>
-                Edit
+
+              <Button
+                variant="outline-secondary"
+                onClick={handleEditButton}
+                className={styles.customButton}
+              >
+                {t("Edit")}
               </Button>
             </Card.Body>
           </Card>
           <div className="d-flex justify-content-between align-items-center mb-3">
-            <h2>Baby Profiles</h2>
-            <Button variant="primary" href="http://localhost:3000/addBaby">
-              Add Baby
-            </Button>
+            <h2>{t("Baby Profiles")}</h2>
+            <Link href={`/addBaby`} locale={locale}>
+              <Button variant="primary" className={styles.customButton}>
+                {t("Add Baby")}
+              </Button>
+            </Link>
           </div>
           {babyProfiles.length > 0 ? (
             babyProfiles.map((baby) => (
@@ -123,7 +140,7 @@ function ProfilePage() {
               </Card>
             ))
           ) : (
-            <p>No baby profiles found.</p>
+            <p>{t("No baby profiles found")}</p>
           )}
         </Col>
       </Row>
@@ -132,3 +149,11 @@ function ProfilePage() {
 }
 
 export default ProfilePage;
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
+  };
+}

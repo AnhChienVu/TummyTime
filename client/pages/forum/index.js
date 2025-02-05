@@ -75,7 +75,6 @@ export default function CommunityForum() {
 
   return (
     <Container className={styles.container} fluid>
-      <Sidebar />
       <div className={styles.formContainer}>
         <p className={styles.title}>Community Forums</p>
         <Form onSubmit={handleSubmit(onSubmit)} className="mb-4">

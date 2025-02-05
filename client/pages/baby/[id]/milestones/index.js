@@ -24,6 +24,11 @@ function MilestoneEachBaby() {
         try {
           const res = await fetch(
             `http://localhost:8080/v1/baby/${baby_id}/getMilestones`,
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            },
           );
           const data = await res.json();
 
