@@ -56,7 +56,10 @@ export default function EditUserProfile() {
 
       const res = await fetch(`http://localhost:8080/v1/user/${user.user_id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
         body: JSON.stringify(data),
       });
 
@@ -84,6 +87,9 @@ export default function EditUserProfile() {
       // deleting User
       const res = await fetch(`http://localhost:8080/v1/user/${user.user_id}`, {
         method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       });
       const data = await res.json();
       if (data.status == "ok") {

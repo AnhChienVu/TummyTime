@@ -17,6 +17,11 @@ function BabyCard({ addMealBtn }) {
       try {
         const res = await fetch(
           `http://localhost:8080/v1/user/${userId}/getBabyProfiles`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          }
         );
         const data = await res.json();
         // console.log("Fetched baby profiles data:", data); // Log the response data

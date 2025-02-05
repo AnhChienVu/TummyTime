@@ -1,5 +1,4 @@
 // pages/profile/index.js
-import Sidebar from "@/components/Sidebar/Sidebar";
 import React, { useEffect, useState } from "react";
 import { Container, Row, Col, Card, Button, Image } from "react-bootstrap";
 import { useRouter } from "next/router";
@@ -21,10 +20,11 @@ function ProfilePage() {
     async function fetchProfile() {
       // Fetches the user's profile
       try {
-        // const res = await fetch(
-        //   `http://localhost:8080/v1/getProfile?userId=${userId}`,
-        // );
-        const res = await fetch(`http://localhost:8080/v1/user/${userId}`);
+        const res = await fetch(`http://localhost:8080/v1/user/${userId}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
         const data = await res.json();
         // console.log("Fetched user profile data:", data); // Log the response data
         if (res.ok) {
@@ -42,6 +42,11 @@ function ProfilePage() {
       try {
         const res = await fetch(
           `http://localhost:8080/v1/user/${userId}/getBabyProfiles`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
         );
         const data = await res.json();
         // console.log("Fetched baby profiles data:", data); // Log the response data
@@ -73,7 +78,6 @@ function ProfilePage() {
     <Container className="mt-5">
       {/* Profile Section */}
       <Row className="mb-4">
-        <Sidebar />
         <Col className="mt-4 pt-4">
           <h2>{t("Profile")}</h2>
           <Card className="mb-3">
