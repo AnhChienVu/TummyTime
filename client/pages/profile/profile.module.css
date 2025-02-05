@@ -1,3 +1,8 @@
+.container {
+    max-width: 1200px;
+    margin-left: 50px;
+}
+
 .customButton {
     background-color: #65558F;
     border: none;

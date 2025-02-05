@@ -12,16 +12,12 @@ import {
   Image,
 } from "react-bootstrap";
 import styles from "./dashboard.module.css";
-import Sidebar from "@/components/Sidebar/Sidebar";
-// import { Link } from "react-router-dom";
 import Link from "next/link";
 
 const Dashboard = () => {
   return (
     <Container className={`${styles.container} pt-5`}>
       <Row>
-        {/* Sidebar */}
-        <Sidebar />
         {/* Main Content */}
         <Col md={10}>
           <Alert variant="danger" className="my-3">

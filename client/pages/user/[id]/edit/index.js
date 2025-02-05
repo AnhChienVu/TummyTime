@@ -6,7 +6,6 @@ import { Row, Col, Container, Button, Modal, Form } from "react-bootstrap";
 import styles from "./user.module.css";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/router";
-import Sidebar from "@/components/Sidebar/Sidebar";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
@@ -108,7 +107,6 @@ export default function EditUserProfile() {
 
   return (
     <Container className={styles.container} fluid>
-      <Sidebar />
       <div className={styles.formContainer}>
         <Form onSubmit={handleSubmit(submitForm)}>
           {/* Title */}

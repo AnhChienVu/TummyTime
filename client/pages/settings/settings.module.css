@@ -1,5 +1,4 @@
 .container {
-    margin-top: 80px;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -9,7 +8,6 @@
     display: flex;
     flex-grow: 1;
     flex-direction: column;
-    /* justify-content: space-around; */
     align-items: center;
     height: 100vh;
     margin-top:10px

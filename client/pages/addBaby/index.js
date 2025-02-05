@@ -3,7 +3,6 @@ import { useForm } from "react-hook-form";
 import { Row, Col, Form, Button, Container } from "react-bootstrap";
 import { useRouter } from "next/router";
 import styles from "./addBaby.module.css";
-import Sidebar from "@/components/Sidebar/Sidebar";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
@@ -55,7 +54,6 @@ export default function AddBaby() {
 
   return (
     <Container className={styles.container} fluid>
-      <Sidebar />
       <div className={styles.formContainer}>
         <Form onSubmit={handleSubmit(submitForm)}>
           <p className={styles.title}>{t("Welcome!")}</p>
