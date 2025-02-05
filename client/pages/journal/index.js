@@ -1,9 +1,6 @@
-// client/pages/journal/index.js
 import { useForm } from "react-hook-form";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-// import { localStorage } from "../login";
-
 import {
   Container,
   Form,
@@ -15,25 +12,41 @@ import {
 } from "react-bootstrap";
 import styles from "./journal.module.css";
 import Sidebar from "@/components/Sidebar/Sidebar";
-import RichTextEditor from "@/components/RichTextEditor/RichTextEditor";
 
 export default function Journal() {
   const { register, handleSubmit, reset } = useForm();
-  const [entries, setEntries] = useState([]); // Stores journal entries
-  const [filePreview, setFilePreview] = useState(null); // Stores image preview
-  const [text, setText] = useState(""); // Stores rich text content
+  const [entries, setEntries] = useState([]);
+  const [filePreview, setFilePreview] = useState(null);
+  const [text, setText] = useState("");
 
-  // const router = useRouter();
-  // const userId = router.query.id;
-  // console.log("User ID:", router.query.id); // undefined
+  const userId = 1;
 
-  const userId = 1; // Hardcoded user ID for now
+  useEffect(() => {
+    const fetchEntries = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:8080/v1/user/${userId}/getJournalEntries`,
+        );
+        const data = await response.json();
+        if (response.ok) {
+          const journalEntryArray = Object.keys(data)
+            .filter((key) => key !== "status")
+            .map((key) => data[key]);
+          setEntries(journalEntryArray);
+        } else {
+          console.error(data.message);
+        }
+      } catch (error) {
+        console.error("Error fetching journal entries:", error);
+      }
+    };
+
+    fetchEntries();
+  }, []);
 
   const onSubmit = async (data) => {
     try {
-      console.log("text:", text);
-      console.log("data:", data);
-      if (data.text.trim() === "" && !data.image[0]) return; // Prevent empty entries
+      if (data.text.trim() === "" && !data.image[0]) return;
 
       const formData = new FormData();
       formData.append("user_id", userId);
@@ -50,7 +63,6 @@ export default function Journal() {
         },
       );
 
-      // Handle response
       if (res.ok) {
         const newEntry = await res.json();
         setEntries([...entries, newEntry]);
@@ -72,12 +84,6 @@ export default function Journal() {
     }
   };
 
-  // Checks if the user has entered text in the rich text editor
-  // const handleTextChange = (newText) => {
-  //   console.log("Updating text state:", newText);
-  //   setText(newText);
-  // };
-
   return (
     <Container className={styles.container} fluid>
       <Sidebar />
@@ -96,11 +102,6 @@ export default function Journal() {
           </Row>
           <Row className="mb-3">
             <Col>
-              {/* <RichTextEditor
-                value={text}
-                onChange={handleTextChange}
-                required
-              /> */}
               <Form.Control
                 as="textarea"
                 rows={3}
@@ -110,8 +111,6 @@ export default function Journal() {
               />
             </Col>
           </Row>
-
-          {/* Display image preview */}
           {filePreview && (
             <Row className="mb-3">
               <Col>
@@ -147,27 +146,30 @@ export default function Journal() {
 
         <hr />
 
-        {/* Display posted journal entries */}
-        <Row>
+        <div className={styles.entriesSection}>
           {entries.map((entry) => (
-            <Col key={entry.id} sm={12} md={6} lg={4} className="mb-4">
-              <Card>
-                <Card.Body>
-                  <Card.Title>{entry.title}</Card.Title>
-                  <div dangerouslySetInnerHTML={{ __html: entry.text }} />
-                  {entry.image && (
-                    <Card.Img
-                      variant="bottom"
-                      src={entry.image}
-                      alt="journal entry"
-                    />
-                  )}
-                  <Card.Footer className="text-muted">{entry.date}</Card.Footer>
-                </Card.Body>
-              </Card>
-            </Col>
+            <Card key={entry.id} className={styles.entryCard}>
+              <Card.Body>
+                <Card.Title className={styles.entryCardTitle}>
+                  {entry.title}
+                </Card.Title>
+                <Card.Text className={styles.entryCardText}>
+                  {entry.text}
+                </Card.Text>
+                {entry.image && (
+                  <Image
+                    src={entry.image}
+                    alt="journal entry"
+                    className={styles.tableImg}
+                  />
+                )}
+                <Card.Footer className={styles.entryCardFooter}>
+                  {entry.date}
+                </Card.Footer>
+              </Card.Body>
+            </Card>
           ))}
-        </Row>
+        </div>
       </div>
     </Container>
   );
