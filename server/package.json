@@ -8,9 +8,6 @@
     "start": "node src/index.js",
     "dev": "cross-env LOG_LEVEL=debug nodemon src/index.js"
   },
-  "jest": {
-    "testEnvironment": "node"
-  },
   "author": "T6-PRJ666",
   "license": "ISC",
   "dependencies": {
