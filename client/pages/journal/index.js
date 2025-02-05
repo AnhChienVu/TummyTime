@@ -2,7 +2,7 @@
 import { useForm } from "react-hook-form";
 import React, { useState } from "react";
 import { useRouter } from "next/router";
-import { localStorage } from "../login";
+// import { localStorage } from "../login";
 
 import {
   Container,
@@ -15,31 +15,52 @@ import {
 } from "react-bootstrap";
 import styles from "./journal.module.css";
 import Sidebar from "@/components/Sidebar/Sidebar";
+import RichTextEditor from "@/components/RichTextEditor/RichTextEditor";
 
 export default function Journal() {
   const { register, handleSubmit, reset } = useForm();
   const [entries, setEntries] = useState([]); // Stores journal entries
   const [filePreview, setFilePreview] = useState(null); // Stores image preview
-  const router = useRouter();
-  const userID = router.query.id;
+  const [text, setText] = useState(""); // Stores rich text content
 
-  console.log("***********************localStorage", localStorage);
+  // const router = useRouter();
+  // const userId = router.query.id;
+  // console.log("User ID:", router.query.id); // undefined
 
-  // Handles form submission
-  const onSubmit = (data) => {
-    if (data.text.trim() === "" && !data.image[0]) return; // Prevent empty entries
+  const userId = 1; // Hardcoded user ID for now
 
-    const newEntry = {
-      user_id: userID,
-      title: data.title,
-      text: data.text,
-      image: data.image[0] ? URL.createObjectURL(data.image[0]) : null,
-      date: new Date().toLocaleString(),
-    };
+  const onSubmit = async (data) => {
+    try {
+      console.log("text:", text);
+      console.log("data:", data);
+      if (data.text.trim() === "" && !data.image[0]) return; // Prevent empty entries
 
-    setEntries([newEntry, ...entries]);
-    setFilePreview(null);
-    reset();
+      const formData = new FormData();
+      formData.append("user_id", userId);
+      formData.append("title", data.title);
+      formData.append("text", data.text);
+      formData.append("image", data.image[0]);
+      formData.append("date", new Date().toLocaleString());
+
+      const res = await fetch(
+        `http://localhost:8080/v1/user/${userId}/addJournalEntry`,
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
+
+      // Handle response
+      if (res.ok) {
+        const newEntry = await res.json();
+        setEntries([...entries, newEntry]);
+        reset();
+        setText("");
+        setFilePreview(null);
+      }
+    } catch (error) {
+      console.error("Error submitting journal entry:", error);
+    }
   };
 
   const handleFileChange = (e) => {
@@ -50,6 +71,12 @@ export default function Journal() {
       setFilePreview(null);
     }
   };
+
+  // Checks if the user has entered text in the rich text editor
+  // const handleTextChange = (newText) => {
+  //   console.log("Updating text state:", newText);
+  //   setText(newText);
+  // };
 
   return (
     <Container className={styles.container} fluid>
@@ -69,6 +96,11 @@ export default function Journal() {
           </Row>
           <Row className="mb-3">
             <Col>
+              {/* <RichTextEditor
+                value={text}
+                onChange={handleTextChange}
+                required
+              /> */}
               <Form.Control
                 as="textarea"
                 rows={3}
@@ -121,7 +153,8 @@ export default function Journal() {
             <Col key={entry.id} sm={12} md={6} lg={4} className="mb-4">
               <Card>
                 <Card.Body>
-                  <Card.Text>{entry.text}</Card.Text>
+                  <Card.Title>{entry.title}</Card.Title>
+                  <div dangerouslySetInnerHTML={{ __html: entry.text }} />
                   {entry.image && (
                     <Card.Img
                       variant="bottom"
