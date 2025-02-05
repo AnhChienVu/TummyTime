@@ -1,5 +1,5 @@
 // server/src/routes/api/milestones/putMilestone.js
-// Route for PUT /milestones/:milestoneId
+// Route for PUT /v1/baby/:baby_id/updateMilestone/:milestone_id
 
 const logger = require('../../../utils/logger');
 const {
@@ -29,7 +29,7 @@ module.exports.updateMilestoneById = async (req, res) => {
   } catch (err) {
     logger.error(
       err,
-      `ERROR in PUT /milestones/:milestoneId, Error updating milestone`
+      `ERROR in PUT /v1/baby/:baby_id/updateMilestone/:milestone_id, Error updating milestone`
     );
 
     res.status(500).send(createErrorResponse(500, `Internal server error`)); // 500 Internal Server Error
