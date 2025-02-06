@@ -21,17 +21,17 @@ function Sidebar() {
                 id="dropdown-basic"
                 className={styles.dropdownToggle}
               >
-                Resources
+                {t("Resources")}
               </Dropdown.Toggle>
               <Dropdown.Menu>
-                <Dropdown.Item href="/forum">Forum</Dropdown.Item>
-                <Dropdown.Item href="/coupons">Coupons</Dropdown.Item>
-                <Dropdown.Item href="/directory">Service Directory</Dropdown.Item>
+                <Dropdown.Item href="/forum">{t("Forum")}</Dropdown.Item>
+                <Dropdown.Item href="/coupons">{t("Coupons")}</Dropdown.Item>
+                <Dropdown.Item href="/directory">{t("Service Directory")}</Dropdown.Item>
                 <Dropdown.Item href="/safety-hazards">
-                  Safety & Hazards
+                  {t("Safety & Hazards")}
                 </Dropdown.Item>
-                <Dropdown.Item href="/quizzes">Quizzes</Dropdown.Item>
-                <Dropdown.Item href="/curated-tips">Curated Tips</Dropdown.Item>
+                <Dropdown.Item href="/quizzes">{t("Quizzes")}</Dropdown.Item>
+                <Dropdown.Item href="/curated-tips">{t("Curated Tips")}</Dropdown.Item>
               </Dropdown.Menu>
             </Dropdown>
 

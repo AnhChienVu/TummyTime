@@ -1,19 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Form, Button, Alert, Row, Col } from "react-bootstrap";
-import {
-  parseISO,
-  format,
-  compareDesc,
-  isSameDay,
-  isAfter,
-  isBefore,
-} from "date-fns";
-import { FaBaby, FaEdit, FaTrash } from "react-icons/fa";
+import { parseISO, format, compareDesc, isAfter, isBefore } from "date-fns";
 import { AiOutlineInfoCircle } from "react-icons/ai";
 import styles from "./feeding-schedule.module.css";
-import Sidebar from "@/components/Sidebar/Sidebar";
 import BabyCard from "@/components/BabyCard/BabyCard";
 import { useRouter } from "next/router";
+
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 function getLocalTodayString() {
   const now = new Date();
@@ -113,6 +107,7 @@ const createToastId = () => {
 };
 
 const FeedingSchedule = () => {
+  const { t, i18n } = useTranslation("common");
   const router = useRouter();
   const [scheduleData, setScheduleData] = useState([]);
   const [modalShow, setModalShow] = useState(false);
@@ -352,6 +347,7 @@ const FeedingSchedule = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify({
           date: selectedDate,
@@ -495,7 +491,6 @@ const FeedingSchedule = () => {
 
       <div className={styles.container}>
         <Row>
-          <Sidebar />
           <Col>
             {/* {hasAnyMeals && (
               <div className={styles.feedDueBox}>
@@ -512,7 +507,7 @@ const FeedingSchedule = () => {
             )} */}
 
             <div className={styles.headerRow}>
-              <h1 className={styles.title}>Feeding Schedule</h1>
+              <h1 className={styles.title}>{t("Feeding Schedule")}</h1>
               <div className={styles.headerActions}>
                 {/* {hasAnyMeals && (
                   <Button
@@ -952,3 +947,10 @@ const FeedingSchedule = () => {
 };
 
 export default FeedingSchedule;
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
+  };
+}
