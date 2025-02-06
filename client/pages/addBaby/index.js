@@ -25,7 +25,7 @@ export default function AddBaby() {
     const userId = localStorage.getItem("userId");
     try {
       const res = await fetch(
-        `http://localhost:8080/v1/user/${userId}/addBaby`,
+        `http://localhost:8080/v1/user/${userId}/addBabyProfile`,
         {
           method: "POST",
           headers: {
