@@ -111,6 +111,17 @@ router.delete(
   require("./milestones/deleteMilestone").deleteMilestoneById
 );
 
+// ************ /journal routes ************
+router.post(
+  "/user/:user_id/addJournalEntry",
+  require("./journal/addJournalEntry")
+);
+
+router.get(
+  "/user/:user_id/getJournalEntries",
+  require("./journal/getJournalEntries")
+);
+
 // ************ /voiceCommand routes ************
 router.post(
   "/voiceCommand",
