@@ -13,9 +13,7 @@ router.post("/login", require("./login"));
 
 router.post("/signup", require("./signup"));
 
-router.post("/user/:user_id/addBaby", require("./addBaby"));
-
-// Feeding Schedule routes
+// ************ /feedingSchedule routes ************
 router.get(
   "/baby/:id/getFeedingSchedules",
   require("./baby/getFeedingSchedules")
@@ -35,8 +33,6 @@ router.post(
   "/baby/:id/addFeedingSchedule",
   require("./baby/addFeedingSchedule")
 );
-
-router.get("/user/:id/getBabyProfiles", require("./getBabyProfiles"));
 
 //************ /user routes ************
 router.get("/user/:id", require("./user/getUser").getUserById);
@@ -83,6 +79,30 @@ router.delete(
   "/baby/:baby_id/deleteMilestone/:milestone_id",
   require("./milestones/deleteMilestone").deleteMilestoneById
 );
+
+// ************ /babyProfile routes ************
+router.post("/baby/:baby_id/add", require("./baby/babyProfile/addBabyProfile"));
+
+router.get(
+  "/user/:user_id/getBabyProfiles",
+  require("./baby/babyProfile/getAllBabyProfiles")
+);
+
+// GET one baby profile
+router.get(
+  "/baby/:baby_id/getBabyProfile",
+  require("./baby/babyProfile/getBabyProfile")
+);
+
+router.put(
+  "/baby/:baby_id/updateBabyProfile",
+  require("./baby/babyProfile/putBabyProfile")
+);
+
+// router.delete(
+//   "/baby/:baby_id/deleteBabyProfile",
+//   require("./baby/babyProfile/deleteBabyProfile")
+// );
 
 // ************ /journal routes ************
 router.post(
