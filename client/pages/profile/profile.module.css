@@ -14,3 +14,12 @@
 .customButton:hover {
     background-color: #4D3D7E;
 }
+
+.hoverCard {
+    transition: all 0.3s ease;
+}
+
+.hoverCard:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}

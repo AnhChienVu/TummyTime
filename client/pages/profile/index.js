@@ -4,27 +4,23 @@ import React, { useEffect, useState } from "react";
 import { Container, Row, Col, Card, Button, Image } from "react-bootstrap";
 import { useRouter } from "next/router";
 import styles from "./profile.module.css";
+import Link from "next/link";
 
 function ProfilePage() {
   const [profile, setProfile] = useState(null);
   const [babyProfiles, setBabyProfiles] = useState([]);
   const router = useRouter();
-  console.log(profile);
+
   useEffect(() => {
     console.log("localStorage", localStorage);
-    const userId = localStorage.getItem("userId"); // ################### REMOVE COMMENT WHEN READY TO SUBMIT
-    // const userId = 1; // ################### REMOVE WHEN READY TO SUBMIT
+    //const userId = localStorage.getItem("userId"); // ################### REMOVE COMMENT WHEN READY TO SUBMIT
+    const userId = 1; // ################### REMOVE WHEN READY TO SUBMIT
 
     async function fetchProfile() {
       // Fetches the user's profile
       try {
-        // const res = await fetch(
-        //   `http://localhost:8080/v1/getProfile?userId=${userId}`,
-        // );
-        console.log("****************userID", userId);
         const res = await fetch(`http://localhost:8080/v1/user/${userId}`);
         const data = await res.json();
-        // console.log("Fetched user profile data:", data); // Log the response data
         if (res.ok) {
           setProfile(data);
         } else {
@@ -42,7 +38,6 @@ function ProfilePage() {
           `http://localhost:8080/v1/user/${userId}/getBabyProfiles`,
         );
         const data = await res.json();
-        // console.log("Fetched baby profiles data:", data); // Log the response data
         if (res.ok) {
           // Convert the object to an array of baby profiles
           const babyProfilesArray = Object.keys(data)
@@ -101,30 +96,60 @@ function ProfilePage() {
               Add Baby
             </Button>
           </div>
+
+          {/* Baby profiles */}
           {babyProfiles.length > 0 ? (
             babyProfiles.map((baby) => (
-              <Card key={baby.baby_id} className="mb-3">
-                <Card.Body className="d-flex align-items-center">
-                  <Image
-                    src="https://images.unsplash.com/photo-1674650638555-8a2c68584ddc?q=80&w=2027&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                    alt="Profile"
-                    className="rounded-circle me-3"
-                    style={{ width: "80px", height: "80px" }}
-                  />
-                  <div className="flex-grow-1">
-                    <Card.Title>
-                      {baby.first_name} {baby.last_name}
-                    </Card.Title>
-                    <Card.Text>Gender: {baby.gender}</Card.Text>
-                    <Card.Text>Weight: {baby.weight}lbs</Card.Text>
-                  </div>
+              <Link
+                href={{
+                  pathname: `http://localhost:3000/baby/${baby.baby_id}/profile`,
+                  query: { user_id: 1 }, // TODO Replace with the actual userId when ready to submit
+                }}
+                key={baby.baby_id}
+                style={{ textDecoration: "none", cursor: "pointer" }}
+              >
+                <Card
+                  className={`mb-3 ${styles.hoverCard}`}
+                  style={{ transition: "all 0.2s ease" }}
+                >
+                  <Card.Body className="d-flex align-items-center">
+                    <Image
+                      src="https://images.unsplash.com/photo-1674650638555-8a2c68584ddc?q=80&w=2027&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                      alt="Profile"
+                      className="rounded-circle me-3"
+                      style={{ width: "80px", height: "80px" }}
+                    />
+                    <div className="flex-grow-1">
+                      <Card.Title>
+                        {baby.first_name} {baby.last_name}
+                      </Card.Title>
+                      <Card.Text>Gender: {baby.gender}</Card.Text>
+                      <Card.Text>Weight: {baby.weight}lbs</Card.Text>
+                    </div>
 
-                  <Button className={`${styles.customButton} me-2`}>
-                    Analysis
-                  </Button>
-                  <Button className={styles.customButton}>Growth</Button>
-                </Card.Body>
-              </Card>
+                    <Button
+                      className={styles.customButton}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        window.location.href = `/baby/${baby.baby_id}/feedingSchedule`;
+                      }}
+                    >
+                      See details
+                    </Button>
+                    <Button
+                      className={styles.customButton}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        addMealBtn(baby.baby_id);
+                      }}
+                    >
+                      Add meal
+                    </Button>
+                  </Card.Body>
+                </Card>
+              </Link>
             ))
           ) : (
             <p>No baby profiles found.</p>
