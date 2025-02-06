@@ -3,14 +3,23 @@
 
 const request = require('supertest');
 const express = require('express');
+const passport = require('passport');
+
 const pool = require('../../../database/db');
-const { createSuccessResponse, createErrorResponse } = require('../../../src/utils/response');
+const {
+  createSuccessResponse,
+  createErrorResponse,
+} = require('../../../src/utils/response');
+const { strategy, authenticate } = require('../../../src/auth/jwt-middleware');
+const { generateToken } = require('../../../src/utils/jwt');
 
 // app properly handles the route
 const { createGrowth } = require('../../../src/routes/api/growth/postGrowth');
 const app = express();
 app.use(express.json());
-app.post('/v1/baby/:babyId/growth', createGrowth); // POST /baby/[:babyId]/growth
+app.use(passport.initialize());
+passport.use(strategy());
+app.post('/v1/baby/:babyId/growth', authenticate(), createGrowth); // POST /baby/[:babyId]/growth
 
 // mock the database and response functions
 jest.mock('../../../database/db');
@@ -34,7 +43,19 @@ describe('POST /baby/:babyId/growth', () => {
     pool.query.mockResolvedValueOnce({ rows: [newGrowthRecord] });
     createSuccessResponse.mockReturnValue(newGrowthRecord);
 
-    const res = await request(app).post('/v1/baby/1/growth').send(newGrowthRecord);
+    const user = {
+      userId: 1,
+      firstName: 'Anh',
+      lastName: 'Vu',
+      email: 'user1@email.com',
+      role: 'Parent',
+    };
+    const token = generateToken(user);
+
+    const res = await request(app)
+      .post('/v1/baby/1/growth')
+      .set('Authorization', `Bearer ${token}`) // Include the token in the Authorization header
+      .send(newGrowthRecord);
 
     expect(res.status).toBe(201);
     expect(pool.query).toHaveBeenCalledWith(
@@ -56,9 +77,24 @@ describe('POST /baby/:babyId/growth', () => {
     pool.query.mockRejectedValueOnce(new Error('Database error'));
     createErrorResponse.mockReturnValue({ error: 'Internal server error' });
 
-    const res = await request(app).post('/v1/baby/1/growth').send(newGrowthRecord);
+    const user = {
+      userId: 1,
+      firstName: 'Anh',
+      lastName: 'Vu',
+      email: 'user1@email.com',
+      role: 'Parent',
+    };
+    const token = generateToken(user);
+
+    const res = await request(app)
+      .post('/v1/baby/1/growth')
+      .set('Authorization', `Bearer ${token}`) // Include the token in the Authorization header
+      .send(newGrowthRecord);
 
     expect(res.status).toBe(500);
-    expect(createErrorResponse).toHaveBeenCalledWith(500, 'Internal server error');
+    expect(createErrorResponse).toHaveBeenCalledWith(
+      500,
+      'Internal server error'
+    );
   });
 });

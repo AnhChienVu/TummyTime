@@ -1,23 +1,31 @@
 // tests/unit/growth/getGrowth.test.js
-// Tests the GET /baby/[:babyId]/growth route
+// Tests the GET /v1/baby/[:babyId]/growth route
 
 const request = require('supertest');
 const express = require('express');
+const passport = require('passport');
 const pool = require('../../../database/db');
-const { createSuccessResponse, createErrorResponse } = require('../../../src/utils/response');
+const {
+  createSuccessResponse,
+  createErrorResponse,
+} = require('../../../src/utils/response');
+const { strategy, authenticate } = require('../../../src/auth/jwt-middleware');
+const { generateToken } = require('../../../src/utils/jwt');
 
 // app properly handles the route
 const { getAllGrowth } = require('../../../src/routes/api/growth/getGrowth');
 const app = express();
 app.use(express.json());
-app.get('/v1/baby/:babyId/growth', getAllGrowth); // GET /baby/[:babyId]/growth
+app.use(passport.initialize());
+passport.use(strategy());
+app.get('/v1/baby/:babyId/growth', authenticate(), getAllGrowth); // GET /baby/[:babyId]/growth
 
 // mock the database and response functions
 jest.mock('../../../database/db');
 jest.mock('../../../src/utils/response');
 
 // Test GET /baby/:babyId/growth
-describe('GET /baby/:babyId/growth', () => {
+describe('GET /v1/baby/:babyId/growth', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -45,12 +53,29 @@ describe('GET /baby/:babyId/growth', () => {
     pool.query.mockResolvedValueOnce({ rows: mockGrowthRecords });
 
     // Fix: Mock `createSuccessResponse` to match actual implementation
-    createSuccessResponse.mockReturnValue({ status: 'ok', data: mockGrowthRecords });
+    createSuccessResponse.mockReturnValue({
+      status: 'ok',
+      data: mockGrowthRecords,
+    });
 
-    const res = await request(app).get('/v1/baby/1/growth');
+    const user = {
+      userId: 1,
+      firstName: 'Anh',
+      lastName: 'Vu',
+      email: 'user1@email.com',
+      role: 'Parent',
+    };
+    const token = generateToken(user);
+
+    const res = await request(app)
+      .get('/v1/baby/1/growth')
+      .set('Authorization', `Bearer ${token}`); // Include the token in the Authorization header
 
     expect(res.status).toBe(200);
-    expect(pool.query).toHaveBeenCalledWith('SELECT * FROM growth WHERE baby_id = $1', ['1']);
+    expect(pool.query).toHaveBeenCalledWith(
+      'SELECT * FROM growth WHERE baby_id = $1',
+      ['1']
+    );
 
     // Fix: Expect correct response format
     expect(res.body).toEqual({
@@ -61,26 +86,55 @@ describe('GET /baby/:babyId/growth', () => {
 
   test('should return 404 if no growth records are found', async () => {
     pool.query.mockResolvedValueOnce({ rows: [] });
-    createErrorResponse.mockReturnValue({ error: 'No growth records found for [babyId] 999' });
+    createErrorResponse.mockReturnValue({
+      error: 'No growth records found for [babyId] 999',
+    });
 
-    const res = await request(app).get('/v1/baby/999/growth');
+    const user = {
+      userId: 1,
+      firstName: 'Anh',
+      lastName: 'Vu',
+      email: 'user1@email.com',
+      role: 'Parent',
+    };
+    const token = generateToken(user);
+
+    const res = await request(app)
+      .get('/v1/baby/999/growth')
+      .set('Authorization', `Bearer ${token}`); // Include the token in the Authorization header
 
     expect(res.status).toBe(404);
     expect(createErrorResponse).toHaveBeenCalledWith(
       404,
       'No growth records found for [babyId] 999'
     );
-    expect(res.body).toEqual({ error: 'No growth records found for [babyId] 999' });
+    expect(res.body).toEqual({
+      error: 'No growth records found for [babyId] 999',
+    });
   });
 
   test('should return 500 if there is a database error', async () => {
     pool.query.mockRejectedValueOnce(new Error('Database error'));
     createErrorResponse.mockReturnValue({ error: 'Internal server error' });
 
-    const res = await request(app).get('/v1/baby/1/growth');
+    const user = {
+      userId: 1,
+      firstName: 'Anh',
+      lastName: 'Vu',
+      email: 'user1@email.com',
+      role: 'Parent',
+    };
+    const token = generateToken(user);
+
+    const res = await request(app)
+      .get('/v1/baby/1/growth')
+      .set('Authorization', `Bearer ${token}`); // Include the token in the Authorization header
 
     expect(res.status).toBe(500);
-    expect(createErrorResponse).toHaveBeenCalledWith(500, 'Internal server error');
+    expect(createErrorResponse).toHaveBeenCalledWith(
+      500,
+      'Internal server error'
+    );
     expect(res.body).toEqual({ error: 'Internal server error' });
   });
 });
