@@ -1,4 +1,4 @@
-// src/routes/api/baby/babyProfile/putBaby.js
+// src/routes/api/baby/babyProfile/putBabyProfile.js
 const pool = require("../../../../../database/db");
 const {
   createSuccessResponse,
