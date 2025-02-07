@@ -3,14 +3,24 @@
 
 const request = require('supertest');
 const express = require('express');
+const passport = require('passport');
 const pool = require('../../../database/db');
-const { createSuccessResponse, createErrorResponse } = require('../../../src/utils/response');
+const {
+  createSuccessResponse,
+  createErrorResponse,
+} = require('../../../src/utils/response');
+const { strategy, authenticate } = require('../../../src/auth/jwt-middleware');
+const { generateToken } = require('../../../src/utils/jwt');
 
 // app properly handles the route
-const { updateGrowthById } = require('../../../src/routes/api/growth/putGrowth');
+const {
+  updateGrowthById,
+} = require('../../../src/routes/api/growth/putGrowth');
 const app = express();
 app.use(express.json());
-app.put('/v1/baby/:babyId/growth/:growthId', updateGrowthById); // PUT /baby/:babyId/growth/:growthId
+app.use(passport.initialize());
+passport.use(strategy());
+app.put('/v1/baby/:babyId/growth/:growthId', authenticate(), updateGrowthById); // PUT /baby/:babyId/growth/:growthId
 
 // mock the database and response functions
 jest.mock('../../../database/db');
@@ -33,7 +43,19 @@ describe('PUT /baby/:babyId/growth/:growthId', () => {
     pool.query.mockResolvedValueOnce({ rows: [updatedGrowthRecord] });
     createSuccessResponse.mockReturnValue(updatedGrowthRecord);
 
-    const res = await request(app).put('/v1/baby/1/growth/1').send(updatedGrowthRecord);
+    const user = {
+      userId: 1,
+      firstName: 'Anh',
+      lastName: 'Vu',
+      email: 'user1@email.com',
+      role: 'Parent',
+    };
+    const token = generateToken(user);
+
+    const res = await request(app)
+      .put('/v1/baby/1/growth/1')
+      .set('Authorization', `Bearer ${token}`) // Include the token in the Authorization header
+      .send(updatedGrowthRecord);
 
     expect(res.status).toBe(200);
     expect(pool.query).toHaveBeenCalledWith(
@@ -47,14 +69,29 @@ describe('PUT /baby/:babyId/growth/:growthId', () => {
     pool.query.mockResolvedValueOnce({ rows: [] });
     createErrorResponse.mockReturnValue({ error: 'Growth record not found' });
 
-    const res = await request(app).put('/v1/baby/1/growth/999').send({
-      date: '2025-01-02',
-      height: 52,
-      weight: 3.8,
-      notes: 'Updated growth record',
-    });
+    const user = {
+      userId: 1,
+      firstName: 'Anh',
+      lastName: 'Vu',
+      email: 'user1@email.com',
+      role: 'Parent',
+    };
+    const token = generateToken(user);
+
+    const res = await request(app)
+      .put('/v1/baby/1/growth/999')
+      .set('Authorization', `Bearer ${token}`) // Include the token in the Authorization header
+      .send({
+        date: '2025-01-02',
+        height: 52,
+        weight: 3.8,
+        notes: 'Updated growth record',
+      });
 
     expect(res.status).toBe(404);
-    expect(createErrorResponse).toHaveBeenCalledWith(404, 'Growth record not found');
+    expect(createErrorResponse).toHaveBeenCalledWith(
+      404,
+      'Growth record not found'
+    );
   });
 });

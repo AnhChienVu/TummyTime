@@ -16,67 +16,96 @@ router.post("/signup", require("./signup"));
 // ************ /feedingSchedule routes ************
 router.get(
   "/baby/:id/getFeedingSchedules",
+  authenticate(),
   require("./baby/getFeedingSchedules")
 );
 
 router.put(
   "/baby/:id/updateFeedingSchedule/:mealId",
+  authenticate(),
   require("./baby/updateFeedingSchedule")
 );
 
 router.delete(
   "/baby/:id/deleteFeedingSchedule/:mealId",
+  authenticate(),
   require("./baby/deleteFeedingSchedule")
 );
 
 router.post(
   "/baby/:id/addFeedingSchedule",
+  authenticate(),
   require("./baby/addFeedingSchedule")
 );
 
+router.get(
+  "/user/:id/getBabyProfiles",
+  authenticate(),
+  require("./getBabyProfiles")
+);
+
 //************ /user routes ************
-router.get("/user/:id", require("./user/getUser").getUserById);
+router.get("/user/:id", authenticate(), require("./user/getUser").getUserById);
 
-router.put("/user/:id", require("./user/putUser").updateUserById);
+router.put(
+  "/user/:id",
+  authenticate(),
+  require("./user/putUser").updateUserById
+);
 
-router.delete("/user/:id", require("./user/deleteUser").deleteUserById);
+router.delete(
+  "/user/:id",
+  authenticate(),
+  require("./user/deleteUser").deleteUserById
+);
 
 // ************ /growth routes ************
-router.get("/baby/:babyId/growth/", require("./growth/getGrowth").getAllGrowth); // Get all Growth records by [:babyId]
+router.get(
+  "/baby/:babyId/growth/",
+  authenticate(),
+  require("./growth/getGrowth").getAllGrowth
+); // Get all Growth records by [:babyId]
 
 router.post(
   "/baby/:babyId/growth",
+  authenticate(),
   require("./growth/postGrowth").createGrowth
 );
 
 router.put(
   "/baby/:babyId/growth/:growthId",
+  authenticate(),
   require("./growth/putGrowth").updateGrowthById
 );
 
 router.delete(
   "/baby/:babyId/growth/:growthId",
+  authenticate(),
   require("./growth/deleteGrowth").deleteGrowthById
 );
 
 // ************ /milestones routes ************
 router.get(
   "/baby/:baby_id/getMilestones/",
+  authenticate(),
   require("./milestones/getMilestones").getMilestoneByBabyId
 );
 
 router.post(
   "/baby/:baby_id/addMilestone/",
+  authenticate(),
   require("./milestones/postMilestone").createMilestone
 );
 
 router.put(
   "/baby/:baby_id/updateMilestone/:milestone_id",
+  authenticate(),
   require("./milestones/putMilestone").updateMilestoneById
 );
 
 router.delete(
   "/baby/:baby_id/deleteMilestone/:milestone_id",
+  authenticate(),
   require("./milestones/deleteMilestone").deleteMilestoneById
 );
 
@@ -113,6 +142,12 @@ router.post(
 router.get(
   "/user/:user_id/getJournalEntries",
   require("./journal/getJournalEntries")
+);
+
+// ************ /voiceCommand routes ************
+router.post(
+  "/voiceCommand",
+  require("./voiceCommand/processVoiceCommand").processVoiceCommand
 );
 
 // Testing the authentication middleware

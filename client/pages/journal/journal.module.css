@@ -2,9 +2,9 @@
   display: flex;
   margin-top: 80px;
   max-width: 1200px;
-  margin-left: auto;
   margin-right: auto;
   padding: 24px;
+  margin-left: 50px;
 }
 
 .formContainer {
@@ -20,9 +20,19 @@
 }
 
 .submitButton {
-  width: 50%;
-  background-color: #65558F;
-  margin-left: 45%;
+    width: 50%;
+    background-color: #65558F;
+    margin-left: 45%;
+}
+
+.submitButton:hover {
+    background-color: #4D3D7E;
+}
+
+.link {
+  text-decoration: none;
+  color: black;
+  font-weight: 500;
 }
 
 .entriesSection {
@@ -57,4 +67,24 @@
   max-width: 100%;
   height: auto;
   border-radius: 0.25rem;
+}
+
+.microphone {
+    width: 50px;
+    font-size: 16px;
+    background-color: #65558F;
+}
+
+.microphone:hover {
+    background-color: #4D3D7E;
+}
+
+.microphone {
+    width: 50px;
+    font-size: 16px;
+    background-color: #65558F;
+}
+
+.microphone:hover {
+    background-color: #4D3D7E;
 }
