@@ -6,12 +6,18 @@ const {
 } = require("../../../../utils/response");
 
 module.exports = async (req, res) => {
-  console.log("*******************req.body", req.body);
   const user_id = req.body.user_id;
   const { baby_id } = req.params;
   const { first_name, last_name, gender, weight } = req.body.data;
 
   try {
+    // Validate user and baby IDs
+    if (!user_id || !baby_id) {
+      return res
+        .status(400)
+        .json(createErrorResponse("Missing required parameters"));
+    }
+
     // Verify user has access to this baby
     const userBaby = await pool.query(
       "SELECT * FROM user_baby WHERE user_id = $1 AND baby_id = $2",
@@ -21,7 +27,7 @@ module.exports = async (req, res) => {
     if (!userBaby.rows.length) {
       return res
         .status(403)
-        .json(createErrorResponse("Not authorized to edit this baby"));
+        .json(createErrorResponse("Not authorized to edit this baby profile"));
     }
 
     // Update baby information
@@ -34,7 +40,7 @@ module.exports = async (req, res) => {
       return res.status(404).json(createErrorResponse("Baby not found"));
     }
 
-    res.json(createSuccessResponse("Baby updated successfully"));
+    res.json(createSuccessResponse("Baby profile updated successfully"));
   } catch (error) {
     console.error("Error updating baby:", error);
     res
