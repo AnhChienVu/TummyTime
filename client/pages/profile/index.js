@@ -1,4 +1,5 @@
 // pages/profile/index.js
+// Front-end for displaying user profile and baby profile(s)
 import React, { useEffect, useState } from "react";
 import { Container, Row, Col, Card, Button, Image } from "react-bootstrap";
 import { useRouter } from "next/router";
@@ -25,7 +26,7 @@ function ProfilePage() {
       try {
         const res = await fetch(`http://localhost:8080/v1/user/${userId}`, {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            //Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
         const data = await res.json();
