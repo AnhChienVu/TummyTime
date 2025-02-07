@@ -16,7 +16,10 @@ function ProfilePage() {
   const router = useRouter();
   console.log(profile);
   useEffect(() => {
-    const userId = localStorage.getItem("userId");
+    console.log("localStorage", localStorage);
+    const userId = localStorage.getItem("userId"); // ################### REMOVE COMMENT WHEN READY TO SUBMIT
+    // const userId = 1; // ################### REMOVE WHEN READY TO SUBMIT
+
     async function fetchProfile() {
       // Fetches the user's profile
       try {

@@ -49,12 +49,12 @@ function Sidebar() {
         <Nav.Link as={Link} href="/feeding-schedule" locale={locale} className={styles.navlink}>
           {t("Feeding Schedule")}
         </Nav.Link>
-        {/* <Nav.Link as={Link} href="/" locale={locale} className={styles.navlink}>
-          {t("Health Records")}
+        <Nav.Link as={Link} href="/journal" locale={locale} className={styles.navlink}>
+          {t("Journal")}
         </Nav.Link>
-        <Nav.Link as={Link} href="/" locale={locale} className={styles.navlink}>
+        <Nav.Link as={Link} href="/milestones" locale={locale} className={styles.navlink}>
           {t("Milestones")}
-        </Nav.Link> */}
+        </Nav.Link>
         <Nav.Link as={Link} href="/profile" locale={locale} className={styles.navlink}>
           {t("Profile")}
         </Nav.Link>
