@@ -1,5 +1,5 @@
 // pages/login/index.js
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/router";
 import { Button, Form } from "react-bootstrap";
 import styles from "./login.module.css";
@@ -16,43 +16,6 @@ export default function Login() {
   const [validated, setValidated] = useState(false);
 
   const router = useRouter();
-  const { code } = router.query;
-  const exchangeCodeForTokens = async (code) => {
-    try {
-      const response = await fetch(
-        "https://us-east-26an90qfwo.auth.us-east-2.amazoncognito.com/oauth2/token",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: new URLSearchParams({
-            grant_type: "authorization_code",
-            client_id: "aiir77i4edaaitkoi3l132an0",
-            redirect_uri: "http://localhost:3000/login",
-            code,
-          }),
-        },
-      );
-
-      const data = await response.json();
-      if (response.ok) {
-        // Handle tokens (e.g., store them)
-        console.log("Tokens:", data);
-        router.replace("/login");
-      } else {
-        console.error("Failed to exchange code:", data);
-      }
-    } catch (error) {
-      console.error("Error exchanging code:", error);
-    }
-  };
-
-  useEffect(() => {
-    if (code) {
-      exchangeCodeForTokens(code);
-    }
-  }, [code]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
