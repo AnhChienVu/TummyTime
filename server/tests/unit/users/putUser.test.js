@@ -1,10 +1,10 @@
-// tests/unit/growth/postGrowth.test.js
-// Tests the POST /baby/[:babyId]/growth route
+// tests/unit/users/putUsers.test.js
+// Tests the PUT /user/:id route
 
 const request = require('supertest');
 const express = require('express');
 const passport = require('passport');
-
+const { updateUserById } = require('../../../src/routes/api/user/putUser');
 const pool = require('../../../database/db');
 const {
   createSuccessResponse,
@@ -14,34 +14,35 @@ const { strategy, authenticate } = require('../../../src/auth/jwt-middleware');
 const { generateToken } = require('../../../src/utils/jwt');
 
 // app properly handles the route
-const { createGrowth } = require('../../../src/routes/api/growth/postGrowth');
 const app = express();
 app.use(express.json());
 app.use(passport.initialize());
 passport.use(strategy());
-app.post('/v1/baby/:babyId/growth', authenticate(), createGrowth); // POST /baby/[:babyId]/growth
+app.put('/v1/user/:id', authenticate(), updateUserById);
 
 // mock the database and response functions
 jest.mock('../../../database/db');
 jest.mock('../../../src/utils/response');
 
-// Test POST /baby/:babyId/growth
-describe('POST /baby/:babyId/growth', () => {
+describe('PUT /user/:id', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  test('should return 201 and create a new growth record', async () => {
-    const newGrowthRecord = {
-      baby_id: 1,
-      date: '2025-01-01',
-      height: 50,
-      weight: 3.5,
-      notes: 'First growth record',
-    };
-
-    pool.query.mockResolvedValueOnce({ rows: [newGrowthRecord] });
-    createSuccessResponse.mockReturnValue(newGrowthRecord);
+  test('should return 200 and update the old user', async () => {
+    // Mock the database response
+    pool.query.mockResolvedValueOnce({
+      rows: [
+        {
+          id: 1,
+          first_name: 'John',
+          last_name: 'Doe',
+          email: 'john.doe@example.com',
+          role: 'Parent',
+          created_at: '2021-01-01T00:00:00.000Z',
+        },
+      ],
+    });
 
     const user = {
       userId: 1,
@@ -53,29 +54,40 @@ describe('POST /baby/:babyId/growth', () => {
     const token = generateToken(user);
 
     const res = await request(app)
-      .post('/v1/baby/1/growth')
+      .put('/v1/user/1')
       .set('Authorization', `Bearer ${token}`) // Include the token in the Authorization header
-      .send(newGrowthRecord);
+      .send({
+        first_name: 'John',
+        last_name: 'Doe',
+        email: 'john.doe@example.com',
+        role: 'Parent',
+        created_at: '2021-01-01T00:00:00.000Z',
+      });
 
-    expect(res.status).toBe(201);
+    expect(res.status).toBe(200);
     expect(pool.query).toHaveBeenCalledWith(
-      'INSERT INTO growth (baby_id, date, height, weight, notes) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      ['1', '2025-01-01', 50, 3.5, 'First growth record']
+      'UPDATE users SET first_name = $1, last_name = $2, email = $3, role = $4, created_at = $5 WHERE user_id = $6 RETURNING *',
+      [
+        'John',
+        'Doe',
+        'john.doe@example.com',
+        'Parent',
+        '2021-01-01T00:00:00.000Z',
+        '1',
+      ]
     );
-    expect(res.body).toEqual(newGrowthRecord);
+    expect(createSuccessResponse).toHaveBeenCalledWith({
+      id: 1,
+      first_name: 'John',
+      last_name: 'Doe',
+      email: 'john.doe@example.com',
+      role: 'Parent',
+      created_at: '2021-01-01T00:00:00.000Z',
+    });
   });
 
   test('should return 500 if there is a database error', async () => {
-    const newGrowthRecord = {
-      baby_id: 1,
-      date: '2025-01-01',
-      height: 50,
-      weight: 3.5,
-      notes: 'First growth record',
-    };
-
     pool.query.mockRejectedValueOnce(new Error('Database error'));
-    createErrorResponse.mockReturnValue({ error: 'Internal server error' });
 
     const user = {
       userId: 1,
@@ -87,9 +99,15 @@ describe('POST /baby/:babyId/growth', () => {
     const token = generateToken(user);
 
     const res = await request(app)
-      .post('/v1/baby/1/growth')
+      .put('/v1/user/1')
       .set('Authorization', `Bearer ${token}`) // Include the token in the Authorization header
-      .send(newGrowthRecord);
+      .send({
+        first_name: 'John',
+        last_name: 'Doe',
+        email: 'john.doe@example.com',
+        role: 'Parent',
+        created_at: '2021-01-01T00:00:00.000Z',
+      });
 
     expect(res.status).toBe(500);
     expect(createErrorResponse).toHaveBeenCalledWith(

@@ -1,10 +1,9 @@
-// tests/unit/growth/postGrowth.test.js
-// Tests the POST /baby/[:babyId]/growth route
+// tests/unit/users/deleteUsers.test.js
+// Tests the DELETE /users/:id route
 
 const request = require('supertest');
 const express = require('express');
 const passport = require('passport');
-
 const pool = require('../../../database/db');
 const {
   createSuccessResponse,
@@ -14,35 +13,23 @@ const { strategy, authenticate } = require('../../../src/auth/jwt-middleware');
 const { generateToken } = require('../../../src/utils/jwt');
 
 // app properly handles the route
-const { createGrowth } = require('../../../src/routes/api/growth/postGrowth');
+const { deleteUserById } = require('../../../src/routes/api/user/deleteUser');
 const app = express();
 app.use(express.json());
 app.use(passport.initialize());
 passport.use(strategy());
-app.post('/v1/baby/:babyId/growth', authenticate(), createGrowth); // POST /baby/[:babyId]/growth
+app.delete('/v1/user/:id', authenticate(), deleteUserById); // DELETE /users/:id
 
 // mock the database and response functions
 jest.mock('../../../database/db');
 jest.mock('../../../src/utils/response');
 
-// Test POST /baby/:babyId/growth
-describe('POST /baby/:babyId/growth', () => {
+describe('DELETE /user/:id', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  test('should return 201 and create a new growth record', async () => {
-    const newGrowthRecord = {
-      baby_id: 1,
-      date: '2025-01-01',
-      height: 50,
-      weight: 3.5,
-      notes: 'First growth record',
-    };
-
-    pool.query.mockResolvedValueOnce({ rows: [newGrowthRecord] });
-    createSuccessResponse.mockReturnValue(newGrowthRecord);
-
+  test('should return 200 and delete the old user', async () => {
     const user = {
       userId: 1,
       firstName: 'Anh',
@@ -52,28 +39,40 @@ describe('POST /baby/:babyId/growth', () => {
     };
     const token = generateToken(user);
 
-    const res = await request(app)
-      .post('/v1/baby/1/growth')
-      .set('Authorization', `Bearer ${token}`) // Include the token in the Authorization header
-      .send(newGrowthRecord);
+    pool.query
+      .mockResolvedValueOnce({ rows: [{ baby_id: '1' }] }) // Mock user_baby query
+      .mockResolvedValueOnce({}) // Mock baby query
+      .mockResolvedValueOnce({ rowCount: 1 }); // Mock user deletion query
 
-    expect(res.status).toBe(201);
+    createSuccessResponse.mockReturnValue({
+      message: 'User and related entries deleted successfully',
+    });
+
+    const res = await request(app)
+      .delete('/v1/user/1')
+      .set('Authorization', `Bearer ${token}`); // Include the token in the Authorization header
+
+    expect(pool.query).toHaveBeenCalledTimes(3);
     expect(pool.query).toHaveBeenCalledWith(
-      'INSERT INTO growth (baby_id, date, height, weight, notes) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      ['1', '2025-01-01', 50, 3.5, 'First growth record']
+      'DELETE FROM user_baby WHERE user_id = $1 RETURNING baby_id',
+      ['1']
     );
-    expect(res.body).toEqual(newGrowthRecord);
+    expect(pool.query).toHaveBeenCalledWith(
+      'DELETE FROM baby WHERE baby_id = ANY($1)',
+      [['1']]
+    );
+    expect(pool.query).toHaveBeenCalledWith(
+      'DELETE FROM users WHERE user_id = $1',
+      ['1']
+    );
+
+    expect(res.status).toBe(200);
+    expect(createSuccessResponse).toHaveBeenCalledWith({
+      message: 'User and related entries deleted successfully',
+    });
   });
 
   test('should return 500 if there is a database error', async () => {
-    const newGrowthRecord = {
-      baby_id: 1,
-      date: '2025-01-01',
-      height: 50,
-      weight: 3.5,
-      notes: 'First growth record',
-    };
-
     pool.query.mockRejectedValueOnce(new Error('Database error'));
     createErrorResponse.mockReturnValue({ error: 'Internal server error' });
 
@@ -87,9 +86,8 @@ describe('POST /baby/:babyId/growth', () => {
     const token = generateToken(user);
 
     const res = await request(app)
-      .post('/v1/baby/1/growth')
-      .set('Authorization', `Bearer ${token}`) // Include the token in the Authorization header
-      .send(newGrowthRecord);
+      .delete('/v1/user/1')
+      .set('Authorization', `Bearer ${token}`); // Include the token in the Authorization header
 
     expect(res.status).toBe(500);
     expect(createErrorResponse).toHaveBeenCalledWith(
