@@ -1,4 +1,5 @@
 // pages/baby/[baby_id]/profile/index.js
+// Front-end for one baby profile
 import { useForm } from "react-hook-form";
 import { Row, Col, Form, Button, Container } from "react-bootstrap";
 import { useRouter } from "next/router";
@@ -74,6 +75,27 @@ export default function BabyProfile() {
     }
   };
 
+  // Delete baby profile
+  const handleDelete = async () => {
+    try {
+      const res = await fetch(
+        `http://localhost:8080/v1/baby/${baby_id}/deleteBabyProfile`,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_id: user_id,
+          }),
+        },
+      );
+      if (res.ok) {
+        router.push("/profile");
+      }
+    } catch (error) {
+      console.error("Error deleting baby profile:", error);
+    }
+  };
+
   return (
     <div className="d-flex">
       <Sidebar />
@@ -137,6 +159,9 @@ export default function BabyProfile() {
             }`}
           >
             Save Changes
+          </Button>
+          <Button onClick={handleDelete} className={styles.deleteButton}>
+            Delete Profile
           </Button>
         </Form>
       </Container>
