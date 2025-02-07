@@ -155,7 +155,7 @@ function ProfilePage() {
                         window.location.href = `/baby/${baby.baby_id}/feedingSchedule`;
                       }}
                     >
-                      See details
+                      Feeding Schedule
                     </Button>
                     <Button
                       className={styles.customButton}
