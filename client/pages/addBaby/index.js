@@ -56,10 +56,9 @@ export default function AddBaby() {
     <Container className={styles.container} fluid>
       <div className={styles.formContainer}>
         <Form onSubmit={handleSubmit(submitForm)}>
-          <p className={styles.title}>{t("Welcome!")}</p>
           <p>
             {t(
-              "Congratulations on growing your family! Start by adding your new baby to Tummy Time",
+              "Congratulations on growing your family! Start by adding your new baby to Tummy Time.",
             )}
           </p>
           <Row className="mb-3">
