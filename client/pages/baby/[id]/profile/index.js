@@ -1,5 +1,6 @@
 // pages/baby/[baby_id]/profile/index.js
 // Front-end for one baby profile
+// Contains the form to edit and delete baby profile
 import { useForm } from "react-hook-form";
 import { Row, Col, Form, Button, Container, Modal } from "react-bootstrap";
 import { useRouter } from "next/router";
@@ -24,8 +25,14 @@ export default function BabyProfile() {
         try {
           const res = await fetch(
             `http://localhost:8080/v1/baby/${baby_id}/getBabyProfile`,
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            },
           );
           const data = await res.json();
+          console.log("Baby profile data:", data);
 
           setBaby(data);
           // Pre-fill form fields
@@ -62,7 +69,10 @@ export default function BabyProfile() {
         `http://localhost:8080/v1/baby/${baby_id}/updateBabyProfile`,
         {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
           body: JSON.stringify({
             data,
             user_id: user_id,
@@ -92,7 +102,10 @@ export default function BabyProfile() {
         `http://localhost:8080/v1/baby/${baby_id}/deleteBabyProfile`,
         {
           method: "DELETE",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
           body: JSON.stringify({
             user_id: user_id,
           }),
