@@ -1,3 +1,4 @@
+// pages/journal/index.js
 import { useForm } from "react-hook-form";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
