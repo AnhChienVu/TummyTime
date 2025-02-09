@@ -1,5 +1,6 @@
 // src/routes/api/index.js
 // Our authentication middleware
+const auth = require("../../auth");
 const { authenticate } = require("../../auth");
 /**
  * The main entry-point for the v1 version of the API.
@@ -138,12 +139,35 @@ router.delete(
 // ************ /journal routes ************
 router.post(
   "/user/:user_id/addJournalEntry",
+  authenticate(),
   require("./journal/addJournalEntry")
 );
 
 router.get(
   "/user/:user_id/getJournalEntries",
+  authenticate(),
   require("./journal/getJournalEntries")
+);
+
+// ************ /forum routes ************
+router.post(
+  "/forum/posts/add",
+  authenticate(),
+  require("./forum/posts/addPost")
+);
+
+router.get("/forum/posts", authenticate(), require("./forum/posts/getPosts"));
+
+router.post(
+  "/forum/replies",
+  authenticate(),
+  require("./forum/replies/addReply")
+);
+
+router.get(
+  "/forum/posts/:post_id/replies",
+  authenticate(),
+  require("./forum/replies/getReplies")
 );
 
 // ************ /voiceCommand routes ************
