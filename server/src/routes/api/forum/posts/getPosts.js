@@ -1,4 +1,4 @@
-// src/routes/api/forum/posts/getAllForumPosts.js
+// src/routes/api/forum/posts/getPosts.js
 const pool = require("../../../../../database/db");
 const {
   createSuccessResponse,
