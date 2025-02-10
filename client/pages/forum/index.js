@@ -17,7 +17,7 @@ export default function Forum() {
   const { register, handleSubmit, reset } = useForm();
   const [posts, setPosts] = useState([]);
   const [filePreview, setFilePreview] = useState(null);
-  const [text, setText] = useState("");
+  const [content, setContent] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -51,7 +51,7 @@ export default function Forum() {
   const onSubmit = async (data) => {
     try {
       //if (data.text.trim() === "" && !data.image[0]) return;
-      if (data.text.trim() === "") return;
+      if (data.content.trim() === "") return;
 
       // const formData = new FormData();
       // formData.append("user_id", userId);
@@ -117,7 +117,7 @@ export default function Forum() {
                 as="textarea"
                 rows={3}
                 required
-                {...register("text")}
+                {...register("content")}
               />
             </Col>
           </Row>
@@ -175,7 +175,7 @@ export default function Forum() {
                     textOverflow: "ellipsis",
                   }}
                 >
-                  {post.text}
+                  {post.content}
                 </Card.Text>
                 {post.image && (
                   <Image
