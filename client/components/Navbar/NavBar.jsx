@@ -21,7 +21,7 @@ function NavBar() {
     localStorage.removeItem("token");
     localStorage.removeItem("userId");
     setIsAuthenticated(false);
-  }
+  };
 
   return (
     <Navbar expand="lg" fixed="top" className={styles.navbar}>
