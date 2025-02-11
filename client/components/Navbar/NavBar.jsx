@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Navbar, Nav, Container } from "react-bootstrap";
-import styles from "./Navbar.module.css";
+import styles from "./NavBar.module.css";
 import { useTranslation } from "next-i18next";
 import Link from 'next/link';
 

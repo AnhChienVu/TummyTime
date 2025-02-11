@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import NavBar from "../Navbar/NavBar";
 import Footer from "../Footer/Footer";
 import Sidebar from "../Sidebar/Sidebar";
-import styles from "./Layout.module.css"
+import styles from "./Layout.module.css";
 import { Container } from "react-bootstrap";
 
 export default function Layout({ children }) {
@@ -15,7 +15,7 @@ export default function Layout({ children }) {
     } else {
       setIsAuthenticated(false);
     }
-  }, [isAuthenticated])
+  }, [isAuthenticated]);
 
   return (
     <>
