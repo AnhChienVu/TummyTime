@@ -17,7 +17,6 @@ module.exports = async (req, res) => {
         .status(400)
         .json(createErrorResponse("Missing required parameters"));
     }
-
     // Verify user has access to this baby
     const userBaby = await pool.query(
       "SELECT * FROM user_baby WHERE user_id = $1 AND baby_id = $2",
