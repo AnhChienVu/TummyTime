@@ -1,9 +1,9 @@
 // src/routes/api/addBaby.js
-const pool = require("../../../database/db");
+const pool = require("../../../../../database/db");
 const {
   createSuccessResponse,
   createErrorResponse,
-} = require("../../utils/response");
+} = require("../../../../utils/response");
 
 module.exports = async (req, res) => {
   const userId = req.params.user_id;
