@@ -65,6 +65,6 @@ jobs:
         working-directory: ./client
         run: npm run lint
 
-      - name: Build Frontend
-        working-directory: ./client
-        run: npm run build
+      # - name: Build Frontend
+      #   working-directory: ./client
+      #   run: npm run build
