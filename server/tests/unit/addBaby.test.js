@@ -11,7 +11,7 @@ const { strategy, authenticate } = require('../../src/auth/jwt-middleware');
 const { generateToken } = require('../../src/utils/jwt');
 
 // app properly handles the route
-const addBaby = require('../../src/routes/api/addBaby');
+const addBaby = require('../../src/routes/api/baby/babyProfile/addBabyProfile');
 const app = express();
 app.use(express.json());
 app.use(passport.initialize());
