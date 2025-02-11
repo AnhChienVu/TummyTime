@@ -13,7 +13,9 @@ const pino = require('pino-http')({
 
 const app = express();
 app.use(pino);
-app.use(cors());
+
+const allowedOrigins = ['http://localhost:3000'];
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
 
 // Set up our passport authentication middleware
