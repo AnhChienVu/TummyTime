@@ -10,7 +10,8 @@ export default function Layout({ children }) {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (token) {
+    const userId = localStorage.getItem("userId");
+    if (token && userId) {
       setIsAuthenticated(true);
     } else {
       setIsAuthenticated(false);
