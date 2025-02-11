@@ -41,7 +41,7 @@ router.post(
 router.get(
   '/user/:id/getBabyProfiles',
   authenticate(),
-  require('./baby/babyProfile/getBabyProfiles')
+  require('./baby/babyProfile/getBabyProfile')
 );
 
 //************ /user routes ************
