@@ -10,16 +10,14 @@ import "bootstrap/dist/css/bootstrap.min.css";
 
 import styles from "./growth.module.css";
 
-const API_URL = "http://localhost:8080/v1";
-
 // Fetch Growth records for a specific baby
 const fetchGrowthData = async (babyId) => {
   try {
-    const res = await fetch(`${API_URL}/baby/${babyId}/growth`);
+    const res = await fetch(`${process.env.API_URL}baby/${babyId}/growth`);
 
     const jsonData = await res.json();
     console.log(
-      `Fetched growth data for baby ${babyId} from ${API_URL}/baby/${babyId}/growth/ is:`,
+      `Fetched growth data for baby ${babyId} from ${process.env.API_URL}baby/${babyId}/growth/ is:`,
       jsonData,
     );
 
@@ -36,13 +34,16 @@ const fetchGrowthData = async (babyId) => {
 
 // Add or update a growth record
 const saveGrowthRecord = async (babyId, record, isEdit, recordId = null) => {
-  console.log(`Starting saveGrowthRecord(), babyId: ${babyId}, record:`, record);
+  console.log(
+    `Starting saveGrowthRecord(), babyId: ${babyId}, record:`,
+    record,
+  );
   console.log(`isEdit: ${isEdit}, recordId: ${recordId}`);
 
   try {
     const url = isEdit
-      ? `${API_URL}/baby/${babyId}/growth/${recordId}`
-      : `${API_URL}/baby/${babyId}/growth`;
+      ? `${process.env.API_URL}baby/${babyId}/growth/${recordId}`
+      : `${process.env.API_URL}baby/${babyId}/growth`;
     const method = isEdit ? "PUT" : "POST";
 
     const res = await fetch(url, {
@@ -68,9 +69,12 @@ const saveGrowthRecord = async (babyId, record, isEdit, recordId = null) => {
 // Delete a growth record
 const deleteGrowthRecord = async (babyId, recordId) => {
   try {
-    const res = await fetch(`${API_URL}/baby/${babyId}/growth/${recordId}`, {
-      method: "DELETE",
-    });
+    const res = await fetch(
+      `${process.env.API_URL}baby/${babyId}/growth/${recordId}`,
+      {
+        method: "DELETE",
+      },
+    );
 
     if (!res.ok) throw new Error("Failed to delete growth record");
   } catch (err) {
@@ -224,27 +228,28 @@ const Growth = () => {
       date: formattedDate,
       height: modalData.height,
       weight: modalData.weight,
-      notes: modalData.notes || "", 
+      notes: modalData.notes || "",
     };
 
-    console.log(`data[editIndex]?.growth_id  : ${JSON.stringify(data[editIndex])}`);
-    
+    console.log(
+      `data[editIndex]?.growth_id  : ${JSON.stringify(data[editIndex])}`,
+    );
+
     if (editIndex !== null && !data[editIndex]?.growth_id) {
       console.error("Error: Missing growth_id in data[editIndex].");
     }
-    
 
     // Save the updated entry to db
     const savedRecord = await saveGrowthRecord(
       babyId,
       sendingData,
       editIndex !== null, // isEdit: true if editing an existing record with editIndex
-      data[editIndex]?.growth_id,  // recordId
+      data[editIndex]?.growth_id, // recordId
     );
 
     console.log("After saveGrowthRecord(), savedRecord:", savedRecord);
 
-    // SHOWING THE UPDATED ENTRY  
+    // SHOWING THE UPDATED ENTRY
     if (savedRecord && savedRecord.growth_id) {
       const updatedEntry = {
         growth_id: savedRecord.growth_id,
@@ -262,8 +267,7 @@ const Growth = () => {
       } else {
         setData([updatedEntry, ...data]);
       }
-      
-    }else {
+    } else {
       console.error("Error: Missing growth_id in saved record.");
     }
 

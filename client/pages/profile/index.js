@@ -23,7 +23,7 @@ function ProfilePage() {
     async function fetchProfile() {
       // Fetches the user's profile
       try {
-        const res = await fetch(`http://localhost:8080/v1/user/${userId}`, {
+        const res = await fetch(`${process.env.API_URL}v1/user/${userId}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
@@ -43,7 +43,7 @@ function ProfilePage() {
       // Fetches the user's baby profiles
       try {
         const res = await fetch(
-          `http://localhost:8080/v1/user/${userId}/getBabyProfiles`,
+          `${process.env.API_URL}v1/user/${userId}/getBabyProfiles`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,

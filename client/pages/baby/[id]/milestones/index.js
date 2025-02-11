@@ -23,7 +23,7 @@ function MilestoneEachBaby() {
       async function fetchMilestones() {
         try {
           const res = await fetch(
-            `http://localhost:8080/v1/baby/${baby_id}/getMilestones`,
+            `${process.env.API_URL}v1/baby/${baby_id}/getMilestones`,
             {
               headers: {
                 Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -115,7 +115,7 @@ function MilestoneEachBaby() {
     try {
       // Update milestone in the database
       const res = await fetch(
-        `http://localhost:8080/v1/baby/${selectedMilestone.baby_id}/updateMilestone/${milestone_id}`,
+        `${process.env.API_URL}v1/baby/${selectedMilestone.baby_id}/updateMilestone/${milestone_id}`,
         {
           method: "PUT",
           headers: {
@@ -148,7 +148,7 @@ function MilestoneEachBaby() {
     try {
       // Delete milestone in the database
       const res = await fetch(
-        `http://localhost:8080/v1/baby/${milstone.baby_id}/deleteMilestone/${milestone_id}`,
+        `${process.env.API_URL}v1/baby/${milstone.baby_id}/deleteMilestone/${milestone_id}`,
         {
           method: "DELETE",
           headers: {

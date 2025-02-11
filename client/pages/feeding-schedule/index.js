@@ -168,7 +168,7 @@ const FeedingSchedule = () => {
     // }
 
     async function updateSchedule(updatedSchedule) {
-      const res = await fetch("http://localhost:8080/v1/updateFeedingSchedule");
+      const res = await fetch(`${process.env.API_URL}v1/updateFeedingSchedule`);
       const data = await res.json();
     }
 
@@ -343,7 +343,7 @@ const FeedingSchedule = () => {
       }
 
       // Make API call to add schedule
-      const response = await fetch("http://localhost:8080/v1/addSchedule", {
+      const response = await fetch(`${process.env.API_URL}v1/addSchedule`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -450,7 +450,7 @@ const FeedingSchedule = () => {
     try {
       // Add new feed to database
       const res = await fetch(
-        `http://localhost:8080/v1/baby/${selectedBaby}/addFeedingSchedule`,
+        `${process.env.API_URL}v1/baby/${selectedBaby}/addFeedingSchedule`,
         {
           method: "POST",
           headers: {
