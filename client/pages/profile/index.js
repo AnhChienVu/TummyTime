@@ -22,11 +22,14 @@ function ProfilePage() {
     async function fetchProfile() {
       // Fetches the user's profile
       try {
-        const res = await fetch(`${process.env.API_URL}v1/user/${userId}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}v1/user/${userId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
           },
-        });
+        );
         const data = await res.json();
         if (res.ok) {
           setProfile(data);
@@ -42,7 +45,7 @@ function ProfilePage() {
       // Fetches the user's baby profiles
       try {
         const res = await fetch(
-          `${process.env.API_URL}v1/user/${userId}/getBabyProfiles`,
+          `${process.env.NEXT_PUBLIC_API_URL}v1/user/${userId}/getBabyProfiles`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -120,7 +123,7 @@ function ProfilePage() {
             babyProfiles.map((baby) => (
               <Link
                 href={{
-                  pathname: `${process.env.CLIENT_URL}baby/${baby.baby_id}/profile`,
+                  pathname: `${process.env.NEXT_PUBLIC_CLIENT_URL}baby/${baby.baby_id}/profile`,
                   query: { user_id: 1 }, // TODO Replace with the actual userId when ready to submit
                 }}
                 key={baby.baby_id}
