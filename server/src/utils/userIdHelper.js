@@ -1,8 +1,14 @@
 // src/utils/userIdHelper.js
-// Helper function to get user ID by email
 const pool = require("../../database/db");
 const logger = require("./logger");
 
+/**
+ * Retrieves a user's ID from the database using their email address
+ *
+ * @param {string} email - The email address of the user to look up
+ * @returns {Promise<number|null>} The user's ID if found, null if not found or invalid email
+ * @throws {Error} If there's a database error during the query
+ */
 async function getUserIdByEmail(email) {
   try {
     if (!email || typeof email !== "string") {
