@@ -1,7 +1,6 @@
 // pages/journal/index.js
 import { useForm } from "react-hook-form";
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/router";
 import {
   Container,
   Form,
@@ -12,7 +11,6 @@ import {
   Image,
 } from "react-bootstrap";
 import styles from "./journal.module.css";
-import Sidebar from "@/components/Sidebar/Sidebar";
 
 export default function Journal() {
   const { register, handleSubmit, reset } = useForm();
@@ -87,7 +85,6 @@ export default function Journal() {
 
   return (
     <Container className={styles.container} fluid>
-      <Sidebar />
       <div className={styles.formContainer}>
         <p className={styles.title}>My Journal</p>
         <Form onSubmit={handleSubmit(onSubmit)} className="mb-4">

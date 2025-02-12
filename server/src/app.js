@@ -13,7 +13,12 @@ const pino = require('pino-http')({
 
 const app = express();
 app.use(pino);
-app.use(cors());
+
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://team-06-prj-666-winter-2025.vercel.app',
+];
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
 
 // Set up our passport authentication middleware

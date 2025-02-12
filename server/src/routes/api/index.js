@@ -1,6 +1,5 @@
 // src/routes/api/index.js
 // Our authentication middleware
-const auth = require("../../auth");
 const { authenticate } = require("../../auth");
 /**
  * The main entry-point for the v1 version of the API.
@@ -37,6 +36,12 @@ router.post(
   "/baby/:id/addFeedingSchedule",
   authenticate(),
   require("./baby/addFeedingSchedule")
+);
+
+router.get(
+  "/user/:id/getBabyProfiles",
+  authenticate(),
+  require("./baby/babyProfile/getBabyProfile")
 );
 
 //************ /user routes ************

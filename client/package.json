@@ -30,6 +30,7 @@
     "redux-persist": "^6.0.0"
   },
   "devDependencies": {
+    "@babel/eslint-parser": "^7.26.5",
     "@eslint/eslintrc": "^3",
     "eslint": "^9",
     "eslint-config-next": "15.1.4",

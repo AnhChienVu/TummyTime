@@ -65,7 +65,7 @@ function VoiceControl() {
       router.push("/dashboard");
     } else {
       setError("Voice command not found. Please try again!");
-      setText("")
+      setText("");
       setShowToast(true);
     }
   };

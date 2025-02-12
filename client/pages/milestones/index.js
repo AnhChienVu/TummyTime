@@ -15,7 +15,6 @@ import {
 import { format, set } from "date-fns";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import styles from "./milestones.module.css";
-import Sidebar from "@/components/Sidebar/Sidebar";
 import BabyCardMilestone from "@/components/BabyCardMilestone/BabyCardMilestone";
 import { AiOutlineInfoCircle } from "react-icons/ai";
 import { useRouter } from "next/router";
@@ -350,7 +349,6 @@ function Milestones() {
   return (
     <Container className={styles.container} fluid>
       <Row>
-        <Sidebar />
         <Col>
           <h1>Milestones</h1>
           <BabyCardMilestone addMilestoneBtn={handleOpenAddMilestoneModal} />
