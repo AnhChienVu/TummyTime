@@ -98,7 +98,7 @@ export default function Login() {
             <p>
               {t("Dont have an account ?")}{" "}
               <Link
-                href="https://us-east-26an90qfwo.auth.us-east-2.amazoncognito.com/signup?client_id=aiir77i4edaaitkoi3l132an0&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Flogin&response_type=code&scope=openid"
+                href="https://us-east-26an90qfwo.auth.us-east-2.amazoncognito.com/signup?client_id=aiir77i4edaaitkoi3l132an0&redirect_uri=https%3A%2F%2Fteam-06-prj-666-winter-2025.vercel.app%2Flogin&response_type=code&scope=openid"
                 className={styles.link}
               >
                 {t("Sign up")}
