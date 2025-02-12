@@ -38,12 +38,6 @@ router.post(
   require('./baby/addFeedingSchedule')
 );
 
-router.get(
-  '/user/:id/getBabyProfiles',
-  authenticate(),
-  require('./baby/babyProfile/getBabyProfile')
-);
-
 //************ /user routes ************
 router.get('/user/:id', authenticate(), require('./user/getUser').getUserById);
 
@@ -117,17 +111,20 @@ router.post(
 
 router.get(
   '/user/:user_id/getBabyProfiles',
+  authenticate(),
   require('./baby/babyProfile/getAllBabyProfiles')
 );
 
 // GET one baby profile
 router.get(
   '/baby/:baby_id/getBabyProfile',
+  authenticate(),
   require('./baby/babyProfile/getBabyProfile')
 );
 
 router.put(
   '/baby/:baby_id/updateBabyProfile',
+  authenticate(),
   require('./baby/babyProfile/putBabyProfile')
 );
 
@@ -139,17 +136,20 @@ router.put(
 // ************ /journal routes ************
 router.post(
   '/user/:user_id/addJournalEntry',
+  authenticate(),
   require('./journal/addJournalEntry')
 );
 
 router.get(
   '/user/:user_id/getJournalEntries',
+  authenticate(),
   require('./journal/getJournalEntries')
 );
 
 // ************ /voiceCommand routes ************
 router.post(
   '/voiceCommand',
+  authenticate(),
   require('./voiceCommand/processVoiceCommand').processVoiceCommand
 );
 
