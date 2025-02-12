@@ -168,7 +168,9 @@ const FeedingSchedule = () => {
     // }
 
     async function updateSchedule(updatedSchedule) {
-      const res = await fetch(`${process.env.API_URL}v1/updateFeedingSchedule`);
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}v1/updateFeedingSchedule`,
+      );
       const data = await res.json();
     }
 
@@ -343,22 +345,25 @@ const FeedingSchedule = () => {
       }
 
       // Make API call to add schedule
-      const response = await fetch(`${process.env.API_URL}v1/addSchedule`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}v1/addSchedule`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({
+            date: selectedDate,
+            time: timeStr,
+            meal: meal,
+            amount: parsedAmount,
+            type,
+            issues,
+            notes,
+          }),
         },
-        body: JSON.stringify({
-          date: selectedDate,
-          time: timeStr,
-          meal: meal,
-          amount: parsedAmount,
-          type,
-          issues,
-          notes,
-        }),
-      });
+      );
 
       const data = await response.json();
 
@@ -450,7 +455,7 @@ const FeedingSchedule = () => {
     try {
       // Add new feed to database
       const res = await fetch(
-        `${process.env.API_URL}v1/baby/${selectedBaby}/addFeedingSchedule`,
+        `${process.env.NEXT_PUBLIC_API_URL}v1/baby/${selectedBaby}/addFeedingSchedule`,
         {
           method: "POST",
           headers: {

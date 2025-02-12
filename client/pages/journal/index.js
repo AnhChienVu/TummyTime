@@ -23,7 +23,7 @@ export default function Journal() {
     const fetchEntries = async () => {
       try {
         const response = await fetch(
-          `${process.env.API_URL}v1/user/${userId}/getJournalEntries`,
+          `${process.env.NEXT_PUBLIC_API_URL}v1/user/${userId}/getJournalEntries`,
         );
         const data = await response.json();
         if (response.ok) {
@@ -54,7 +54,7 @@ export default function Journal() {
       formData.append("date", new Date().toLocaleString());
 
       const res = await fetch(
-        `${process.env.API_URL}v1/user/${userId}/addJournalEntry`,
+        `${process.env.NEXT_PUBLIC_API_URL}v1/user/${userId}/addJournalEntry`,
         {
           method: "POST",
           body: formData,

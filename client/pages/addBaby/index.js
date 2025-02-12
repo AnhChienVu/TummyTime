@@ -28,7 +28,7 @@ export default function AddBaby() {
     const userId = localStorage.getItem("userId");
     try {
       const res = await fetch(
-        `${process.env.API_URL}v1/user/${userId}/addBabyProfile`,
+        `${process.env.NEXT_PUBLIC_API_URL}v1/user/${userId}/addBabyProfile`,
         {
           method: "POST",
           headers: {

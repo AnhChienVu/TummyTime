@@ -316,7 +316,7 @@ function Milestones() {
     try {
       // Add new feed to database
       const res = await fetch(
-        `${process.env.API_URL}v1/baby/${selectedBaby}/addMilestone`,
+        `${process.env.NEXT_PUBLIC_API_URL}v1/baby/${selectedBaby}/addMilestone`,
         {
           method: "POST",
           headers: {

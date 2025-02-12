@@ -13,11 +13,13 @@ import styles from "./growth.module.css";
 // Fetch Growth records for a specific baby
 const fetchGrowthData = async (babyId) => {
   try {
-    const res = await fetch(`${process.env.API_URL}baby/${babyId}/growth`);
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}baby/${babyId}/growth`,
+    );
 
     const jsonData = await res.json();
     console.log(
-      `Fetched growth data for baby ${babyId} from ${process.env.API_URL}baby/${babyId}/growth/ is:`,
+      `Fetched growth data for baby ${babyId} from ${process.env.NEXT_PUBLIC_API_URL}baby/${babyId}/growth/ is:`,
       jsonData,
     );
 
@@ -42,8 +44,8 @@ const saveGrowthRecord = async (babyId, record, isEdit, recordId = null) => {
 
   try {
     const url = isEdit
-      ? `${process.env.API_URL}baby/${babyId}/growth/${recordId}`
-      : `${process.env.API_URL}baby/${babyId}/growth`;
+      ? `${process.env.NEXT_PUBLIC_API_URL}baby/${babyId}/growth/${recordId}`
+      : `${process.env.NEXT_PUBLIC_API_URL}baby/${babyId}/growth`;
     const method = isEdit ? "PUT" : "POST";
 
     const res = await fetch(url, {
@@ -70,7 +72,7 @@ const saveGrowthRecord = async (babyId, record, isEdit, recordId = null) => {
 const deleteGrowthRecord = async (babyId, recordId) => {
   try {
     const res = await fetch(
-      `${process.env.API_URL}baby/${babyId}/growth/${recordId}`,
+      `${process.env.NEXT_PUBLIC_API_URL}baby/${babyId}/growth/${recordId}`,
       {
         method: "DELETE",
       },
