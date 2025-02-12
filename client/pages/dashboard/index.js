@@ -63,7 +63,7 @@ const Dashboard = () => {
                   <Button
                     variant="primary"
                     className={styles.addButton}
-                    href="http://localhost:3000/feeding-schedule"
+                    href={`${process.env.CLIENT_URL}feeding-schedule`}
                   >
                     + Add
                   </Button>

@@ -53,7 +53,7 @@ export default function EditUserProfile() {
       data.created_at = new Date().toISOString();
       console.log("Submitting form with data: ", data);
 
-      const res = await fetch(`http://localhost:8080/v1/user/${user.user_id}`, {
+      const res = await fetch(`${process.env.API_URL}v1/user/${user.user_id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -84,7 +84,7 @@ export default function EditUserProfile() {
   const handleDelete = async () => {
     try {
       // deleting User
-      const res = await fetch(`http://localhost:8080/v1/user/${user.user_id}`, {
+      const res = await fetch(`${process.env.API_URL}v1/user/${user.user_id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,

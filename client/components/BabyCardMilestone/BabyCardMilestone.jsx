@@ -12,7 +12,7 @@ function BabyCardMilestone({ addMilestoneBtn }) {
       // Fetches the user's baby profiles
       try {
         const res = await fetch(
-          `http://localhost:8080/v1/user/${userId}/getBabyProfiles`,
+          `${process.env.API_URL}v1/user/${userId}/getBabyProfiles`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
