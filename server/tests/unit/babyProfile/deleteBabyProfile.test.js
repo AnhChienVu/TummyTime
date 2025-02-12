@@ -11,7 +11,7 @@ const { strategy, authenticate } = require("../../../src/auth/jwt-middleware");
 const { generateToken } = require("../../../src/utils/jwt");
 
 // app properly handles the route
-const deleteBaby = require("../../src/routes/api/baby/babyProfile/deleteBabyProfile");
+const deleteBaby = require("../../../src/routes/api/baby/babyProfile/deleteBabyProfile");
 const app = express();
 app.use(express.json());
 app.use(passport.initialize());
@@ -103,9 +103,7 @@ describe("DELETE v1/baby/:baby_id/deleteBabyProfile", () => {
       .send({ user_id: 1 });
 
     expect(res.status).toBe(500);
-    expect(createErrorResponse).toHaveBeenCalledWith(
-      "Internal server error while deleting baby profile"
-    );
+    expect(createErrorResponse).toHaveBeenCalledWith("Internal server error");
   });
 
   test("should return 400 when missing required parameters", async () => {

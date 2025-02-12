@@ -9,21 +9,17 @@ const {
 const { strategy, authenticate } = require("../../../src/auth/jwt-middleware");
 const { generateToken } = require("../../../src/utils/jwt");
 
-const updateBabyProfile = require("../../src/routes/api/baby/babyProfile/putBabyProfile");
+const updateBabyProfile = require("../../../src/routes/api/baby/babyProfile/putBabyProfile");
 const app = express();
 app.use(express.json());
 app.use(passport.initialize());
 passport.use(strategy());
-app.put(
-  "/v1/baby/:baby_id/updateBabyProfile",
-  authenticate(),
-  updateBabyProfile
-);
+app.put("/v1/baby/:baby_id/putBabyProfile", authenticate(), updateBabyProfile);
 
 jest.mock("../../../database/db");
 jest.mock("../../../src/utils/response");
 
-describe("PUT v1/baby/:baby_id/updateBabyProfile", () => {
+describe("PUT v1/baby/:baby_id/putBabyProfile", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -36,9 +32,19 @@ describe("PUT v1/baby/:baby_id/updateBabyProfile", () => {
       weight: "12",
     };
 
+    // Mock the database queries
     pool.query
-      .mockResolvedValueOnce({ rows: [{ user_id: 1, baby_id: 1 }] }) // Auth check
-      .mockResolvedValueOnce({ rows: [updatedBaby] }); // Update query
+      .mockResolvedValueOnce({ rows: [{ user_id: 1, baby_id: 1 }] })
+      .mockResolvedValueOnce({ rows: [updatedBaby] });
+
+    // Reset previous mock implementations
+    createSuccessResponse.mockReset();
+
+    // Mock createSuccessResponse to return the data directly
+    createSuccessResponse.mockReturnValue({
+      status: "success",
+      data: updatedBaby,
+    });
 
     const user = {
       userId: 1,
@@ -50,16 +56,23 @@ describe("PUT v1/baby/:baby_id/updateBabyProfile", () => {
     const token = generateToken(user);
 
     const res = await request(app)
-      .put("/v1/baby/1/updateBabyProfile")
+      .put("/v1/baby/1/putBabyProfile")
       .set("Authorization", `Bearer ${token}`)
-      .send({ user_id: 1, ...updatedBaby });
+      .send({
+        user_id: 1,
+        data: updatedBaby,
+      });
 
     expect(res.status).toBe(200);
     expect(createSuccessResponse).toHaveBeenCalledWith(updatedBaby);
+    expect(res.body).toEqual({
+      status: "success",
+      data: updatedBaby,
+    });
   });
 
   test("should return 403 when user is not authorized", async () => {
-    pool.query.mockResolvedValueOnce({ rows: [] }); // No auth record found
+    pool.query.mockResolvedValueOnce({ rows: [] });
 
     const user = {
       userId: 2,
@@ -71,12 +84,16 @@ describe("PUT v1/baby/:baby_id/updateBabyProfile", () => {
     const token = generateToken(user);
 
     const res = await request(app)
-      .put("/v1/baby/1/updateBabyProfile")
+      .put("/v1/baby/1/putBabyProfile")
       .set("Authorization", `Bearer ${token}`)
       .send({
         user_id: 2,
-        first_name: "John",
-        last_name: "Doe",
+        data: {
+          first_name: "John",
+          last_name: "Doe",
+          gender: "boy",
+          weight: "12",
+        },
       });
 
     expect(res.status).toBe(403);
@@ -98,12 +115,16 @@ describe("PUT v1/baby/:baby_id/updateBabyProfile", () => {
     const token = generateToken(user);
 
     const res = await request(app)
-      .put("/v1/baby/1/updateBabyProfile")
+      .put("/v1/baby/1/putBabyProfile")
       .set("Authorization", `Bearer ${token}`)
       .send({
         user_id: 1,
-        first_name: "John",
-        last_name: "Doe",
+        data: {
+          first_name: "John",
+          last_name: "Doe",
+          gender: "boy",
+          weight: "12",
+        },
       });
 
     expect(res.status).toBe(500);
@@ -123,13 +144,67 @@ describe("PUT v1/baby/:baby_id/updateBabyProfile", () => {
     const token = generateToken(user);
 
     const res = await request(app)
-      .put("/v1/baby/1/updateBabyProfile")
+      .put("/v1/baby/1/putBabyProfile")
       .set("Authorization", `Bearer ${token}`)
-      .send({}); // Missing required fields
+      .send({
+        user_id: 1,
+        // data property intentionally omitted for this test
+      });
 
     expect(res.status).toBe(400);
     expect(createErrorResponse).toHaveBeenCalledWith(
-      "Missing required parameters"
+      "Missing required parameters: data object"
+    );
+  });
+
+  test("should return 400 when data object is missing", async () => {
+    const user = {
+      userId: 1,
+      firstName: "Anh",
+      lastName: "Vu",
+      email: "user1@email.com",
+      role: "Parent",
+    };
+    const token = generateToken(user);
+
+    const res = await request(app)
+      .put("/v1/baby/1/putBabyProfile")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        user_id: 1,
+        // data object intentionally omitted
+      });
+
+    expect(res.status).toBe(400);
+    expect(createErrorResponse).toHaveBeenCalledWith(
+      "Missing required parameters: data object"
+    );
+  });
+
+  test("should return 400 when required fields in data object are missing", async () => {
+    const user = {
+      userId: 1,
+      firstName: "Anh",
+      lastName: "Vu",
+      email: "user1@email.com",
+      role: "Parent",
+    };
+    const token = generateToken(user);
+
+    const res = await request(app)
+      .put("/v1/baby/1/putBabyProfile")
+      .set("Authorization", `Bearer ${token}`)
+      .send({
+        user_id: 1,
+        data: {
+          first_name: "John",
+          // other required fields intentionally omitted
+        },
+      });
+
+    expect(res.status).toBe(400);
+    expect(createErrorResponse).toHaveBeenCalledWith(
+      "Missing required parameters: last_name, gender, weight"
     );
   });
 });

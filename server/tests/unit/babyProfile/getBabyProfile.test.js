@@ -9,7 +9,7 @@ const {
 const { strategy, authenticate } = require("../../../src/auth/jwt-middleware");
 const { generateToken } = require("../../../src/utils/jwt");
 
-const getBabyProfile = require("../../src/routes/api/baby/babyProfile/getBabyProfile");
+const getBabyProfile = require("../../../src/routes/api/baby/babyProfile/getBabyProfile");
 const app = express();
 app.use(express.json());
 app.use(passport.initialize());
@@ -93,9 +93,7 @@ describe("GET v1/baby/:baby_id/getBabyProfile", () => {
       .set("Authorization", `Bearer ${token}`);
 
     expect(res.status).toBe(500);
-    expect(createErrorResponse).toHaveBeenCalledWith(
-      "Internal server error while fetching baby profile"
-    );
+    expect(createErrorResponse).toHaveBeenCalledWith("Internal server error");
   });
 
   test("should return 400 when baby_id param is missing", async () => {
@@ -109,12 +107,32 @@ describe("GET v1/baby/:baby_id/getBabyProfile", () => {
     const token = generateToken(user);
 
     const res = await request(app)
-      .get("/v1/baby//getBabyProfile")
+      .get("/v1/baby/undefined/getBabyProfile")
       .set("Authorization", `Bearer ${token}`);
 
     expect(res.status).toBe(400);
     expect(createErrorResponse).toHaveBeenCalledWith(
       "Missing baby_id parameter"
+    );
+  });
+
+  test("should return 400 when baby_id is not a valid number", async () => {
+    const user = {
+      userId: 1,
+      firstName: "Anh",
+      lastName: "Vu",
+      email: "user1@email.com",
+      role: "Parent",
+    };
+    const token = generateToken(user);
+
+    const res = await request(app)
+      .get("/v1/baby/invalid/getBabyProfile")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(res.status).toBe(400);
+    expect(createErrorResponse).toHaveBeenCalledWith(
+      "Invalid baby_id parameter"
     );
   });
 });

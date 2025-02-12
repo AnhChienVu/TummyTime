@@ -10,17 +10,21 @@ const {
 const { strategy, authenticate } = require("../../../src/auth/jwt-middleware");
 const { generateToken } = require("../../../src/utils/jwt");
 
-const getAllBabyProfiles = require("../../src/routes/api/baby/babyProfile/getAllBabyProfiles");
+const getAllBabyProfiles = require("../../../src/routes/api/baby/babyProfile/getAllBabyProfiles");
 const app = express();
 app.use(express.json());
 app.use(passport.initialize());
 passport.use(strategy());
-app.get("/v1/user/:user_id/babies", authenticate(), getAllBabyProfiles);
+app.get(
+  "/v1/user/:user_id/getAllBabyProfiles",
+  authenticate(),
+  getAllBabyProfiles
+);
 
 jest.mock("../../../database/db");
 jest.mock("../../../src/utils/response");
 
-describe("GET v1/user/:user_id/babies", () => {
+describe("GET v1/user/:user_id/getAllBabyProfiles", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -57,7 +61,7 @@ describe("GET v1/user/:user_id/babies", () => {
     const token = generateToken(user);
 
     const res = await request(app)
-      .get("/v1/user/1/babies")
+      .get("/v1/user/1/getAllBabyProfiles")
       .set("Authorization", `Bearer ${token}`);
 
     expect(res.status).toBe(200);
@@ -80,7 +84,7 @@ describe("GET v1/user/:user_id/babies", () => {
     const token = generateToken(user);
 
     const res = await request(app)
-      .get("/v1/user/1/babies")
+      .get("/v1/user/1/getAllBabyProfiles")
       .set("Authorization", `Bearer ${token}`);
 
     expect(res.status).toBe(404);
@@ -102,13 +106,11 @@ describe("GET v1/user/:user_id/babies", () => {
     const token = generateToken(user);
 
     const res = await request(app)
-      .get("/v1/user/1/babies")
+      .get("/v1/user/1/getAllBabyProfiles")
       .set("Authorization", `Bearer ${token}`);
 
     expect(res.status).toBe(500);
-    expect(createErrorResponse).toHaveBeenCalledWith(
-      "Internal server error while fetching baby profiles"
-    );
+    expect(createErrorResponse).toHaveBeenCalledWith("Internal server error");
   });
 
   test("should return 400 when user_id param is missing", async () => {
@@ -122,12 +124,32 @@ describe("GET v1/user/:user_id/babies", () => {
     const token = generateToken(user);
 
     const res = await request(app)
-      .get("/v1/user//babies") // Missing user_id
+      .get("/v1/user/undefined/getAllBabyProfiles")
       .set("Authorization", `Bearer ${token}`);
 
     expect(res.status).toBe(400);
     expect(createErrorResponse).toHaveBeenCalledWith(
       "Missing user_id parameter"
+    );
+  });
+
+  test("should return 400 when user_id is not a valid number", async () => {
+    const user = {
+      userId: 1,
+      firstName: "Anh",
+      lastName: "Vu",
+      email: "user1@email.com",
+      role: "Parent",
+    };
+    const token = generateToken(user);
+
+    const res = await request(app)
+      .get("/v1/user/invalid/getAllBabyProfiles")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(res.status).toBe(400);
+    expect(createErrorResponse).toHaveBeenCalledWith(
+      "Invalid user_id parameter"
     );
   });
 });
