@@ -23,14 +23,11 @@ function ProfilePage() {
     async function fetchProfile() {
       // Fetches the user's profile
       try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/user/${userId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
+        const res = await fetch(`${process.env.API_URL}/user/${userId}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        );
+        });
         const data = await res.json();
         if (res.ok) {
           setProfile(data);

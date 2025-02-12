@@ -34,7 +34,7 @@ export default function Forum() {
 
       try {
         const postsResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/forum/posts`,
+          `${process.env.API_URL}/forum/posts`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -77,17 +77,14 @@ export default function Forum() {
         date: new Date().toISOString(),
       };
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/forum/posts/add`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify(postData),
+      const res = await fetch(`${process.env.API_URL}/forum/posts/add`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-      );
+        body: JSON.stringify(postData),
+      });
 
       if (res.ok) {
         const result = await res.json();

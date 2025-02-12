@@ -24,7 +24,7 @@ export default function BabyProfile() {
       if (baby_id) {
         try {
           const res = await fetch(
-            `http://localhost:8080/v1/baby/${baby_id}/getBabyProfile`,
+            `${process.env.API_URL}/v1/baby/${baby_id}/getBabyProfile`,
             {
               headers: {
                 Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -66,7 +66,7 @@ export default function BabyProfile() {
   const onSubmit = async (data) => {
     try {
       const res = await fetch(
-        `http://localhost:8080/v1/baby/${baby_id}/updateBabyProfile`,
+        `${process.env.API_URL}/v1/baby/${baby_id}/updateBabyProfile`,
         {
           method: "PUT",
           headers: {
@@ -99,7 +99,7 @@ export default function BabyProfile() {
 
     try {
       const res = await fetch(
-        `http://localhost:8080/v1/baby/${baby_id}/deleteBabyProfile`,
+        `${process.env.API_URL}/baby/${baby_id}/deleteBabyProfile`,
         {
           method: "DELETE",
           headers: {
