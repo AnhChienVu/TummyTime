@@ -19,48 +19,63 @@ export default function Forum() {
   const [filePreview, setFilePreview] = useState(null);
   const [content, setContent] = useState("");
   const [error, setError] = useState("");
+  const [userId, setUserId] = useState(null);
+  const [databaseUserId, setDatabaseUserId] = useState(null);
 
   useEffect(() => {
-    const fetchPosts = async () => {
+    const fetchData = async () => {
+      if (typeof window === "undefined") return;
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        logger.error("No token found");
+        return;
+      }
+
       try {
-        const response = await fetch(
+        const postsResponse = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/forum/posts`,
           {
             headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
+              Authorization: `Bearer ${token}`,
             },
           },
         );
-        const data = await response.json();
-        if (response.ok) {
-          const forumPostArray = Object.keys(data)
-            .filter((key) => key !== "status")
-            .map((key) => data[key]);
-          setPosts(forumPostArray);
-        } else {
-          console.error(data.message);
+
+        if (postsResponse.ok) {
+          const response = await postsResponse.json();
+          if (response.status === "ok" && Array.isArray(response.data)) {
+            setPosts(response.data);
+          } else {
+            console.error("Invalid posts data format:", response);
+          }
         }
       } catch (error) {
-        console.error("Error fetching forum posts:", error);
+        console.error("Error details:", {
+          message: error.message,
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+        });
       }
     };
 
-    fetchPosts();
+    fetchData();
   }, []);
 
   const onSubmit = async (data) => {
     try {
-      //if (data.text.trim() === "" && !data.image[0]) return;
+      if (!databaseUserId) {
+        setError("User not authenticated");
+        return;
+      }
+
       if (data.content.trim() === "") return;
 
-      // const formData = new FormData();
-      // formData.append("user_id", userId);
-      // formData.append("title", data.title);
-      // formData.append("text", data.text);
-      // //formData.append("image", data.image[0]);
-      // formData.append("date", new Date().toLocaleString());
-
-      console.log("data", data);
+      const postData = {
+        ...data,
+        user_id: databaseUserId,
+        date: new Date().toISOString(),
+      };
 
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/forum/posts/add`,
@@ -70,13 +85,12 @@ export default function Forum() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-          body: JSON.stringify(data),
+          body: JSON.stringify(postData),
         },
       );
 
       if (res.ok) {
         const result = await res.json();
-        console.log("Post added:", result);
         router.push("/forum");
       } else {
         setError("Failed to add post: ", res);
@@ -86,14 +100,15 @@ export default function Forum() {
     }
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setFilePreview(URL.createObjectURL(file));
-    } else {
-      setFilePreview(null);
-    }
-  };
+  // // For image preview
+  // const handleFileChange = (e) => {
+  //   const file = e.target.files[0];
+  //   if (file) {
+  //     setFilePreview(URL.createObjectURL(file));
+  //   } else {
+  //     setFilePreview(null);
+  //   }
+  // };
 
   return (
     <Container className={styles.container} fluid>
@@ -158,46 +173,42 @@ export default function Forum() {
         {/* Display saved journal posts */}
         <p className={styles.title}>Posts</p>
         <div className={styles.postsSection}>
-          {posts.map((post) => (
-            <Card key={post.id} className={styles.postCard}>
-              <Card.Body>
-                <Card.Title className={styles.postCardTitle}>
-                  {post.title}
-                </Card.Title>
-                <Card.Text
-                  className={styles.postCardText}
-                  style={{
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
-                >
-                  {post.content}
-                </Card.Text>
-                {post.image && (
-                  <Image
-                    src={post.image}
-                    alt="forum post"
-                    className={styles.tableImg}
-                  />
-                )}
-                <Card.Footer className={styles.postCardFooter}>
-                  {new Date(post.date).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  })}{" "}
-                  {new Date(post.date).toLocaleTimeString("en-US", {
-                    hour: "numeric",
-                    minute: "numeric",
-                    hour12: true,
-                  })}
-                </Card.Footer>
-              </Card.Body>
-            </Card>
-          ))}
+          {Array.isArray(posts) && posts.length > 0 ? (
+            posts.map((post) => (
+              <Card key={post.post_id} className={styles.postCard}>
+                <Card.Body>
+                  <Card.Title className={styles.postCardTitle}>
+                    {post.title}
+                  </Card.Title>
+                  <Card.Text className={styles.postCardText}>
+                    {post.content}
+                  </Card.Text>
+                  <div className={styles.postMetadata}>
+                    <small>
+                      Posted: {new Date(post.created_at).toLocaleDateString()}{" "}
+                      at {new Date(post.created_at).toLocaleTimeString()}
+                    </small>
+                    <small>Replies: {post.reply_count}</small>
+                  </div>
+                  {post.replies && post.replies.length > 0 && (
+                    <div className={styles.replies}>
+                      <h6>Replies:</h6>
+                      {post.replies.map((reply) => (
+                        <div key={reply.reply_id} className={styles.reply}>
+                          <p>{reply.content}</p>
+                          <small>
+                            {new Date(reply.created_at).toLocaleDateString()}
+                          </small>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </Card.Body>
+              </Card>
+            ))
+          ) : (
+            <p>No posts found</p>
+          )}
         </div>
       </div>
     </Container>
