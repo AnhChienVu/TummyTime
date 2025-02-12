@@ -17,8 +17,7 @@ function ProfilePage() {
 
   useEffect(() => {
     console.log("localStorage", localStorage);
-    //const userId = localStorage.getItem("userId"); // ################### REMOVE COMMENT WHEN READY TO SUBMIT
-    const userId = 1; // ################### REMOVE WHEN READY TO SUBMIT
+    const userId = localStorage.getItem("userId");
 
     async function fetchProfile() {
       // Fetches the user's profile
@@ -121,7 +120,7 @@ function ProfilePage() {
             babyProfiles.map((baby) => (
               <Link
                 href={{
-                  pathname: `http://localhost:3000/baby/${baby.baby_id}/profile`,
+                  pathname: `${process.env.CLIENT_URL}baby/${baby.baby_id}/profile`,
                   query: { user_id: 1 }, // TODO Replace with the actual userId when ready to submit
                 }}
                 key={baby.baby_id}
