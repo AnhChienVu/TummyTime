@@ -21,74 +21,77 @@ export default function Forum() {
   const [error, setError] = useState("");
   const [userId, setUserId] = useState(null);
   const [databaseUserId, setDatabaseUserId] = useState(null);
+  const router = useRouter();
+
+  const fetchPosts = async () => {
+    if (typeof window === "undefined") return;
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      logger.error("No token found");
+      return;
+    }
+
+    try {
+      const postsResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/v1/forum/posts`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (postsResponse.ok) {
+        const response = await postsResponse.json();
+        if (response.status === "ok" && Array.isArray(response.data)) {
+          setPosts(response.data);
+        } else {
+          console.error("Invalid posts data format:", response);
+        }
+      }
+    } catch (error) {
+      console.error("Error details:", {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+      });
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      if (typeof window === "undefined") return;
-
-      const token = localStorage.getItem("token");
-      if (!token) {
-        logger.error("No token found");
-        return;
-      }
-
-      try {
-        const postsResponse = await fetch(
-          `${process.env.API_URL}/forum/posts`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-
-        if (postsResponse.ok) {
-          const response = await postsResponse.json();
-          if (response.status === "ok" && Array.isArray(response.data)) {
-            setPosts(response.data);
-          } else {
-            console.error("Invalid posts data format:", response);
-          }
-        }
-      } catch (error) {
-        console.error("Error details:", {
-          message: error.message,
-          status: error.response?.status,
-          statusText: error.response?.statusText,
-        });
-      }
-    };
-
-    fetchData();
+    fetchPosts();
   }, []);
 
   const onSubmit = async (data) => {
     try {
-      if (!databaseUserId) {
-        setError("User not authenticated");
-        return;
-      }
-
       if (data.content.trim() === "") return;
 
       const postData = {
         ...data,
-        user_id: databaseUserId,
         date: new Date().toISOString(),
       };
 
-      const res = await fetch(`${process.env.API_URL}/forum/posts/add`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+      console.log("postData", postData);
+
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/v1/forum/posts/add`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify(postData),
         },
-        body: JSON.stringify(postData),
-      });
+      );
 
       if (res.ok) {
         const result = await res.json();
-        router.push("/forum");
+        // Clear the form
+        reset();
+        // Fetch updated posts
+        await fetchPosts();
       } else {
         setError("Failed to add post: ", res);
       }
