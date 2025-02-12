@@ -119,7 +119,7 @@ router.post(
 );
 
 router.get(
-  "/user/:user_id/getBabyProfiles",
+  "/user/:user_id/getAllBabyProfiles",
   authenticate(),
   require("./baby/babyProfile/getAllBabyProfiles")
 );
