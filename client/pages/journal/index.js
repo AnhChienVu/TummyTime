@@ -17,14 +17,21 @@ export default function Journal() {
   const [entries, setEntries] = useState([]);
   const [filePreview, setFilePreview] = useState(null);
   const [text, setText] = useState("");
-
-  const userId = 1;
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
+    const userId = localStorage.getItem("userId");
+    setUserId(userId);
     const fetchEntries = async () => {
       try {
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/v1/user/${userId}/getJournalEntries`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
         );
         const data = await response.json();
         if (response.ok) {
@@ -46,7 +53,6 @@ export default function Journal() {
   const onSubmit = async (data) => {
     try {
       if (data.text.trim() === "" && !data.image[0]) return;
-
       const formData = new FormData();
       formData.append("user_id", userId);
       formData.append("title", data.title);
@@ -58,6 +64,9 @@ export default function Journal() {
         `${process.env.NEXT_PUBLIC_API_URL}/v1/user/${userId}/addJournalEntry`,
         {
           method: "POST",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
           body: formData,
         },
       );
