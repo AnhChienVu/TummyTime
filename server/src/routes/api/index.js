@@ -110,7 +110,10 @@ router.delete(
 );
 
 // ************ /babyProfile routes ************
-router.post('/baby/:baby_id/add', require('./baby/babyProfile/addBabyProfile'));
+router.post(
+  '/user/:user_id/addBabyProfile',
+  require('./baby/babyProfile/addBabyProfile')
+);
 
 router.get(
   '/user/:user_id/getBabyProfiles',
