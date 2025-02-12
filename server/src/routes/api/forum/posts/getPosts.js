@@ -44,9 +44,7 @@ module.exports = async (req, res) => {
 
     const userId = result.rows[0].user_id;
 
-    // Query to get posts and replies for the user
-    // The returned data will be in the format:
-    //
+    // Get all posts and replies for the user
     const posts = await pool.query(
       `WITH PostData AS (
         SELECT 
