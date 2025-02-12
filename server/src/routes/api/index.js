@@ -105,8 +105,7 @@ router.delete(
 
 // ************ /babyProfile routes ************
 router.post(
-  '/baby/:baby_id/add',
-  authenticate(),
+  '/user/:user_id/addBabyProfile',
   require('./baby/babyProfile/addBabyProfile')
 );
 
