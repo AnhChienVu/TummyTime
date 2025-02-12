@@ -40,6 +40,8 @@ router.post(
 );
 
 //************ /user routes ************
+router.get("/user/me", authenticate(), require("./user/me").getUserDetails);
+
 router.get("/user/:id", authenticate(), require("./user/getUser").getUserById);
 
 router.put(
