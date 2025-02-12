@@ -24,12 +24,7 @@ export default function BabyProfile() {
       if (baby_id) {
         try {
           const res = await fetch(
-            `${process.env.API_URL}/v1/baby/${baby_id}/getBabyProfile`,
-            {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-              },
-            },
+            `http://localhost:8080/v1/baby/${baby_id}/getBabyProfile`,
           );
           const data = await res.json();
           console.log("Baby profile data:", data);

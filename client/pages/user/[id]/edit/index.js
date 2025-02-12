@@ -53,14 +53,17 @@ export default function EditUserProfile() {
       data.created_at = new Date().toISOString();
       console.log("Submitting form with data: ", data);
 
-      const res = await fetch(`http://localhost:8080/v1/user/${user.user_id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}v1/user/${user.user_id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify(data),
         },
-        body: JSON.stringify(data),
-      });
+      );
 
       if (res.ok) {
         const updatedUser = await res.json();
@@ -84,12 +87,15 @@ export default function EditUserProfile() {
   const handleDelete = async () => {
     try {
       // deleting User
-      const res = await fetch(`http://localhost:8080/v1/user/${user.user_id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}v1/user/${user.user_id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         },
-      });
+      );
       const data = await res.json();
       if (data.status == "ok") {
         alert("User deleted successfully!");

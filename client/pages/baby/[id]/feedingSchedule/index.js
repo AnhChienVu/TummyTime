@@ -58,7 +58,7 @@ function Feeding() {
       async function fetchFeedingSchedule() {
         try {
           const res = await fetch(
-            `http://localhost:8080/v1/baby/${baby_id}/getFeedingSchedules`,
+            `${process.env.NEXT_PUBLIC_API_URL}v1/baby/${baby_id}/getFeedingSchedules`,
             {
               method: "GET",
               headers: {
@@ -176,7 +176,7 @@ function Feeding() {
     try {
       // Update meal in the database
       const res = await fetch(
-        `http://localhost:8080/v1/baby/${selectedMeal.baby_id}/updateFeedingSchedule/${meal_id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}v1/baby/${selectedMeal.baby_id}/updateFeedingSchedule/${meal_id}`,
         {
           method: "PUT",
           headers: {
@@ -262,7 +262,7 @@ function Feeding() {
     });
 
     // Make API call to add schedule
-    fetch("http://localhost:8080/v1/addSchedule", {
+    fetch("${process.env.NEXT_PUBLIC_API_URL}v1/addSchedule", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -298,7 +298,7 @@ function Feeding() {
     try {
       // Delete meal in the database
       const res = await fetch(
-        `http://localhost:8080/v1/baby/${mealItem.baby_id}/deleteFeedingSchedule/${meal_id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}v1/baby/${mealItem.baby_id}/deleteFeedingSchedule/${meal_id}`,
         {
           method: "DELETE",
           headers: {

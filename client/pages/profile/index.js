@@ -19,6 +19,7 @@ function ProfilePage() {
   useEffect(() => {
     console.log("localStorage", localStorage);
     const userId = localStorage.getItem("userId");
+    const userId = localStorage.getItem("userId");
 
     async function fetchProfile() {
       // Fetches the user's profile
@@ -27,7 +28,7 @@ function ProfilePage() {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        });
+        );
         const data = await res.json();
         if (res.ok) {
           setProfile(data);
@@ -43,7 +44,7 @@ function ProfilePage() {
       // Fetches the user's baby profiles
       try {
         const res = await fetch(
-          `http://localhost:8080/v1/user/${userId}/getBabyProfiles`,
+          `${process.env.NEXT_PUBLIC_API_URL}v1/user/${userId}/getBabyProfiles`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -121,8 +122,8 @@ function ProfilePage() {
             babyProfiles.map((baby) => (
               <Link
                 href={{
-                  pathname: `http://localhost:3000/baby/${baby.baby_id}/profile`,
-                  query: { user_id: localStorage.getItem("userId") },
+                  pathname: `${process.env.NEXT_PUBLIC_CLIENT_URL}baby/${baby.baby_id}/profile`,
+                  query: { user_id: 1 }, // TODO Replace with the actual userId when ready to submit
                 }}
                 key={baby.baby_id}
                 style={{ textDecoration: "none", cursor: "pointer" }}

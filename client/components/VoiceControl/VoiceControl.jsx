@@ -40,7 +40,7 @@ function VoiceControl() {
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
   const sendVoiceCommand = async () => {
-    const res = await fetch("http://localhost:8080/v1/voiceCommand", {
+    const res = await fetch("${process.env.NEXT_PUBLIC_API_URL}v1/voiceCommand", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
