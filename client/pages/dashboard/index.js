@@ -63,7 +63,7 @@ const Dashboard = () => {
                   <Button
                     variant="primary"
                     className={styles.addButton}
-                    href={`${CLIENT_URL}feeding-schedule`}
+                    href={`${process.env.CLIENT_URL}feeding-schedule`}
                   >
                     + Add
                   </Button>
