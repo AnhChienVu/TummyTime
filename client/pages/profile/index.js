@@ -1,5 +1,4 @@
 // pages/profile/index.js
-// Front-end for displaying user profile and baby profile(s)
 import React, { useEffect, useState } from "react";
 import { Container, Row, Col, Card, Button, Image } from "react-bootstrap";
 import { useRouter } from "next/router";
@@ -19,14 +18,16 @@ function ProfilePage() {
   useEffect(() => {
     console.log("localStorage", localStorage);
     const userId = localStorage.getItem("userId");
-    const userId = localStorage.getItem("userId");
 
     async function fetchProfile() {
       // Fetches the user's profile
       try {
-        const res = await fetch(`${process.env.API_URL}/user/${userId}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/v1/user/${userId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
           },
         );
         const data = await res.json();
@@ -44,7 +45,7 @@ function ProfilePage() {
       // Fetches the user's baby profiles
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}v1/user/${userId}/getBabyProfiles`,
+          `${process.env.NEXT_PUBLIC_API_URL}/v1/user/${userId}/getAllBabyProfiles`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -122,8 +123,8 @@ function ProfilePage() {
             babyProfiles.map((baby) => (
               <Link
                 href={{
-                  pathname: `${process.env.NEXT_PUBLIC_CLIENT_URL}baby/${baby.baby_id}/profile`,
-                  query: { user_id: 1 }, // TODO Replace with the actual userId when ready to submit
+                  pathname: `${process.env.NEXT_PUBLIC_CLIENT_URL}/baby/${baby.baby_id}/profile`,
+                  query: { user_id: localStorage.getItem("userId") },
                 }}
                 key={baby.baby_id}
                 style={{ textDecoration: "none", cursor: "pointer" }}
