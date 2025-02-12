@@ -42,11 +42,6 @@ module.exports = async (req, res) => {
 
     res.json(createSuccessResponse("Baby profile deleted successfully"));
   } catch (error) {
-    console.error("Error deleting baby profile:", error);
-    return res
-      .status(500)
-      .json(
-        createErrorResponse("Internal server error while deleting baby profile")
-      );
+    return res.status(500).json(createErrorResponse("Internal server error"));
   }
 };
