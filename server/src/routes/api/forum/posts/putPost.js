@@ -8,6 +8,8 @@ const jwt = require("jsonwebtoken");
 const logger = require("../../../../utils/logger");
 const { getUserIdByEmail } = require("../../../../utils/userIdHelper");
 
+// PUT /v1/forum/posts/:post_id
+// Update a post
 module.exports = async (req, res) => {
   try {
     const { post_id } = req.params;

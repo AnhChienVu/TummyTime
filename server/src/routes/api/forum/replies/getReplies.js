@@ -8,6 +8,8 @@ const jwt = require("jsonwebtoken");
 const logger = require("../../../../utils/logger");
 const { getUserIdByEmail } = require("../../../../utils/userIdHelper");
 
+// GET /v1/forum/posts/:post_id/replies
+// Get all replies for a post
 module.exports = async (req, res) => {
   try {
     const { post_id } = req.params;
