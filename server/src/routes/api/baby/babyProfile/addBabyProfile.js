@@ -1,4 +1,4 @@
-// src/routes/api/addBaby.js
+// src/routes/api/baby/babyProfile/addBaby.js
 const pool = require("../../../../../database/db");
 const {
   createSuccessResponse,
@@ -22,7 +22,6 @@ module.exports = async (req, res) => {
 
     return res.json(createSuccessResponse(newBaby.rows[0]));
   } catch (error) {
-    console.error("Database query error:", error);
     return res
       .status(500)
       .json(createErrorResponse(500, "Internal server error"));

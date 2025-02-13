@@ -1,9 +1,10 @@
 // pages/baby/[baby_id]/profile/index.js
+// Front-end for one baby profile
+// Contains the form to edit and delete baby profile
 import { useForm } from "react-hook-form";
-import { Row, Col, Form, Button, Container } from "react-bootstrap";
+import { Row, Col, Form, Button, Container, Modal } from "react-bootstrap";
 import { useRouter } from "next/router";
 import styles from "./profile.module.css";
-import Sidebar from "@/components/Sidebar/Sidebar";
 import { useState, useEffect } from "react";
 
 export default function BabyProfile() {
@@ -13,6 +14,8 @@ export default function BabyProfile() {
   const { register, handleSubmit, setValue, watch } = useForm();
   const [originalData, setOriginalData] = useState(null);
   const formValues = watch(); // React Hook Form's watch to track form values
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmed, setDeleteConfirmed] = useState(false);
 
   // Get the selected baby's profile information
   useEffect(() => {
@@ -20,9 +23,15 @@ export default function BabyProfile() {
       if (baby_id) {
         try {
           const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}v1/baby/${baby_id}/getBabyProfile`,
+            `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${baby_id}/getBabyProfile`,
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            },
           );
           const data = await res.json();
+          console.log("Baby profile data:", data);
 
           setBaby(data);
           // Pre-fill form fields
@@ -56,10 +65,13 @@ export default function BabyProfile() {
   const onSubmit = async (data) => {
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}v1/baby/${baby_id}/updateBabyProfile`,
+        `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${baby_id}/updateBabyProfile`,
         {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
           body: JSON.stringify({
             data,
             user_id: user_id,
@@ -74,9 +86,49 @@ export default function BabyProfile() {
     }
   };
 
+  /* Event handler for "Delete Profile" button */
+  // First, display a confirmation modal
+  const handleDeleteClick = () => {
+    setShowDeleteModal(true);
+  };
+
+  // Then, handle the delete confirmation
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirmed) return;
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${baby_id}/deleteBabyProfile`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({
+            user_id: user_id,
+          }),
+        },
+      );
+      if (res.ok) {
+        setShowDeleteModal(false);
+        // Show success notification
+        alert("Profile successfully deleted");
+        router.push("/profile");
+      }
+    } catch (error) {
+      console.error("Error deleting baby profile:", error);
+      alert("Error deleting profile");
+    }
+  };
+
+  const handleModalClose = () => {
+    setShowDeleteModal(false);
+    setDeleteConfirmed(false);
+  };
+
   return (
     <div className="d-flex">
-      <Sidebar />
       <Container className="py-4">
         <h2>Edit Baby Profile</h2>
         <Form onSubmit={handleSubmit(onSubmit)}>
@@ -129,16 +181,51 @@ export default function BabyProfile() {
             <Form.Label>Date of Birth</Form.Label>
             <Form.Control {...register("date_of_birth")} type="date" />
           </Form.Group> */}
-          <Button
-            type="submit"
-            disabled={!isFormChanged()}
-            className={`${
-              !isFormChanged() ? "opacity-50 cursor-not-allowed" : ""
-            }`}
-          >
-            Save Changes
-          </Button>
+          <div className="d-flex">
+            <Button
+              type="submit"
+              disabled={!isFormChanged()}
+              className={`${
+                !isFormChanged() ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+            >
+              Save Changes
+            </Button>
+            <Button onClick={handleDeleteClick} className={styles.deleteButton}>
+              Delete Profile
+            </Button>
+          </div>
         </Form>
+
+        {/* "Confirm Delete" popup */}
+        <Modal show={showDeleteModal} onHide={handleModalClose}>
+          <Modal.Header closeButton>
+            <Modal.Title>Confirm Delete</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <p>Are you sure you want to delete this baby profile?</p>
+            <Form.Check
+              type="checkbox"
+              id="delete-confirm"
+              label="I understand that this action cannot be undone and all data will be permanently deleted"
+              checked={deleteConfirmed}
+              onChange={(e) => setDeleteConfirmed(e.target.checked)}
+              className="mb-3"
+            />
+          </Modal.Body>
+          <Modal.Footer>
+            <Button variant="secondary" onClick={handleModalClose}>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              onClick={handleDeleteConfirm}
+              disabled={!deleteConfirmed}
+            >
+              Delete Profile
+            </Button>
+          </Modal.Footer>
+        </Modal>
       </Container>
     </div>
   );

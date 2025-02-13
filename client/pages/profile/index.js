@@ -23,7 +23,7 @@ function ProfilePage() {
       // Fetches the user's profile
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}v1/user/${userId}`,
+          `${process.env.NEXT_PUBLIC_API_URL}/v1/user/${userId}`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -45,7 +45,7 @@ function ProfilePage() {
       // Fetches the user's baby profiles
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}v1/user/${userId}/getBabyProfiles`,
+          `${process.env.NEXT_PUBLIC_API_URL}/v1/user/${userId}/getAllBabyProfiles`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -123,8 +123,8 @@ function ProfilePage() {
             babyProfiles.map((baby) => (
               <Link
                 href={{
-                  pathname: `${process.env.NEXT_PUBLIC_CLIENT_URL}baby/${baby.baby_id}/profile`,
-                  query: { user_id: 1 }, // TODO Replace with the actual userId when ready to submit
+                  pathname: `${process.env.NEXT_PUBLIC_CLIENT_URL}/baby/${baby.baby_id}/profile`,
+                  query: { user_id: localStorage.getItem("userId") },
                 }}
                 key={baby.baby_id}
                 style={{ textDecoration: "none", cursor: "pointer" }}
@@ -156,7 +156,7 @@ function ProfilePage() {
                         window.location.href = `/baby/${baby.baby_id}/feedingSchedule`;
                       }}
                     >
-                      See details
+                      Feeding Schedule
                     </Button>
                     <Button
                       className={styles.customButton}

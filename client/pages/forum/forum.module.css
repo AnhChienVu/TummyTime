@@ -67,3 +67,28 @@ display: flex;
 .microphone:hover {
     background-color: #4D3D7E;
 }
+
+.postCard {
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.postMetadata {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+  color: #666;
+}
+
+.replies {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #eee;
+}
+
+.reply {
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}

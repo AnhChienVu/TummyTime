@@ -38,19 +38,27 @@ module.exports = async (req, res) => {
       const { AccessToken, IdToken, RefreshToken } =
         result.AuthenticationResult;
 
-      // After login, check whether the user created user's information or not in the database
+      // After login, check whether the user exists in both tables
       const resultDb = await pool.query(
         "SELECT * FROM users WHERE email = $1",
         [email]
       );
 
-      const user = resultDb.rows[0];
-
-      // Create a new account in local database Postgres
-      const newAccount = await pool.query(
-        "INSERT INTO authentication (email, password) VALUES ($1, $2) RETURNING *",
-        [email, password]
+      const authResult = await pool.query(
+        "SELECT * FROM authentication WHERE email = $1",
+        [email]
       );
+
+      const user = resultDb.rows[0];
+      const authUser = authResult.rows[0];
+
+      // Only create authentication record if it doesn't exist
+      if (!authUser) {
+        await pool.query(
+          "INSERT INTO authentication (email, password) VALUES ($1, $2)",
+          [email, password]
+        );
+      }
 
       if (!user) {
         return res.json(

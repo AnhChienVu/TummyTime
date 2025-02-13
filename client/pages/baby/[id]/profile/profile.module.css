@@ -39,3 +39,30 @@
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+.deleteButton {
+  background-color: transparent;
+  border: none;
+  color: #dc3545;
+  font-weight: 500;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+  margin-left: 10px; /* Add spacing between buttons */
+}
+
+.deleteButton:hover {
+  opacity: 0.8;
+  background-color: transparent !important;
+  color: #dc3545 !important;
+}
+
+.deleteButton:focus {
+  box-shadow: none;
+  outline: none;
+  background-color: transparent;
+}
+
+.modalCheckbox {
+  margin-top: 1rem;
+}
