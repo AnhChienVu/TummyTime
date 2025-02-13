@@ -49,7 +49,10 @@ module.exports = async (req, res) => {
       [user_id, post_id, content]
     );
 
-    return createSuccessResponse(res, result.rows[0]);
+    return res.status(200).json({
+      status: "ok",
+      data: result.rows[0],
+    });
   } catch (error) {
     logger.error(`Error creating reply: ${error.message}`);
     return createErrorResponse(res, 500, "Error creating reply");
