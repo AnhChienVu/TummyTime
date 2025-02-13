@@ -12,8 +12,11 @@ import {
   Image,
 } from "react-bootstrap";
 import styles from "./forum.module.css";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 export default function Forum() {
+  const { t } = useTranslation("common");
   const { register, handleSubmit, reset } = useForm();
   const [posts, setPosts] = useState([]);
   const [filePreview, setFilePreview] = useState(null);
@@ -113,13 +116,13 @@ export default function Forum() {
   return (
     <Container className={styles.container} fluid>
       <div className={styles.formContainer}>
-        <p className={styles.title}>Community Forum</p>
+        <p className={styles.title}>{t("Community Forum")}</p>
         <Form onSubmit={handleSubmit(onSubmit)} className="mb-4">
           <Row className="mb-3">
             <Col>
               <Form.Control
                 type="text"
-                placeholder="Title"
+                placeholder={t("Title")}
                 required
                 {...register("title")}
               />
@@ -162,7 +165,7 @@ export default function Forum() {
                 type="submit"
                 className={styles.submitButton}
               >
-                Post
+                {t("Post")}
               </Button>
             </Col>
           </Row>
@@ -171,7 +174,7 @@ export default function Forum() {
         <hr />
 
         {/* Display saved journal posts */}
-        <p className={styles.title}>Posts</p>
+        <p className={styles.title}>{t("Posts")}</p>
         <div className={styles.postsSection}>
           {Array.isArray(posts) && posts.length > 0 ? (
             posts.map((post) => (
@@ -213,10 +216,18 @@ export default function Forum() {
               </div>
             ))
           ) : (
-            <p>No posts found</p>
+            <p>{t("No posts found")}</p>
           )}
         </div>
       </div>
     </Container>
   );
+}
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
+  };
 }

@@ -11,8 +11,11 @@ import {
   Image,
 } from "react-bootstrap";
 import styles from "./journal.module.css";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 export default function Journal() {
+  const { t } = useTranslation("common");
   const { register, handleSubmit, reset } = useForm();
   const [entries, setEntries] = useState([]);
   const [filePreview, setFilePreview] = useState(null);
@@ -95,13 +98,13 @@ export default function Journal() {
   return (
     <Container className={styles.container} fluid>
       <div className={styles.formContainer}>
-        <p className={styles.title}>My Journal</p>
+        <p className={styles.title}>{t("My Journal")}</p>
         <Form onSubmit={handleSubmit(onSubmit)} className="mb-4">
           <Row className="mb-3">
             <Col>
               <Form.Control
                 type="text"
-                placeholder="Title"
+                placeholder={t("Title")}
                 required
                 {...register("title")}
               />
@@ -112,7 +115,7 @@ export default function Journal() {
               <Form.Control
                 as="textarea"
                 rows={3}
-                placeholder="Write your thoughts here..."
+                placeholder={t("Write your thoughts here...")}
                 required
                 {...register("text")}
               />
@@ -145,7 +148,7 @@ export default function Journal() {
                 type="submit"
                 className={styles.submitButton}
               >
-                Post
+                {t("Post")}
               </Button>
             </Col>
           </Row>
@@ -154,7 +157,7 @@ export default function Journal() {
         <hr />
 
         {/* Display saved journal entries */}
-        <p className={styles.title}>Journal Entries</p>
+        <p className={styles.title}>{t("Journal Entries")}</p>
         <div className={styles.entriesSection}>
           {entries.map((entry) => (
             <Card key={entry.id} className={styles.entryCard}>
@@ -200,4 +203,12 @@ export default function Journal() {
       </div>
     </Container>
   );
+}
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
+  };
 }
