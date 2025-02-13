@@ -175,36 +175,42 @@ export default function Forum() {
         <div className={styles.postsSection}>
           {Array.isArray(posts) && posts.length > 0 ? (
             posts.map((post) => (
-              <Card key={post.post_id} className={styles.postCard}>
-                <Card.Body>
-                  <Card.Title className={styles.postCardTitle}>
-                    {post.title}
-                  </Card.Title>
-                  <Card.Text className={styles.postCardText}>
-                    {post.content}
-                  </Card.Text>
-                  <div className={styles.postMetadata}>
-                    <small>
-                      Posted: {new Date(post.created_at).toLocaleDateString()}{" "}
-                      at {new Date(post.created_at).toLocaleTimeString()}
-                    </small>
-                    <small>Replies: {post.reply_count}</small>
-                  </div>
-                  {post.replies && post.replies.length > 0 && (
-                    <div className={styles.replies}>
-                      <h6>Replies:</h6>
-                      {post.replies.map((reply) => (
-                        <div key={reply.reply_id} className={styles.reply}>
-                          <p>{reply.content}</p>
-                          <small>
-                            {new Date(reply.created_at).toLocaleDateString()}
-                          </small>
-                        </div>
-                      ))}
+              <div
+                key={post.post_id}
+                onClick={() => router.push(`/forum/post/${post.post_id}`)}
+                style={{ cursor: "pointer" }}
+              >
+                <Card className={styles.postCard}>
+                  <Card.Body>
+                    <Card.Title className={styles.postCardTitle}>
+                      {post.title}
+                    </Card.Title>
+                    <Card.Text className={styles.postCardText}>
+                      {post.content}
+                    </Card.Text>
+                    <div className={styles.postMetadata}>
+                      <small>
+                        Posted: {new Date(post.created_at).toLocaleDateString()}{" "}
+                        at {new Date(post.created_at).toLocaleTimeString()}
+                      </small>
+                      <small>Replies: {post.reply_count}</small>
                     </div>
-                  )}
-                </Card.Body>
-              </Card>
+                    {post.replies && post.replies.length > 0 && (
+                      <div className={styles.replies}>
+                        <h6>Replies:</h6>
+                        {post.replies.map((reply) => (
+                          <div key={reply.reply_id} className={styles.reply}>
+                            <p>{reply.content}</p>
+                            <small>
+                              {new Date(reply.created_at).toLocaleDateString()}
+                            </small>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </Card.Body>
+                </Card>
+              </div>
             ))
           ) : (
             <p>No posts found</p>

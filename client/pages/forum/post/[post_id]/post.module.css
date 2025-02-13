@@ -1,0 +1,58 @@
+.postDetailCard {
+    margin-bottom: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.postTitle {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+
+.postContent {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    white-space: pre-wrap;
+}
+
+.repliesSection {
+    margin-top: 2rem;
+}
+
+.replyCard {
+    margin-bottom: 1rem;
+    background-color: #f8f9fa;
+}
+
+.replyForm {
+    margin-top: 2rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.replyButton {
+    margin-top: 1rem;
+}
+
+.backButton {
+    margin-bottom: 1rem;
+    padding: 0;
+    text-decoration: none;
+}
+
+.error {
+    color: #dc3545;
+    text-align: center;
+    padding: 1rem;
+    margin: 1rem 0;
+    background-color: #f8d7da;
+    border-radius: 4px;
+}
+
+.replyMetadata {
+    color: #6c757d;
+    display: block;
+    margin-top: 0.5rem;
+}

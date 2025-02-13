@@ -163,10 +163,16 @@ router.post(
   require("./forum/posts/addPost")
 );
 
+router.get(
+  "/forum/posts/:post_id",
+  authenticate(),
+  require("./forum/posts/getPost")
+);
+
 router.get("/forum/posts", authenticate(), require("./forum/posts/getPosts"));
 
 router.post(
-  "/forum/replies",
+  "/forum/posts/:post_id/reply",
   authenticate(),
   require("./forum/replies/addReply")
 );

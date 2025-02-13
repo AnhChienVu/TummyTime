@@ -35,7 +35,6 @@ module.exports = async (req, res) => {
       WHERE email = $1`,
       [email]
     );
-    console.log("Database query result:", result);
 
     if (result.rows.length === 0) {
       logger.error(`User not found for email: ${email}`);

@@ -1,4 +1,3 @@
-// src/routes/api/forum/post/getAllForumReplies.js
 const pool = require("../../../../../database/db");
 const {
   createSuccessResponse,
@@ -33,38 +32,48 @@ module.exports = async (req, res) => {
       return createErrorResponse(res, 404, "User not found");
     }
 
-    // Verify post exists
-    const postExists = await pool.query(
-      "SELECT post_id FROM forumpost WHERE post_id = $1",
-      [post_id]
-    );
+    // Query to get the specific post and its replies
+    const postQuery = `
+      SELECT 
+        p.post_id,
+        p.user_id,
+        p.title,
+        p.content,
+        p.created_at,
+        p.updated_at,
+        COUNT(DISTINCT r.reply_id) as reply_count,
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'reply_id', r.reply_id,
+              'user_id', r.user_id,
+              'content', r.content,
+              'created_at', r.created_at,
+              'updated_at', r.updated_at
+            ) ORDER BY r.created_at ASC
+          ) FILTER (WHERE r.reply_id IS NOT NULL),
+          '[]'
+        ) as replies
+      FROM forumpost p
+      LEFT JOIN forumreply r ON p.post_id = r.post_id
+      LEFT JOIN users u ON p.user_id = u.user_id
+      LEFT JOIN users ru ON r.user_id = ru.user_id
+      WHERE p.post_id = $1
+      GROUP BY p.post_id, p.user_id, p.title, p.content, p.created_at, p.updated_at
+    `;
 
-    if (postExists.rows.length === 0) {
+    const result = await pool.query(postQuery, [post_id]);
+
+    if (result.rows.length === 0) {
       return createErrorResponse(res, 404, "Post not found");
     }
 
-    // Get replies with user information
-    const replies = await pool.query(
-      `SELECT 
-        r.reply_id,
-        r.post_id,
-        r.user_id,
-        r.content,
-        r.created_at,
-        r.updated_at
-      FROM forumreply r
-      JOIN users u ON r.user_id = u.user_id
-      WHERE r.post_id = $1
-      ORDER BY r.created_at ASC`,
-      [post_id]
-    );
-
     return res.status(200).json({
       status: "ok",
-      data: replies.rows,
+      data: result.rows[0],
     });
   } catch (error) {
-    logger.error(`Error fetching replies: ${error.message}`);
-    return createErrorResponse(res, 500, "Error fetching replies");
+    logger.error(`Error fetching post: ${error.message}`);
+    return createErrorResponse(res, 500, error.message);
   }
 };
