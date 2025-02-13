@@ -39,7 +39,7 @@ function Register() {
     if (form.checkValidity() === true) {
       setValidated(true);
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}v1/signup`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/signup`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

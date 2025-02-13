@@ -54,7 +54,7 @@ export default function EditUserProfile() {
       console.log("Submitting form with data: ", data);
 
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}v1/user/${user.user_id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/v1/user/${user.user_id}`,
         {
           method: "PUT",
           headers: {
@@ -88,7 +88,7 @@ export default function EditUserProfile() {
     try {
       // deleting User
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}v1/user/${user.user_id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/v1/user/${user.user_id}`,
         {
           method: "DELETE",
           headers: {
