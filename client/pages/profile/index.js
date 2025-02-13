@@ -77,6 +77,14 @@ function ProfilePage() {
       query: { profile: JSON.stringify(profile), locale },
     });
   };
+
+  const addMealBtn = (babyId) => {
+    router.push({
+      pathname: `/baby/${babyId}/addMeal`,
+      query: { user_id: localStorage.getItem("userId") },
+    });
+  };
+
   return (
     <Container className={styles.container}>
       {/* Profile Section */}
