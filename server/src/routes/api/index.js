@@ -177,6 +177,12 @@ router.put(
   require("./forum/posts/putPost")
 );
 
+router.delete(
+  "/forum/posts/:post_id",
+  authenticate(),
+  require("./forum/posts/deletePost")
+);
+
 router.post(
   "/forum/posts/:post_id/reply",
   authenticate(),
