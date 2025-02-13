@@ -6,7 +6,6 @@ import Link from "next/link";
 
 function BabyCard({ addMealBtn }) {
   const { t, i18n } = useTranslation("common");
-  // const locale = i18n.language;
   const [babyProfiles, setBabyProfiles] = useState([]);
 
   useEffect(() => {
