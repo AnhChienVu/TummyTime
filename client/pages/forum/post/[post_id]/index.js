@@ -34,7 +34,6 @@ export default function PostDetail() {
           setError("Failed to fetch post");
         }
       } catch (error) {
-        console.error("Error:", error);
         setError("Error loading post");
       }
     };
@@ -63,13 +62,14 @@ export default function PostDetail() {
           setReplies(data.data);
         }
       } catch (error) {
-        console.error("Error fetching replies:", error);
+        setError("Failed to fetch posts");
       }
     };
 
     fetchReplies();
   }, [post_id]);
 
+  // Handle reply submission
   const handleReplySubmit = async (e) => {
     e.preventDefault();
     if (!replyContent.trim()) return;
@@ -109,15 +109,11 @@ export default function PostDetail() {
             reply_count: (prevPost.reply_count || 0) + 1,
           }));
         }
-
-        // Log for debugging
-        console.log("New reply added:", newReply);
       } else {
         const errorData = await response.json();
         setError(errorData.message || "Failed to post reply");
       }
     } catch (error) {
-      console.error("Error:", error);
       setError("Error posting reply");
     }
   };
