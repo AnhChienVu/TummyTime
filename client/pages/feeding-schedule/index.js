@@ -346,7 +346,7 @@ const FeedingSchedule = () => {
 
       // Make API call to add schedule
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}v1/addSchedule`,
+        `${process.env.NEXT_PUBLIC_API_URL}/v1/addSchedule`,
         {
           method: "POST",
           headers: {
@@ -455,7 +455,7 @@ const FeedingSchedule = () => {
     try {
       // Add new feed to database
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}v1/baby/${selectedBaby}/addFeedingSchedule`,
+        `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${selectedBaby}/addFeedingSchedule`,
         {
           method: "POST",
           headers: {
