@@ -169,7 +169,7 @@ export default function Forum() {
         <hr />
 
         {/* Display saved journal posts */}
-        <p className={styles.title}>Posts</p>
+        <p className={styles.title}>{t("Latest Posts")}</p>
         <div className={styles.postsSection}>
           {Array.isArray(posts) && posts.length > 0 ? (
             [...posts]
