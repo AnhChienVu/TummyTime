@@ -6,7 +6,7 @@ import Link from "next/link";
 
 function BabyCard({ addMealBtn }) {
   const { t, i18n } = useTranslation("common");
-  const locale = i18n.language;
+  // const locale = i18n.language;
   const [babyProfiles, setBabyProfiles] = useState([]);
 
   useEffect(() => {
@@ -27,10 +27,10 @@ function BabyCard({ addMealBtn }) {
         // console.log("Fetched baby profiles data:", data); // Log the response data
         if (res.ok) {
           // Convert the object to an array of baby profiles
-          const babyProfilesArray = Object.keys(data)
-            .filter((key) => key !== "status")
-            .map((key) => data[key]);
-          setBabyProfiles(babyProfilesArray);
+          // const babyProfilesArray = Object.keys(data)
+          //   .filter((key) => key !== "status")
+          //   .map((key) => data[key]);
+          setBabyProfiles(data.babies);
         } else {
           console.error("Failed to fetch baby profiles:", data);
         }
@@ -67,8 +67,8 @@ function BabyCard({ addMealBtn }) {
               </div>
 
               <Link
-                href={`/baby/${baby.baby_id}/feedingSchedule`}
-                locale={locale}
+                href={`/baby/${baby.baby_id}/feedingSchedule`} passHref
+                // locale={locale}
               >
                 <Button className={styles.customButton}>
                   {t("See details")}

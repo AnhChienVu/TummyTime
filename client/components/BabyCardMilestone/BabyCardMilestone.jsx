@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Card, Button, Image } from "react-bootstrap";
 import styles from "./BabyCardMilestone.module.css";
+import { useTranslation } from "next-i18next";
+import Link from "next/link";
 
 function BabyCardMilestone({ addMilestoneBtn }) {
+  const { t } = useTranslation("common");
   const [babyProfiles, setBabyProfiles] = useState([]);
 
   useEffect(() => {
@@ -23,10 +26,10 @@ function BabyCardMilestone({ addMilestoneBtn }) {
         // console.log("Fetched baby profiles data:", data); // Log the response data
         if (res.ok) {
           // Convert the object to an array of baby profiles
-          const babyProfilesArray = Object.keys(data)
-            .filter((key) => key !== "status")
-            .map((key) => data[key]);
-          setBabyProfiles(babyProfilesArray);
+          // const babyProfilesArray = Object.keys(data)
+          //   .filter((key) => key !== "status")
+          //   .map((key) => data[key]);
+          setBabyProfiles(data.babies);
         } else {
           console.error("Failed to fetch baby profiles:", data);
         }
@@ -37,6 +40,7 @@ function BabyCardMilestone({ addMilestoneBtn }) {
 
     fetchBabyProfiles();
   }, []); // Ensure the dependency array is empty to run only once on mount
+  babyProfiles.map(baby => console.log(baby.baby_id));
 
   return (
     <div>
@@ -54,21 +58,20 @@ function BabyCardMilestone({ addMilestoneBtn }) {
                 <Card.Title>
                   {baby.first_name} {baby.last_name}
                 </Card.Title>
-                <Card.Text>Gender: {baby.gender}</Card.Text>
-                <Card.Text>Weight: {baby.weight}lbs</Card.Text>
+                <Card.Text>{t("Gender")}: {baby.gender}</Card.Text>
+                <Card.Text>{t("Weight")}: {baby.weight}lbs</Card.Text>
               </div>
 
-              <Button
-                className={styles.customButton}
-                href={`/baby/${baby.baby_id}/milestones`}
-              >
-                See details
-              </Button>
+              <Link href={`/baby/${baby.baby_id}/milestones`} passHref>
+                <Button className={styles.customButton}>
+                  {t("See details")}
+                </Button>
+              </Link>
               <Button
                 className={styles.customButton}
                 onClick={() => addMilestoneBtn(baby.baby_id)}
               >
-                Add milestone
+                {t("Add milestone")}
               </Button>
             </Card.Body>
           </Card>
