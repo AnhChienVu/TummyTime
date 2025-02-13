@@ -4,8 +4,11 @@ import styles from "./milestones.module.css";
 import { FaBaby, FaEdit, FaTrash } from "react-icons/fa";
 import { Modal, Form, Button, Alert, Row, Col } from "react-bootstrap";
 import { AiOutlineInfoCircle } from "react-icons/ai";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 function MilestoneEachBaby() {
+  const { t } = useTranslation("common");
   const [milestones, setMilestones] = useState([]);
   const [modalError, setModalError] = useState("");
   const [selectedMilestone, setSelectedMilestone] = useState(null);
@@ -178,9 +181,9 @@ function MilestoneEachBaby() {
             <table className={styles.mealsTable}>
               <thead>
                 <tr>
-                  <th>Title</th>
-                  <th>Details</th>
-                  <th>Date</th>
+                  <th>{t("Title")}</th>
+                  <th>{t("Details")}</th>
+                  <th>{t("Date")}</th>
                   <th style={{ width: "60px" }}></th>
                 </tr>
               </thead>
@@ -213,14 +216,14 @@ function MilestoneEachBaby() {
       <Modal show={modalShow} onHide={() => setModalShow(false)}>
         <Modal.Header closeButton>
           <Modal.Title>
-            {selectedMilestone ? "Edit Milestone" : "Add Milestone"}
+            {selectedMilestone ? t("Edit Milestone") : t("Add Milestone")}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {modalError && <Alert variant="danger">{modalError}</Alert>}
           <Form>
             <Form.Group controlId="title">
-              <Form.Label>Title</Form.Label>
+              <Form.Label>{t("Title")}</Form.Label>
               <Form.Control
                 type="text"
                 value={title}
@@ -229,7 +232,7 @@ function MilestoneEachBaby() {
             </Form.Group>
 
             <Form.Group controlId="detail">
-              <Form.Label>Details</Form.Label>
+              <Form.Label>{t("Details")}</Form.Label>
               <Form.Control
                 type="text"
                 value={details}
@@ -243,10 +246,10 @@ function MilestoneEachBaby() {
             className={styles.btnCancel}
             onClick={() => setModalShow(false)}
           >
-            Cancel
+            {t("Cancel")}
           </Button>
           <Button className={styles.btnSave} onClick={handleSaveMilestone}>
-            Save
+            {t("Save")}
           </Button>
         </Modal.Footer>
       </Modal>
@@ -255,3 +258,52 @@ function MilestoneEachBaby() {
 }
 
 export default MilestoneEachBaby;
+
+export async function getStaticPaths() {
+  // Fetch the token from localStorage on the client side
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      return {
+        paths: [],
+        fallback: false,
+      };
+    }
+
+    // Fetch the list of baby IDs from your custom API route
+    const res = await fetch(`/api/getBabyProfiles?token=${token}`);
+    const data = await res.json();
+
+    if (data.status !== "ok") {
+      return {
+        paths: [],
+        fallback: false,
+      };
+    }
+
+    // Generate the paths for each baby ID
+    const paths = data.babies.map((baby) => ({
+      params: { id: baby.baby_id.toString() },
+    }));
+
+    return {
+      paths,
+      fallback: false, // See the "fallback" section below
+    };
+  }
+
+  return {
+    paths: [],
+    fallback: false,
+  };
+}
+
+export async function getStaticProps({ params, locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+      babyId: params.id,
+    },
+  };
+}
