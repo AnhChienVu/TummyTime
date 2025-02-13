@@ -45,7 +45,6 @@ display: flex;
 .submitButton {
     width: 50%;
     background-color: #65558F;
-    margin-left: 45%;
 }
 
 .submitButton:hover {
@@ -97,4 +96,14 @@ display: flex;
   margin-bottom: 0.5rem;
   background-color: #f8f9fa;
   border-radius: 4px;
+}
+
+.truncateText {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 4.5em; /* Approximately 3 lines of text */
+  line-height: 1.5em;
 }
