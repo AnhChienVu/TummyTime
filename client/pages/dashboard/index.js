@@ -14,8 +14,12 @@ import {
 import styles from "./dashboard.module.css";
 import Link from "next/link";
 import VoiceControl from "@/components/VoiceControl/VoiceControl";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 const Dashboard = () => {
+  const { t } = useTranslation("common");
+
   return (
     <Container className={`${styles.container} pt-5`}>
       <VoiceControl />
@@ -23,38 +27,38 @@ const Dashboard = () => {
         {/* Main Content */}
         <Col md={10}>
           <Alert variant="danger" className="my-3">
-            Feed is due <strong>now</strong>
+            {t(`Feed is due now`)}
             <br />
-            <small>Last feed at 7:12 AM - 7 oz</small>
+            <small>{t("Last feed at 7:12 AM - 7 oz")}</small>
           </Alert>
 
-          <h2 className={styles.heading}>Dashboard</h2>
+          <h2 className={styles.heading}>{t("Dashboard")}</h2>
 
           <Row>
             {/* Today's Meals Section */}
             <Col md={12}>
               <Card className={styles.card}>
                 <Card.Body>
-                  <Card.Title>Today&apos;s Meals</Card.Title>
+                  <Card.Title>{t("Today's Meals")}</Card.Title>
                   <Table striped bordered hover>
                     <thead>
                       <tr>
-                        <th>Meal</th>
-                        <th>Type</th>
-                        <th>Amount</th>
-                        <th>Notes</th>
-                        <th>Actions</th>
+                        <th>{t("Meal")}</th>
+                        <th>{t("Type")}</th>
+                        <th>{t("Amount")}</th>
+                        <th>{t("Notes")}</th>
+                        <th>{t("Actions")}</th>
                       </tr>
                     </thead>
                     <tbody>
                       <tr>
-                        <td>Breakfast</td>
-                        <td>Baby formula</td>
-                        <td>7.8 oz</td>
-                        <td>Only drank half</td>
+                        <td>{t("Breakfast")}</td>
+                        <td>{t("Baby formula")}</td>
+                        <td>{t("7.8 oz")}</td>
+                        <td>{t("Only drank half")}</td>
                         <td>
                           <Button variant="outline-primary" size="sm">
-                            Edit
+                            {t("Edit")}
                           </Button>
                         </td>
                       </tr>
@@ -65,7 +69,7 @@ const Dashboard = () => {
                     className={styles.addButton}
                     href={`${process.env.NEXT_PUBLIC_CLIENT_URL}feeding-schedule`}
                   >
-                    + Add
+                    + {t("Add")}
                   </Button>
                 </Card.Body>
               </Card>
@@ -82,7 +86,7 @@ const Dashboard = () => {
               >
                 <Card className={`${styles.cardHover} mb-4`}>
                   <Card.Body>
-                    <Card.Title>Feedings</Card.Title>
+                    <Card.Title>{t("Feedings")}</Card.Title>
                     <div
                       style={{ height: "200px", backgroundColor: "#f7f7f7" }}
                     >
@@ -103,7 +107,7 @@ const Dashboard = () => {
               <Nav.Link as={Link} href="/height" className={styles.navlink}>
                 <Card className={`${styles.cardHover} mb-4`}>
                   <Card.Body>
-                    <Card.Title>Height</Card.Title>
+                    <Card.Title>{t("Height")}</Card.Title>
                     <div
                       style={{ height: "200px", backgroundColor: "#f7f7f7" }}
                     >
@@ -126,7 +130,7 @@ const Dashboard = () => {
               <Nav.Link as={Link} href="/weight" className={styles.navlink}>
                 <Card className={`${styles.cardHover} mb-4`}>
                   <Card.Body>
-                    <Card.Title>Weight</Card.Title>
+                    <Card.Title>{t("Weight")}</Card.Title>
                     <div
                       style={{ height: "200px", backgroundColor: "#f7f7f7" }}
                     >
@@ -150,7 +154,7 @@ const Dashboard = () => {
               >
                 <Card className={`${styles.cardHover} mb-4`}>
                   <Card.Body>
-                    <Card.Title>Stool Color</Card.Title>
+                    <Card.Title>{t("Stool Color")} </Card.Title>
                     <div
                       style={{ height: "200px", backgroundColor: "#f7f7f7" }}
                     >
@@ -173,3 +177,11 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
+  };
+}

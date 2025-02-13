@@ -6,8 +6,10 @@ import { useRouter } from "next/router";
 import styles from "./VoiceControl.module.css";
 import Toast from "react-bootstrap/Toast";
 import ToastContainer from "react-bootstrap/ToastContainer";
+import { useTranslation } from "next-i18next";
 
 function VoiceControl() {
+  const { t } = useTranslation("common");
   const router = useRouter();
   const [show, setShow] = useState(false);
   const [text, setText] = useState("");
@@ -73,15 +75,15 @@ function VoiceControl() {
   return (
     <div>
       <Button variant="primary" onClick={handleShow} className={styles.button}>
-        Voice Control
+        {t("Voice Control")}
       </Button>
       <Modal show={show} onHide={handleClose}>
         <Modal.Header closeButton>
-          <Modal.Title>Voice Control</Modal.Title>
+          <Modal.Title>{t("Voice Control")}</Modal.Title>
         </Modal.Header>
 
         <Modal.Body className={styles.modalBody}>
-          <h2>Listening...</h2>
+          <h2>{t("Listening...")}</h2>
           <textarea
             disabled={isListening}
             value={
@@ -92,10 +94,10 @@ function VoiceControl() {
           ></textarea>
           <div className={styles.buttonContainer}>
             <Button onClick={startStopListening} className={styles.button}>
-              {isListening ? "Stop listening" : "Start"}
+              {isListening ? t("Stop listening") : t("Start")}
             </Button>
             <Button onClick={sendVoiceCommand} className={styles.button}>
-              Send
+              {t("Send")}
             </Button>
           </div>
         </Modal.Body>
