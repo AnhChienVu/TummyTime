@@ -58,7 +58,7 @@ export default function Journal() {
       formData.append("title", data.title);
       formData.append("text", data.text);
       formData.append("image", data.image[0]);
-      formData.append("date", new Date().toLocaleString());
+      formData.append("date", new Date().toISOString());
 
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/v1/user/${userId}/addJournalEntry`,
