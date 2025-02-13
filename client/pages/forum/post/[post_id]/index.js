@@ -2,7 +2,7 @@
 // Displays a post and its replies
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { Container, Card, Button, Form } from "react-bootstrap";
+import { Container, Card, Button, Form, Modal } from "react-bootstrap";
 import styles from "./post.module.css";
 
 export default function PostDetail() {
@@ -15,6 +15,8 @@ export default function PostDetail() {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmed, setDeleteConfirmed] = useState(false);
 
   // Fetch post details
   useEffect(() => {
@@ -167,6 +169,49 @@ export default function PostDetail() {
     setIsEditing(true);
   };
 
+  /* Event handler for the "Delete Post" button */
+  // First, display a confirmation modal
+  const handleDeleteClick = () => {
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirmed) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/v1/forum/posts/${post_id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setShowDeleteModal(false);
+        alert("Post successfully deleted");
+        router.push("/forum");
+      } else {
+        setError(data.message || "Failed to delete post");
+        setShowDeleteModal(false);
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      setError("Error deleting post");
+      setShowDeleteModal(false);
+    }
+  };
+
+  const handleModalClose = () => {
+    setShowDeleteModal(false);
+    setDeleteConfirmed(false);
+  };
+
   if (error) {
     return (
       <Container className={styles.container}>
@@ -178,7 +223,7 @@ export default function PostDetail() {
   if (!post) {
     return (
       <Container className={styles.container}>
-        <div>Loading...</div>
+        <div>This post does not exist</div>
       </Container>
     );
   }
@@ -230,14 +275,24 @@ export default function PostDetail() {
                     </Button>
                   </div>
                 ) : (
-                  <Button
-                    variant="outline-secondary"
-                    size="sm"
-                    onClick={startEditing}
-                    className={styles.editButton}
-                  >
-                    Edit Post
-                  </Button>
+                  <div className={styles.postActions}>
+                    <Button
+                      variant="outline-secondary"
+                      size="sm"
+                      onClick={startEditing}
+                      className={styles.editButton}
+                    >
+                      Edit Post
+                    </Button>
+                    <Button
+                      variant="outline-danger"
+                      size="sm"
+                      onClick={handleDeleteClick}
+                      className={styles.deleteButton}
+                    >
+                      Delete Post
+                    </Button>
+                  </div>
                 )}
               </div>
             </div>
@@ -319,6 +374,35 @@ export default function PostDetail() {
           Post Reply
         </Button>
       </Form>
+
+      <Modal show={showDeleteModal} onHide={handleModalClose}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Delete</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>Are you sure you want to delete this post?</p>
+          <Form.Check
+            type="checkbox"
+            id="delete-confirm"
+            label="I understand that this action cannot be undone and all replies will be permanently deleted"
+            checked={deleteConfirmed}
+            onChange={(e) => setDeleteConfirmed(e.target.checked)}
+            className="mb-3"
+          />
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleModalClose}>
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            onClick={handleDeleteConfirm}
+            disabled={!deleteConfirmed}
+          >
+            Delete Post
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Container>
   );
 }

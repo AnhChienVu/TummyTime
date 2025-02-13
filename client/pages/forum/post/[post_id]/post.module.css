@@ -110,3 +110,12 @@
   opacity: 1 !important;
   color: inherit !important;
 }
+
+.postActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.deleteButton {
+  margin-left: 0.5rem;
+}
