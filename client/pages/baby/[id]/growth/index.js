@@ -15,6 +15,13 @@ const fetchGrowthData = async (babyId) => {
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${babyId}/growth`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      },
     );
 
     const jsonData = await res.json();
@@ -52,6 +59,7 @@ const saveGrowthRecord = async (babyId, record, isEdit, recordId = null) => {
       method,
       headers: {
         "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
       },
       body: JSON.stringify(record),
     });
@@ -75,6 +83,10 @@ const deleteGrowthRecord = async (babyId, recordId) => {
       `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${babyId}/growth/${recordId}`,
       {
         method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
       },
     );
 
