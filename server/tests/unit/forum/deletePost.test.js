@@ -1,3 +1,4 @@
+// tests/unit/forum/deletePost.test.js
 const deletePost = require("../../../src/routes/api/forum/posts/deletePost");
 const pool = require("../../../database/db");
 const { getUserIdByEmail } = require("../../../src/utils/userIdHelper");
@@ -15,7 +16,7 @@ jest.mock("../../../src/utils/userIdHelper");
 jest.mock("jsonwebtoken");
 jest.mock("../../../src/utils/response");
 
-describe("deletePost", () => {
+describe("DELETE v1/forum/posts/:post_id", () => {
   let req;
   let res;
   let mockClient;
