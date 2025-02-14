@@ -540,7 +540,16 @@ const FeedingSchedule = () => {
               </div>
             )} */}
 
-            <BabyCard addMealBtn={handleOpenAddFeedModal} />
+            {/* <BabyCard addMealBtn={handleOpenAddFeedModal} /> */}
+            <BabyCard
+              buttons={[
+                { name: "See details", path: "feedingSchedule" },
+                {
+                  name: "Add meal",
+                  functionHandler: handleOpenAddFeedModal,
+                },
+              ]}
+            />
 
             {/* {sortedData.map((day, idx) => {
               if (!day.meals || day.meals.length === 0) return null;

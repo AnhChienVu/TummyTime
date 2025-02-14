@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Card, Button, Image } from "react-bootstrap";
-import styles from "./BabyCard.module.css";
+import styles from "./BabyCardGrowth.module.css";
 import { useTranslation } from "next-i18next";
 import Link from "next/link";
 
-function BabyCard({ buttons }) {
+function BabyCardGrowth({ buttons }) {
   const { t, i18n } = useTranslation("common");
+  const locale = i18n.language;
   const [babyProfiles, setBabyProfiles] = useState([]);
 
   useEffect(() => {
@@ -20,16 +21,15 @@ function BabyCard({ buttons }) {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
-          },
+          }
         );
         const data = await res.json();
-        // console.log("Fetched baby profiles data:", data); // Log the response data
         if (res.ok) {
           // Convert the object to an array of baby profiles
-          // const babyProfilesArray = Object.keys(data)
-          //   .filter((key) => key !== "status")
-          //   .map((key) => data[key]);
-          setBabyProfiles(data.babies);
+          const babyProfilesArray = Object.keys(data)
+            .filter((key) => key !== "status")
+            .map((key) => data[key]);
+          setBabyProfiles(babyProfilesArray);
         } else {
           console.error("Failed to fetch baby profiles:", data);
         }
@@ -66,37 +66,21 @@ function BabyCard({ buttons }) {
               </div>
 
               {/* Buttons */}
-              {buttons.length > 0 &&
-                buttons.map((button, index) => (
-                  <div key={index} className={styles.buttonContainer}>
-                    {button.path ? (
-                      <Link
-                        href={`/baby/${baby.baby_id}/${button.path}`}
-                        passHref
-                      >
-                        {button.functionHandler ? (
-                          <Button
-                            className={styles.customButton}
-                            onClick={() => button.functionHandler()}
-                          >
-                            {button.name}
-                          </Button>
-                        ) : (
-                          <Button className={styles.customButton}>
-                            {button.name}
-                          </Button>
-                        )}
-                      </Link>
-                    ) : (
-                      <Button
-                        className={styles.customButton}
-                        onClick={() => button.functionHandler(baby.baby_id)}
-                      >
-                        {button.name}
-                      </Button>
-                    )}
-                  </div>
-                ))}
+              { buttons.length > 0 && buttons.map((button) =>  (<><Link
+                href={`/baby/${baby.baby_id}/${button.path}`}
+                locale={locale}
+              >
+                <Button className={styles.customButton}>
+                  {t(button.name)}
+                </Button>
+              </Link></>))}
+
+              <Button
+                className={styles.customButton}
+                onClick={() => addMealBtn(baby.baby_id)}
+              >
+                {t("Add meal")}
+              </Button>
             </Card.Body>
           </Card>
         ))
@@ -107,4 +91,4 @@ function BabyCard({ buttons }) {
   );
 }
 
-export default BabyCard;
+export default BabyCardGrowth;
