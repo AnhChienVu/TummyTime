@@ -8,6 +8,8 @@ const jwt = require("jsonwebtoken");
 const logger = require("../../../../utils/logger");
 const { getUserIdByEmail } = require("../../../../utils/userIdHelper");
 
+// POST /v1/forum/posts/add
+// Create a new post
 module.exports = async (req, res) => {
   try {
     const authHeader = req.headers.authorization;
