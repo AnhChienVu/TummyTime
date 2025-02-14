@@ -12,15 +12,15 @@ import {
   Image,
 } from "react-bootstrap";
 import styles from "./forum.module.css";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 export default function Forum() {
+  const { t } = useTranslation("common");
   const { register, handleSubmit, reset } = useForm();
   const [posts, setPosts] = useState([]);
   const [filePreview, setFilePreview] = useState(null);
-  const [content, setContent] = useState("");
   const [error, setError] = useState("");
-  const [userId, setUserId] = useState(null);
-  const [databaseUserId, setDatabaseUserId] = useState(null);
   const router = useRouter();
 
   const fetchPosts = async () => {
@@ -47,11 +47,11 @@ export default function Forum() {
         if (response.status === "ok" && Array.isArray(response.data)) {
           setPosts(response.data);
         } else {
-          console.error("Invalid posts data format:", response);
+          setError("Invalid posts data format:", response);
         }
       }
     } catch (error) {
-      console.error("Error details:", {
+      setError("Error details:", {
         message: error.message,
         status: error.response?.status,
         statusText: error.response?.statusText,
@@ -71,8 +71,6 @@ export default function Forum() {
         ...data,
         date: new Date().toISOString(),
       };
-
-      console.log("postData", postData);
 
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/v1/forum/posts/add`,
@@ -113,13 +111,13 @@ export default function Forum() {
   return (
     <Container className={styles.container} fluid>
       <div className={styles.formContainer}>
-        <p className={styles.title}>Community Forum</p>
+        <p className={styles.title}>{t("Community Forum")}</p>
         <Form onSubmit={handleSubmit(onSubmit)} className="mb-4">
           <Row className="mb-3">
             <Col>
               <Form.Control
                 type="text"
-                placeholder="Title"
+                placeholder={t("Title")}
                 required
                 {...register("title")}
               />
@@ -162,7 +160,7 @@ export default function Forum() {
                 type="submit"
                 className={styles.submitButton}
               >
-                Post
+                {t("Post")}
               </Button>
             </Col>
           </Row>
@@ -171,52 +169,67 @@ export default function Forum() {
         <hr />
 
         {/* Display saved journal posts */}
-        <p className={styles.title}>Posts</p>
+        <p className={styles.title}>{t("Latest Posts")}</p>
         <div className={styles.postsSection}>
           {Array.isArray(posts) && posts.length > 0 ? (
-            posts.map((post) => (
-              <div
-                key={post.post_id}
-                onClick={() => router.push(`/forum/post/${post.post_id}`)}
-                style={{ cursor: "pointer" }}
-              >
-                <Card className={styles.postCard}>
-                  <Card.Body>
-                    <Card.Title className={styles.postCardTitle}>
-                      {post.title}
-                    </Card.Title>
-                    <Card.Text className={styles.postCardText}>
-                      {post.content}
-                    </Card.Text>
-                    <div className={styles.postMetadata}>
-                      <small>
-                        Posted: {new Date(post.created_at).toLocaleDateString()}{" "}
-                        at {new Date(post.created_at).toLocaleTimeString()}
-                      </small>
-                      <small>Replies: {post.reply_count}</small>
-                    </div>
-                    {post.replies && post.replies.length > 0 && (
-                      <div className={styles.replies}>
-                        <h6>Replies:</h6>
-                        {post.replies.map((reply) => (
-                          <div key={reply.reply_id} className={styles.reply}>
-                            <p>{reply.content}</p>
-                            <small>
-                              {new Date(reply.created_at).toLocaleDateString()}
-                            </small>
-                          </div>
-                        ))}
+            [...posts]
+              .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+              .map((post) => (
+                <div
+                  key={post.post_id}
+                  onClick={() => router.push(`/forum/post/${post.post_id}`)}
+                  style={{ cursor: "pointer" }}
+                >
+                  <Card className={styles.postCard}>
+                    <Card.Body>
+                      <Card.Title className={styles.postCardTitle}>
+                        {post.title}
+                      </Card.Title>
+                      <Card.Text
+                        className={`${styles.postCardText} ${styles.truncateText}`}
+                      >
+                        {post.content}
+                      </Card.Text>
+                      <div className={styles.postMetadata}>
+                        <small>
+                          Posted:{" "}
+                          {new Date(post.created_at).toLocaleDateString()} at{" "}
+                          {new Date(post.created_at).toLocaleTimeString()}
+                        </small>
+                        <small>Replies: {post.reply_count}</small>
                       </div>
-                    )}
-                  </Card.Body>
-                </Card>
-              </div>
-            ))
+                      {post.replies && post.replies.length > 0 && (
+                        <div className={styles.replies}>
+                          <h6>Replies:</h6>
+                          {post.replies.map((reply) => (
+                            <div key={reply.reply_id} className={styles.reply}>
+                              <p>{reply.content}</p>
+                              <small>
+                                {new Date(
+                                  reply.created_at,
+                                ).toLocaleDateString()}
+                              </small>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </Card.Body>
+                  </Card>
+                </div>
+              ))
           ) : (
-            <p>No posts found</p>
+            <p>{t("No posts found")}</p>
           )}
         </div>
       </div>
     </Container>
   );
+}
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
+  };
 }

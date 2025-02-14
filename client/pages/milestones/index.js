@@ -18,6 +18,8 @@ import styles from "./milestones.module.css";
 import BabyCardMilestone from "@/components/BabyCardMilestone/BabyCardMilestone";
 import { AiOutlineInfoCircle } from "react-icons/ai";
 import { useRouter } from "next/router";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 const mockApi = {
   fetchMilestones: () => Promise.resolve([]),
@@ -243,6 +245,7 @@ const mockApi = {
 // };
 
 function Milestones() {
+  const { t } = useTranslation("common");
   const [title, setTitle] = useState("");
   const [details, setDetails] = useState("");
   const [addMilestoneModalShow, setAddMilestoneModalShow] = useState(false);
@@ -350,7 +353,7 @@ function Milestones() {
     <Container className={styles.container} fluid>
       <Row>
         <Col>
-          <h1>Milestones</h1>
+          <h1>{t("Milestones")}</h1>
           <BabyCardMilestone addMilestoneBtn={handleOpenAddMilestoneModal} />
         </Col>
       </Row>
@@ -360,13 +363,13 @@ function Milestones() {
         onHide={() => setAddMilestoneModalShow(false)}
       >
         <Modal.Header closeButton>
-          <Modal.Title>Add a milestone</Modal.Title>
+          <Modal.Title>{t("Add a milestone")}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {newModalError && <Alert variant="danger">{newModalError}</Alert>}
           <Form>
             <Form.Group controlId="title">
-              <Form.Label>Title</Form.Label>
+              <Form.Label>{t("Title")}</Form.Label>
               <Form.Control
                 type="text"
                 value={title}
@@ -375,7 +378,7 @@ function Milestones() {
             </Form.Group>
 
             <Form.Group controlId="details">
-              <Form.Label>Details</Form.Label>
+              <Form.Label>{t("Details")}</Form.Label>
               <Form.Control
                 type="text"
                 value={details}
@@ -389,10 +392,10 @@ function Milestones() {
             className={styles.btnCancel}
             onClick={() => setAddMilestoneModalShow(false)}
           >
-            Cancel
+            {t("Cancel")}
           </Button>
           <Button className={styles.btnSave} onClick={handleSaveNewMilestone}>
-            Save
+            {t("Save")}
           </Button>
         </Modal.Footer>
       </Modal>
@@ -401,3 +404,11 @@ function Milestones() {
 }
 
 export default Milestones;
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
+  };
+}

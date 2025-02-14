@@ -1,6 +1,8 @@
+// pages/forum/post/[post_id]/index.js
+// Displays a post and its replies
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { Container, Card, Button, Form } from "react-bootstrap";
+import { Container, Card, Button, Form, Modal } from "react-bootstrap";
 import styles from "./post.module.css";
 
 export default function PostDetail() {
@@ -10,6 +12,11 @@ export default function PostDetail() {
   const [replies, setReplies] = useState([]);
   const [replyContent, setReplyContent] = useState("");
   const [error, setError] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editContent, setEditContent] = useState("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmed, setDeleteConfirmed] = useState(false);
 
   // Fetch post details
   useEffect(() => {
@@ -118,6 +125,93 @@ export default function PostDetail() {
     }
   };
 
+  // Handle post edit submission
+  const handleEditSubmit = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/v1/forum/posts/${post_id}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            title: editTitle,
+            content: editContent,
+          }),
+        },
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        // Update the post state with the new data while preserving other fields
+        setPost((prevPost) => ({
+          ...prevPost,
+          title: editTitle,
+          content: editContent,
+          updated_at: new Date().toISOString(),
+        }));
+        setIsEditing(false);
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || "Failed to update post");
+      }
+    } catch (error) {
+      setError("Error updating post");
+    }
+  };
+
+  const startEditing = () => {
+    setEditTitle(post.title);
+    setEditContent(post.content);
+    setIsEditing(true);
+  };
+
+  /* Event handler for the "Delete Post" button */
+  // First, display a confirmation modal
+  const handleDeleteClick = () => {
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirmed) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/v1/forum/posts/${post_id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setShowDeleteModal(false);
+        alert("Post successfully deleted");
+        router.push("/forum");
+      } else {
+        setError(data.message || "Failed to delete post");
+        setShowDeleteModal(false);
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      setError("Error deleting post");
+      setShowDeleteModal(false);
+    }
+  };
+
+  const handleModalClose = () => {
+    setShowDeleteModal(false);
+    setDeleteConfirmed(false);
+  };
+
   if (error) {
     return (
       <Container className={styles.container}>
@@ -129,7 +223,7 @@ export default function PostDetail() {
   if (!post) {
     return (
       <Container className={styles.container}>
-        <div>Loading...</div>
+        <div>This post does not exist</div>
       </Container>
     );
   }
@@ -147,13 +241,96 @@ export default function PostDetail() {
       {post && (
         <Card className={styles.postDetailCard}>
           <Card.Body>
-            <Card.Title className={styles.postTitle}>{post.title}</Card.Title>
-            <Card.Text className={styles.postContent}>{post.content}</Card.Text>
+            <div className={styles.postHeader}>
+              {isEditing ? (
+                <Form.Control
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className={styles.editTitleInput}
+                />
+              ) : (
+                <Card.Title className={styles.postTitle}>
+                  {post.title}
+                </Card.Title>
+              )}
+              <div>
+                {isEditing ? (
+                  <div className={styles.editButtons}>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={handleEditSubmit}
+                      className={styles.editActionButton}
+                    >
+                      Save
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setIsEditing(false)}
+                      className={styles.editActionButton}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                ) : (
+                  <div className={styles.postActions}>
+                    <Button
+                      variant="outline-secondary"
+                      size="sm"
+                      onClick={startEditing}
+                      className={styles.editButton}
+                    >
+                      Edit Post
+                    </Button>
+                    <Button
+                      variant="outline-danger"
+                      size="sm"
+                      onClick={handleDeleteClick}
+                      className={styles.deleteButton}
+                    >
+                      Delete Post
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+            {isEditing ? (
+              <Form.Control
+                as="textarea"
+                rows={5}
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                className={styles.editContentInput}
+              />
+            ) : (
+              <Card.Text className={styles.postContent}>
+                {post.content}
+              </Card.Text>
+            )}
             <div className={styles.postMetadata}>
-              <small>
-                Posted: {new Date(post.created_at).toLocaleDateString()} at{" "}
-                {new Date(post.created_at).toLocaleTimeString()}
-              </small>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <small>
+                  Posted: {new Date(post.created_at).toLocaleDateString()} at{" "}
+                  {new Date(post.created_at).toLocaleTimeString()}
+                </small>
+                {post.updated_at && post.updated_at !== post.created_at && (
+                  <small>
+                    <i style={{ color: "#666666" }}>
+                      Last edited:{" "}
+                      {new Date(post.updated_at).toLocaleDateString()} at{" "}
+                      {new Date(post.updated_at).toLocaleTimeString()}
+                    </i>
+                  </small>
+                )}
+              </div>
             </div>
           </Card.Body>
         </Card>
@@ -197,6 +374,35 @@ export default function PostDetail() {
           Post Reply
         </Button>
       </Form>
+
+      <Modal show={showDeleteModal} onHide={handleModalClose}>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Delete</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>Are you sure you want to delete this post?</p>
+          <Form.Check
+            type="checkbox"
+            id="delete-confirm"
+            label="I understand that this action cannot be undone and all replies will be permanently deleted"
+            checked={deleteConfirmed}
+            onChange={(e) => setDeleteConfirmed(e.target.checked)}
+            className="mb-3"
+          />
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleModalClose}>
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            onClick={handleDeleteConfirm}
+            disabled={!deleteConfirmed}
+          >
+            Delete Post
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </Container>
   );
 }

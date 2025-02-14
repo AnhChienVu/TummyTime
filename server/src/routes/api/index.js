@@ -171,6 +171,18 @@ router.get(
 
 router.get("/forum/posts", authenticate(), require("./forum/posts/getPosts"));
 
+router.put(
+  "/forum/posts/:post_id",
+  authenticate(),
+  require("./forum/posts/putPost")
+);
+
+router.delete(
+  "/forum/posts/:post_id",
+  authenticate(),
+  require("./forum/posts/deletePost")
+);
+
 router.post(
   "/forum/posts/:post_id/reply",
   authenticate(),

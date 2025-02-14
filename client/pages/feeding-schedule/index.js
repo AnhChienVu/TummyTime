@@ -624,26 +624,26 @@ const FeedingSchedule = () => {
             <Modal show={modalShow} onHide={() => setModalShow(false)}>
               <Modal.Header closeButton>
                 <Modal.Title>
-                  {selectedMeal ? "Edit Meal" : "Add Meal"}
+                  {selectedMeal ? t("Edit Meal") : t("Add Meal")}
                 </Modal.Title>
               </Modal.Header>
               <Modal.Body>
                 {modalError && <Alert variant="danger">{modalError}</Alert>}
                 <Form>
                   <Form.Group controlId="meal">
-                    <Form.Label>Meal</Form.Label>
+                    <Form.Label>{t("Meal")}</Form.Label>
                     <Form.Select
                       value={meal}
                       onChange={(e) => setMeal(e.target.value)}
                     >
-                      <option>Breakfast</option>
-                      <option>Lunch</option>
-                      <option>Dinner</option>
-                      <option>Snack</option>
+                      <option>{t("Breakfast")}</option>
+                      <option>{t("Lunch")}</option>
+                      <option>{t("Dinner")}</option>
+                      <option>{t("Snack")}</option>
                     </Form.Select>
                   </Form.Group>
                   <Form.Group controlId="time" className="mt-3">
-                    <Form.Label>Time</Form.Label>
+                    <Form.Label>{t("Time")}</Form.Label>
                     <div className={styles.timeRow}>
                       <div className={styles.timeSegment}>
                         <input
@@ -693,15 +693,15 @@ const FeedingSchedule = () => {
                     </div>
                   </Form.Group>
                   <Form.Group controlId="type" className="mt-3">
-                    <Form.Label>Type</Form.Label>
+                    <Form.Label>{t("Type")}</Form.Label>
                     <Form.Select
                       value={type}
                       onChange={(e) => setType(e.target.value)}
                     >
-                      <option>Baby formula</option>
-                      <option>Breastmilk</option>
-                      <option>Solid food</option>
-                      <option>Snack</option>
+                      <option>{t("Baby formula")}</option>
+                      <option>{t("Breastmilk")}</option>
+                      <option>{t("Solid food")}</option>
+                      <option>{t("Snack")}</option>
                     </Form.Select>
                   </Form.Group>
                   <Form.Group controlId="amount" className="mt-3">
@@ -719,7 +719,7 @@ const FeedingSchedule = () => {
                     <Form.Control
                       as="textarea"
                       rows={2}
-                      placeholder="Describe any feeding issues"
+                      placeholder={t("Describe any feeding issues")}
                       value={issues}
                       onChange={(e) => setIssues(e.target.value)}
                     />
@@ -729,7 +729,7 @@ const FeedingSchedule = () => {
                     <Form.Control
                       as="textarea"
                       rows={2}
-                      placeholder="Any additional notes?"
+                      placeholder={t("Any additional notes?")}
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                     />
@@ -754,7 +754,7 @@ const FeedingSchedule = () => {
               onHide={() => setAddFeedModalShow(false)}
             >
               <Modal.Header closeButton>
-                <Modal.Title>Add a feed</Modal.Title>
+                <Modal.Title>{t("Add a feed")}</Modal.Title>
               </Modal.Header>
               <Modal.Body>
                 {newModalError && (
@@ -762,19 +762,19 @@ const FeedingSchedule = () => {
                 )}
                 <Form>
                   <Form.Group controlId="newMeal">
-                    <Form.Label>Meal</Form.Label>
+                    <Form.Label>{t("Meal")}</Form.Label>
                     <Form.Select
                       value={newMeal}
                       onChange={(e) => setNewMeal(e.target.value)}
                     >
-                      <option>Breakfast</option>
-                      <option>Lunch</option>
-                      <option>Dinner</option>
-                      <option>Snack</option>
+                      <option>{t("Breakfast")}</option>
+                      <option>{t("Lunch")}</option>
+                      <option>{t("Dinner")}</option>
+                      <option>{t("Snack")}</option>
                     </Form.Select>
                   </Form.Group>
                   <Form.Group controlId="time" className="mt-3">
-                    <Form.Label>Time</Form.Label>
+                    <Form.Label>{t("Time")}</Form.Label>
                     <div className={styles.timeRow}>
                       <div className={styles.timeSegment}>
                         <input
@@ -824,19 +824,19 @@ const FeedingSchedule = () => {
                     </div>
                   </Form.Group>
                   <Form.Group controlId="newType" className="mt-3">
-                    <Form.Label>Type</Form.Label>
+                    <Form.Label>{t("Type")}</Form.Label>
                     <Form.Select
                       value={newType}
                       onChange={(e) => setNewType(e.target.value)}
                     >
-                      <option>Baby formula</option>
-                      <option>Breastmilk</option>
-                      <option>Solid food</option>
-                      <option>Snack</option>
+                      <option>{t("Baby formula")} </option>
+                      <option>{t("Breastmilk")}</option>
+                      <option>{t("Solid food")} </option>
+                      <option>{t("Snack")}</option>
                     </Form.Select>
                   </Form.Group>
                   <Form.Group controlId="newAmount" className="mt-3">
-                    <Form.Label>Amount (oz)</Form.Label>
+                    <Form.Label>{t("Amount")} (oz)</Form.Label>
                     <Form.Control
                       type="number"
                       step="0.1"
@@ -846,21 +846,21 @@ const FeedingSchedule = () => {
                     />
                   </Form.Group>
                   <Form.Group controlId="newIssues" className="mt-3">
-                    <Form.Label>Issue</Form.Label>
+                    <Form.Label>{t("Issue")}</Form.Label>
                     <Form.Control
                       as="textarea"
                       rows={2}
-                      placeholder="Describe any feeding issues"
+                      placeholder={t("Describe any feeding issues")}
                       value={newIssues}
                       onChange={(e) => setNewIssues(e.target.value)}
                     />
                   </Form.Group>
                   <Form.Group controlId="newNote" className="mt-3">
-                    <Form.Label>Notes</Form.Label>
+                    <Form.Label>{t("Notes")}</Form.Label>
                     <Form.Control
                       as="textarea"
                       rows={2}
-                      placeholder="Any additional notes?"
+                      placeholder={t("Any additional notes?")}
                       value={newNote}
                       onChange={(e) => setNewNote(e.target.value)}
                     />
@@ -871,7 +871,7 @@ const FeedingSchedule = () => {
                       id="reminderSwitch"
                       checked={reminderEnabled}
                       onChange={() => setReminderEnabled(!reminderEnabled)}
-                      label="Next feed reminder"
+                      label={t("Next feed reminder")}
                     />
                     {reminderEnabled && (
                       <>
@@ -896,10 +896,10 @@ const FeedingSchedule = () => {
                   className={styles.btnCancel}
                   onClick={() => setAddFeedModalShow(false)}
                 >
-                  Cancel
+                  {t("Cancel")}
                 </Button>
                 <Button className={styles.btnSave} onClick={handleSaveNewFeed}>
-                  Save
+                  {t("Save")}
                 </Button>
               </Modal.Footer>
             </Modal>
@@ -946,10 +946,10 @@ const FeedingSchedule = () => {
                   className={styles.btnCancel}
                   onClick={() => setExportModalShow(false)}
                 >
-                  Cancel
+                  {t("Cancel")}
                 </Button>
                 <Button className={styles.btnSave} onClick={handleExport}>
-                  Export
+                  {t("Export")}
                 </Button>
               </Modal.Footer>
             </Modal>

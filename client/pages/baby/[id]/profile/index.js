@@ -86,7 +86,7 @@ export default function BabyProfile() {
     }
   };
 
-  /* Event handler for "Delete Profile" button */
+  /* Event handler for the "Delete Profile" button */
   // First, display a confirmation modal
   const handleDeleteClick = () => {
     setShowDeleteModal(true);

@@ -56,3 +56,66 @@
     display: block;
     margin-top: 0.5rem;
 }
+
+.postHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.editButtons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.editButton {
+  margin-left: 1rem;
+}
+
+.editTitleInput {
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.editContentInput {
+  margin-bottom: 1rem;
+}
+
+.editActionButton {
+  min-width: 80px; 
+  padding: 0.375rem 0.75rem;
+  border-radius: 4px;
+  margin-left: 0.5rem;
+  background: transparent !important;
+  border: none !important;
+  transition: opacity 0.2s ease-in-out;
+  color: #0d6efd;
+}
+
+.editActionButton.btn-primary {
+  color: #0d6efd !important;
+}
+
+.editActionButton.btn-secondary {
+  color: #6c757d !important;
+}
+
+/* Remove Bootstrap hover effects */
+.editActionButton:hover,
+.editActionButton:active,
+.editActionButton:focus {
+  background: transparent !important;
+  opacity: 1 !important;
+  color: inherit !important;
+}
+
+.postActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.deleteButton {
+  margin-left: 0.5rem;
+}
