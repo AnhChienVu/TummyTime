@@ -4,7 +4,7 @@ import styles from "./BabyCard.module.css";
 import { useTranslation } from "next-i18next";
 import Link from "next/link";
 
-function BabyCard({ addMealBtn }) {
+function BabyCard({ buttons }) {
   const { t, i18n } = useTranslation("common");
   const locale = i18n.language;
   const [babyProfiles, setBabyProfiles] = useState([]);
@@ -21,7 +21,7 @@ function BabyCard({ addMealBtn }) {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
-          }
+          },
         );
         const data = await res.json();
         // console.log("Fetched baby profiles data:", data); // Log the response data
@@ -66,20 +66,38 @@ function BabyCard({ addMealBtn }) {
                 </Card.Text>
               </div>
 
-              <Link
-                href={`/baby/${baby.baby_id}/feedingSchedule`}
-                locale={locale}
-              >
-                <Button className={styles.customButton}>
-                  {t("See details")}
-                </Button>
-              </Link>
-              <Button
-                className={styles.customButton}
-                onClick={() => addMealBtn(baby.baby_id)}
-              >
-                {t("Add meal")}
-              </Button>
+              {/* Buttons */}
+              {buttons.length > 0 &&
+                buttons.map((button, index) => (
+                  <div key={index} className={styles.buttonContainer}>
+                    {button.path ? (
+                      <Link
+                        href={`/baby/${baby.baby_id}/${button.path}`}
+                        passHref
+                      >
+                        {button.functionHandler ? (
+                          <Button
+                            className={styles.customButton}
+                            onClick={() => button.functionHandler()}
+                          >
+                            {button.name}
+                          </Button>
+                        ) : (
+                          <Button className={styles.customButton}>
+                            {button.name}
+                          </Button>
+                        )}
+                      </Link>
+                    ) : (
+                      <Button
+                        className={styles.customButton}
+                        onClick={() => button.functionHandler(baby.baby_id)}
+                      >
+                        {button.name}
+                      </Button>
+                    )}
+                  </div>
+                ))}
             </Card.Body>
           </Card>
         ))
