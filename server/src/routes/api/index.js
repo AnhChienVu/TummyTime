@@ -195,6 +195,18 @@ router.get(
   require("./forum/replies/getReplies")
 );
 
+router.put(
+  "/forum/replies/:reply_id",
+  authenticate(),
+  require("./forum/replies/putReply")
+);
+
+router.delete(
+  "/forum/replies/:reply_id",
+  authenticate(),
+  require("./forum/replies/deleteReply")
+);
+
 // ************ /voiceCommand routes ************
 router.post(
   "/voiceCommand",
