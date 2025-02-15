@@ -17,6 +17,11 @@ export default function PostDetail() {
   const [editContent, setEditContent] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmed, setDeleteConfirmed] = useState(false);
+  const [editingReplyId, setEditingReplyId] = useState(null);
+  const [editReplyContent, setEditReplyContent] = useState("");
+  const [showDeleteReplyModal, setShowDeleteReplyModal] = useState(false);
+  const [deleteReplyConfirmed, setDeleteReplyConfirmed] = useState(false);
+  const [replyToDelete, setReplyToDelete] = useState(null);
 
   // Fetch post details
   useEffect(() => {
@@ -163,6 +168,90 @@ export default function PostDetail() {
     }
   };
 
+  // Handle reply edit submission
+  const handleReplyEdit = async (replyId) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/v1/forum/replies/${replyId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            content: editReplyContent,
+          }),
+        },
+      );
+
+      if (response.ok) {
+        // Update the replies state with the edited reply
+        setReplies(
+          replies.map((reply) =>
+            reply.reply_id === replyId
+              ? {
+                  ...reply,
+                  content: editReplyContent,
+                  updated_at: new Date().toISOString(),
+                }
+              : reply,
+          ),
+        );
+        setEditingReplyId(null);
+        setEditReplyContent("");
+      } else {
+        const errorData = await response.json();
+        setError(errorData.message || "Failed to update reply");
+      }
+    } catch (error) {
+      setError("Error updating reply");
+    }
+  };
+
+  // Handle reply deletion
+  const handleReplyDelete = async (replyId) => {
+    if (!deleteReplyConfirmed) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/v1/forum/replies/${replyId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (response.ok) {
+        setShowDeleteReplyModal(false);
+        alert("Reply successfully deleted");
+        setDeleteReplyConfirmed(false);
+        setReplyToDelete(null);
+
+        // Remove the deleted reply from the state
+        setReplies(replies.filter((reply) => reply.reply_id !== replyId));
+
+        // Update post reply count
+        if (post) {
+          setPost((prevPost) => ({
+            ...prevPost,
+            reply_count: (prevPost.reply_count || 0) - 1,
+          }));
+        }
+      } else {
+        const data = await response.json();
+        setError(data.message || "Failed to delete reply");
+      }
+    } catch (error) {
+      setError("Error deleting reply");
+    }
+  };
+
+  // Make the fields editable when the "Edit Post" button is clicked
   const startEditing = () => {
     setEditTitle(post.title);
     setEditContent(post.content);
@@ -207,6 +296,7 @@ export default function PostDetail() {
     }
   };
 
+  // Close the modal and reset the delete confirmation state
   const handleModalClose = () => {
     setShowDeleteModal(false);
     setDeleteConfirmed(false);
@@ -342,11 +432,92 @@ export default function PostDetail() {
           replies.map((reply) => (
             <Card key={reply.reply_id} className={styles.replyCard}>
               <Card.Body>
-                <Card.Text>{reply.content}</Card.Text>
-                <small className={styles.replyMetadata}>
-                  {new Date(reply.created_at).toLocaleDateString()} at{" "}
-                  {new Date(reply.created_at).toLocaleTimeString()}
-                </small>
+                {editingReplyId === reply.reply_id ? (
+                  <>
+                    <Form.Control
+                      as="textarea"
+                      rows={3}
+                      value={editReplyContent}
+                      onChange={(e) => setEditReplyContent(e.target.value)}
+                      className={styles.editContentInput}
+                    />
+                    <div
+                      className={styles.editButtons}
+                      style={{ marginTop: "10px" }}
+                    >
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={() => handleReplyEdit(reply.reply_id)}
+                        className={styles.editActionButton}
+                      >
+                        Save
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => {
+                          setEditingReplyId(null);
+                          setEditReplyContent("");
+                        }}
+                        className={styles.editActionButton}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <Card.Text>{reply.content}</Card.Text>
+                    <div className={styles.replyMetadata}>
+                      <small>
+                        {new Date(reply.created_at).toLocaleDateString()} at{" "}
+                        {new Date(reply.created_at).toLocaleTimeString()}
+                        {reply.updated_at &&
+                          reply.updated_at !== reply.created_at && (
+                            <span
+                              style={{ marginLeft: "10px", color: "#666666" }}
+                            >
+                              <i>
+                                Last edited:{" "}
+                                {new Date(
+                                  reply.updated_at,
+                                ).toLocaleDateString()}{" "}
+                                at{" "}
+                                {new Date(
+                                  reply.updated_at,
+                                ).toLocaleTimeString()}
+                              </i>
+                            </span>
+                          )}
+                      </small>
+                      <div>
+                        <Button
+                          variant="link"
+                          size="sm"
+                          onClick={() => {
+                            setEditingReplyId(reply.reply_id);
+                            setEditReplyContent(reply.content);
+                          }}
+                          className={styles.editButton}
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="link"
+                          size="sm"
+                          className={styles.deleteButton}
+                          onClick={() => {
+                            setReplyToDelete(reply.reply_id);
+                            setShowDeleteReplyModal(true);
+                          }}
+                        >
+                          Delete
+                        </Button>
+                      </div>
+                    </div>
+                  </>
+                )}
               </Card.Body>
             </Card>
           ))
@@ -400,6 +571,49 @@ export default function PostDetail() {
             disabled={!deleteConfirmed}
           >
             Delete Post
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <Modal
+        show={showDeleteReplyModal}
+        onHide={() => {
+          setShowDeleteReplyModal(false);
+          setDeleteReplyConfirmed(false);
+          setReplyToDelete(null);
+        }}
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Confirm Delete Reply</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>Are you sure you want to delete this reply?</p>
+          <Form.Check
+            type="checkbox"
+            id="delete-reply-confirm"
+            label="I understand that this action cannot be undone"
+            checked={deleteReplyConfirmed}
+            onChange={(e) => setDeleteReplyConfirmed(e.target.checked)}
+            className="mb-3"
+          />
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setShowDeleteReplyModal(false);
+              setDeleteReplyConfirmed(false);
+              setReplyToDelete(null);
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => handleReplyDelete(replyToDelete)}
+            disabled={!deleteReplyConfirmed}
+          >
+            Delete Reply
           </Button>
         </Modal.Footer>
       </Modal>
