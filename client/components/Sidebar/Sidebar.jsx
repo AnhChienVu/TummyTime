@@ -12,7 +12,7 @@ function Sidebar() {
     <Col md={2} className={styles.sidebar}>
       <Nav defaultActiveKey="/" className="flex-column">
         {/* Dropdown menu */}
-        <Dropdown className="mb-3">
+        {/* <Dropdown className="mb-3">
           <Dropdown.Toggle
             variant="light"
             id="dropdown-basic"
@@ -21,38 +21,40 @@ function Sidebar() {
             {t("Resources")}
           </Dropdown.Toggle>
           <Dropdown.Menu>
-            <Link href="/forum" locale={locale} passHref legacyBehavior>
-              <Dropdown.Item className={styles.navlink}>
-                {t("Forum")}
-              </Dropdown.Item>
-            </Link>
-            <Link href="/coupons" locale={locale} passHref legacyBehavior>
-              <Dropdown.Item className={styles.navlink}>
-                {t("Coupons")}
-              </Dropdown.Item>
-            </Link>
-            <Link href="/directory" locale={locale} passHref legacyBehavior>
-              <Dropdown.Item className={styles.navlink}>
-                {t("Service Directory")}
-              </Dropdown.Item>
-            </Link>
-            <Link href="/safety-hazards" locale={locale} passHref legacyBehavior>
-              <Dropdown.Item className={styles.navlink}>
-                {t("Safety & Hazards")}
-              </Dropdown.Item>
-            </Link>
-            <Link href="/quizzes" locale={locale} passHref legacyBehavior>
-              <Dropdown.Item className={styles.navlink}>
-                {t("Quizzes")}
-              </Dropdown.Item>
-            </Link>
-            <Link href="/curated-tips" locale={locale} passHref legacyBehavior>
-              <Dropdown.Item className={styles.navlink}>
-                {t("Curated Tips")}
-              </Dropdown.Item>
-            </Link>
+            <Nav.Link
+              as={Link}
+              href="/directory"
+              locale={locale}
+              className={styles.navlink}
+            >
+              {t("Service Directory")}
+            </Nav.Link>
+            <Nav.Link
+              as={Link}
+              href="/safety-hazards"
+              locale={locale}
+              className={styles.navlink}
+            >
+              {t("Safety & Hazards")}
+            </Nav.Link>
+            <Nav.Link
+              as={Link}
+              href="/quizzes"
+              locale={locale}
+              className={styles.navlink}
+            >
+              {t("Quizzes")}
+            </Nav.Link>
+            <Nav.Link
+              as={Link}
+              href="/curated-tips"
+              locale={locale}
+              className={styles.navlink}
+            >
+              {t("Curated Tips")}
+            </Nav.Link>
           </Dropdown.Menu>
-        </Dropdown>
+        </Dropdown> */}
 
         <Nav.Link
           as={Link}
@@ -80,11 +82,11 @@ function Sidebar() {
         </Nav.Link>
         <Nav.Link
           as={Link}
-          href="/journal"
+          href="/forum"
           locale={locale}
           className={styles.navlink}
         >
-          {t("Journal")}
+          {t("Forum")}
         </Nav.Link>
         <Nav.Link
           as={Link}
@@ -110,7 +112,24 @@ function Sidebar() {
         >
           {t("Profile")}
         </Nav.Link>
+
         <Nav.Link
+          as={Link}
+          href="/journal"
+          locale={locale}
+          className={styles.navlink}
+        >
+          {t("Journal")}
+        </Nav.Link>
+        <Nav.Link
+          as={Link}
+          href="/coupons"
+          locale={locale}
+          className={styles.navlink}
+        >
+          {t("Coupons")}
+        </Nav.Link>
+                <Nav.Link
           as={Link}
           href="/settings"
           locale={locale}
