@@ -55,12 +55,12 @@ export default function Journal() {
 
   const onSubmit = async (data) => {
     try {
-      if (data.text.trim() === "" && !data.image[0]) return;
+      if (data.text.trim() === "") return;
       const formData = new FormData();
       formData.append("user_id", userId);
       formData.append("title", data.title);
       formData.append("text", data.text);
-      formData.append("image", data.image[0]);
+      //formData.append("image", data.image[0]);  // FOR IMAGE UPLOADS
       formData.append("date", new Date().toISOString());
 
       const res = await fetch(
@@ -107,6 +107,7 @@ export default function Journal() {
                 placeholder={t("Title")}
                 required
                 {...register("title")}
+                className="form-control"
               />
             </Col>
           </Row>
@@ -118,31 +119,12 @@ export default function Journal() {
                 placeholder={t("Write your thoughts here...")}
                 required
                 {...register("text")}
+                className="form-control"
               />
             </Col>
           </Row>
-          {filePreview && (
-            <Row className="mb-3">
-              <Col>
-                <Image
-                  src={filePreview}
-                  alt="Preview"
-                  style={{ maxWidth: "50%" }}
-                />
-              </Col>
-            </Row>
-          )}
           <Row className="mb-3">
-            <Col md={4}>
-              <Form.Control
-                type="file"
-                accept="image/*"
-                {...register("image")}
-                onChange={handleFileChange}
-              />
-            </Col>
-            <Col md={4}></Col>
-            <Col md={4}>
+            <Col md={6}>
               <Button
                 variant="primary"
                 type="submit"
@@ -160,7 +142,7 @@ export default function Journal() {
         <p className={styles.title}>{t("Journal Entries")}</p>
         <div className={styles.entriesSection}>
           {entries.map((entry) => (
-            <Card key={entry.id} className={styles.entryCard}>
+            <Card key={entry.id} className={`${styles.entryCard} shadow-sm`}>
               <Card.Body>
                 <Card.Title className={styles.entryCardTitle}>
                   {entry.title}
