@@ -169,7 +169,7 @@ const FeedingSchedule = () => {
 
     async function updateSchedule(updatedSchedule) {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}v1/updateFeedingSchedule`,
+        `${process.env.NEXT_PUBLIC_API_URL}/v1/updateFeedingSchedule`,
       );
       const data = await res.json();
     }
@@ -185,7 +185,7 @@ const FeedingSchedule = () => {
     };
   };
 
-  console.log("LINE 180: scheduleData", scheduleData);
+  h;
   let sortedData = [...scheduleData].sort((a, b) =>
     compareDesc(parseISO(a.date), parseISO(b.date)),
   );
