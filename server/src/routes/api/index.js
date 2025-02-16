@@ -207,6 +207,9 @@ router.delete(
   require("./forum/replies/deleteReply")
 );
 
+// ************ /coupons routes ************
+router.get('/coupons', require('./coupons/getAllCoupons'));
+
 // ************ /voiceCommand routes ************
 router.post(
   "/voiceCommand",
