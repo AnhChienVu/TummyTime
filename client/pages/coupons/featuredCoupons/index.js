@@ -103,7 +103,7 @@ const CouponPage = () => {
       //     label VARCHAR(50) GENERATED ALWAYS AS ('$' || discount_amount || ' off') STORED
       // );
 
-      const res = await fetch(`${NEXT_PUBLIC_API_URL}/coupons`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/coupons`);
       data = await res.json();
 
       // data: { status: "ok", data: (49) […] }
@@ -187,50 +187,58 @@ const CouponPage = () => {
 
   // CouponCard
   const CouponCard = ({ coupon }) => (
-    <Card
-      bg="light"
-      text="dark"
-      style={{ width: "11rem" }}
-      className="h-100" // make sure all cards are the same height
-    >
-      {coupon.image_url && (
-        <Card.Img
-          variant="top"
-          src={coupon.image_url}
-          style={{
-            height: "90%",
-            objectFit: "contain",
-            boxSizing: "border-box",
-            padding: "20px",
-          }}
-        />
-      )}
-      <Card.Body>
-        <Card.Title>{coupon.discount_description}</Card.Title>
-        <Card.Subtitle className="mb-2 text-muted">
-          {coupon.store ? coupon.store : "Online"}
-        </Card.Subtitle>
-        <Card.Text as="h6">{coupon.product_name}</Card.Text>
-        <Card.Text>
-          {/* format date to show only date part */}
-          Expires: {coupon.expiration_date.substring(0, 10)}
-        </Card.Text>
-        <Card.Text style={{ fontWeight: "bold" }}>
-          Code: {coupon.discount_code}
-        </Card.Text>
-        {/* PRINT BUTTON */}
-        <Button
-          variant="primary"
-          style={{ width: "100%" }}
-          onClick={(e) => {
-            e.stopPropagation();
-            printCoupon(coupon);
-          }}
-        >
-          Print
-        </Button>
-      </Card.Body>
-    </Card>
+    <div className={styles.couponCardContainer}>
+      <Card className={styles.couponCard}>
+        <div className={styles.cardImageWrapper}>
+          {coupon.image_url ? (
+            <Card.Img
+              variant="top"
+              src={coupon.image_url}
+              className={styles.cardImage}
+              alt={coupon.product_name}
+            />
+          ) : (
+            <div className={styles.cardImage} />
+          )}
+          <span className={styles.discountAmount}>
+            {coupon.discount_symbol}
+            {coupon.discount_amount} OFF
+          </span>
+        </div>
+        <Card.Body className={`${styles.cardBody} d-flex flex-column`}>
+          <div className={styles.cardContent}>
+            <div className={styles.storeDetails}>
+              <span className={styles.storeName}>
+                {coupon.store || "Online Store"}
+              </span>
+              <span className={styles.location}>{coupon.city || "Online"}</span>
+            </div>
+            <Card.Title className={styles.productTitle}>
+              {coupon.product_name}
+            </Card.Title>
+            <Card.Text className={styles.description}>
+              {coupon.discount_description}
+            </Card.Text>
+          </div>
+          <div className={styles.cardFooter}>
+            <div className={styles.couponCode}>
+              <span>Code:</span>
+              <strong>{coupon.discount_code}</strong>
+            </div>
+            <Button
+              variant="primary"
+              className={styles.printButton}
+              onClick={(e) => {
+                e.stopPropagation();
+                printCoupon(coupon);
+              }}
+            >
+              Print Coupon
+            </Button>
+          </div>
+        </Card.Body>
+      </Card>
+    </div>
   );
 
   // ================== /end Carousel ==================
@@ -338,7 +346,7 @@ const CouponPage = () => {
         <Container>
           {/* For last row to be left-aligned, use 
           <Row className="justify-content-start">
-          <Col xs={12} sm={6} md={4} lg={2}>
+          <Col xs={12} sm={6} md={4} lg={4} key={index} className="mb-4">
            */}
           <Row className="justify-content-start">
             {/* if city is filled  but noResultsearch is true, show nothing */}
@@ -354,7 +362,7 @@ const CouponPage = () => {
             {city !== "" &&
               noResultsearch === false &&
               dataSearch?.map((coupon, index) => (
-                <Col xs={12} sm={6} md={4} lg={2} key={index} className="mb-4">
+                <Col xs={12} sm={6} md={4} lg={4} key={index} className="mb-4">
                   <CouponCard coupon={coupon} />
                 </Col>
               ))}
@@ -362,7 +370,7 @@ const CouponPage = () => {
             {/* if city is empty, show all coupons */}
             {city == "" &&
               featuredCoupons?.map((coupon, index) => (
-                <Col xs={12} sm={6} md={4} lg={2} key={index} className="mb-4">
+                <Col xs={12} sm={6} md={4} lg={4} key={index} className="mb-4">
                   <CouponCard coupon={coupon} />
                 </Col>
               ))}
