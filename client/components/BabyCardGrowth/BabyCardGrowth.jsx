@@ -25,11 +25,8 @@ function BabyCardGrowth({ buttons }) {
         );
         const data = await res.json();
         if (res.ok) {
-          // Convert the object to an array of baby profiles
-          const babyProfilesArray = Object.keys(data)
-            .filter((key) => key !== "status")
-            .map((key) => data[key]);
-          setBabyProfiles(babyProfilesArray);
+          // Direct access to the babies array
+          setBabyProfiles(data.babies);
         } else {
           console.error("Failed to fetch baby profiles:", data);
         }
@@ -66,14 +63,17 @@ function BabyCardGrowth({ buttons }) {
               </div>
 
               {/* Buttons */}
-              { buttons.length > 0 && buttons.map((button) =>  (<><Link
-                href={`/baby/${baby.baby_id}/${button.path}`}
-                locale={locale}
-              >
-                <Button className={styles.customButton}>
-                  {t(button.name)}
-                </Button>
-              </Link></>))}
+              {buttons.length > 0 && buttons.map((button, index) => (
+                <Link
+                  key={`${baby.baby_id}-${button.path}`}
+                  href={`/baby/${baby.baby_id}/${button.path}`}
+                  locale={locale}
+                >
+                  <Button className={styles.customButton}>
+                    {t(button.name)}
+                  </Button>
+                </Link>
+              ))}
 
               <Button
                 className={styles.customButton}

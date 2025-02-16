@@ -31,7 +31,6 @@ export default function BabyProfile() {
             },
           );
           const data = await res.json();
-          console.log("Baby profile data:", data);
 
           setBaby(data);
           // Pre-fill form fields
