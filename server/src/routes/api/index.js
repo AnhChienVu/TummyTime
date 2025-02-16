@@ -195,6 +195,9 @@ router.get(
   require("./forum/replies/getReplies")
 );
 
+// ************ /coupons routes ************
+router.get('/coupons', require('./coupons/getAllCoupons'));
+
 // ************ /voiceCommand routes ************
 router.post(
   "/voiceCommand",
