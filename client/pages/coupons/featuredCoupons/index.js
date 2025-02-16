@@ -14,8 +14,6 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import styles from "./coupons.module.css";
 import { set } from "date-fns";
 
-const API_URL = "http://localhost:8080/v1";
-
 const CouponPage = () => {
   const [city, setCity] = useState("");
   const [noResultsearch, setnoResultsearch] = useState(false);
@@ -105,7 +103,7 @@ const CouponPage = () => {
       //     label VARCHAR(50) GENERATED ALWAYS AS ('$' || discount_amount || ' off') STORED
       // );
 
-      const res = await fetch(`${API_URL}/coupons`);
+      const res = await fetch(`${NEXT_PUBLIC_API_URL}/coupons`);
       data = await res.json();
 
       // data: { status: "ok", data: (49) […] }
