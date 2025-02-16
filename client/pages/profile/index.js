@@ -16,7 +16,6 @@ function ProfilePage() {
   const router = useRouter();
 
   useEffect(() => {
-    console.log("localStorage", localStorage);
     const userId = localStorage.getItem("userId");
 
     async function fetchProfile() {
@@ -42,7 +41,6 @@ function ProfilePage() {
     }
 
     async function fetchBabyProfiles() {
-      // Fetches the user's baby profiles
       try {
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/v1/user/${userId}/getAllBabyProfiles`,
@@ -54,11 +52,8 @@ function ProfilePage() {
         );
         const data = await res.json();
         if (res.ok) {
-          // Convert the object to an array of baby profiles
-          const babyProfilesArray = Object.keys(data)
-            .filter((key) => key !== "status")
-            .map((key) => data[key]);
-          setBabyProfiles(babyProfilesArray);
+          // Direct access to the babies array
+          setBabyProfiles(data.babies);
         } else {
           console.error("Failed to fetch baby profiles:", data);
         }

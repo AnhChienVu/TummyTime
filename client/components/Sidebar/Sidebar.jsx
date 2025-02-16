@@ -21,33 +21,33 @@ function Sidebar() {
             {t("Resources")}
           </Dropdown.Toggle>
           <Dropdown.Menu>
-            <Link href="/forum" locale={locale} passHref>
-              <Dropdown.Item as="a" className={styles.navlink}>
+            <Link href="/forum" locale={locale} passHref legacyBehavior>
+              <Dropdown.Item className={styles.navlink}>
                 {t("Forum")}
               </Dropdown.Item>
             </Link>
-            <Link href="/coupons" locale={locale} passHref>
-              <Dropdown.Item as="a" className={styles.navlink}>
+            <Link href="/coupons" locale={locale} passHref legacyBehavior>
+              <Dropdown.Item className={styles.navlink}>
                 {t("Coupons")}
               </Dropdown.Item>
             </Link>
-            <Link href="/directory" locale={locale} passHref>
-              <Dropdown.Item as="a" className={styles.navlink}>
+            <Link href="/directory" locale={locale} passHref legacyBehavior>
+              <Dropdown.Item className={styles.navlink}>
                 {t("Service Directory")}
               </Dropdown.Item>
             </Link>
-            <Link href="/safety-hazards" locale={locale} passHref>
-              <Dropdown.Item as="a" className={styles.navlink}>
+            <Link href="/safety-hazards" locale={locale} passHref legacyBehavior>
+              <Dropdown.Item className={styles.navlink}>
                 {t("Safety & Hazards")}
               </Dropdown.Item>
             </Link>
-            <Link href="/quizzes" locale={locale} passHref>
-              <Dropdown.Item as="a" className={styles.navlink}>
+            <Link href="/quizzes" locale={locale} passHref legacyBehavior>
+              <Dropdown.Item className={styles.navlink}>
                 {t("Quizzes")}
               </Dropdown.Item>
             </Link>
-            <Link href="/curated-tips" locale={locale} passHref>
-              <Dropdown.Item as="a" className={styles.navlink}>
+            <Link href="/curated-tips" locale={locale} passHref legacyBehavior>
+              <Dropdown.Item className={styles.navlink}>
                 {t("Curated Tips")}
               </Dropdown.Item>
             </Link>
