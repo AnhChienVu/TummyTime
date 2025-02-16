@@ -108,7 +108,7 @@ const CouponPage = () => {
       //     label VARCHAR(50) GENERATED ALWAYS AS ('$' || discount_amount || ' off') STORED
       // );
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/coupons`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/coupons`);
       data = await res.json();
 
       // data: { status: "ok", data: (49) […] }
