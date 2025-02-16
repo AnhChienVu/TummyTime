@@ -9,13 +9,13 @@ import {
   Row,
   Col,
   Card,
+  Image,
 } from "react-bootstrap";
 import "react-multi-carousel/lib/styles.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import styles from "./coupons.module.css";
 import { set } from "date-fns";
-
-const API_URL = "http://localhost:8080/v1";
+import Link from "next/link";
 
 const CouponPage = () => {
   const [city, setCity] = useState("");
@@ -108,7 +108,7 @@ const CouponPage = () => {
       //     label VARCHAR(50) GENERATED ALWAYS AS ('$' || discount_amount || ' off') STORED
       // );
 
-      const res = await fetch(`${API_URL}/coupons`);
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/coupons`);
       data = await res.json();
 
       // data: { status: "ok", data: (49) […] }
@@ -214,35 +214,9 @@ const CouponPage = () => {
 
   // Print Button component
   const PrintButtonCarousel = ({ coupon }) => (
-    //   <Button
-    //   variant="secondary"
-    //   style={{
-    //     // make smaller and auto-fit button
-    //     width: "calc(50% - 10px)",
-    //     marginBottom: "10px",
-    //   }}
-    //   onClick={(e) => {
-    //     e.stopPropagation();
-    //     printCoupon(coupon);
-    //   }}
-    // >
-    //   Print
-    //   </Button>
-
-    // use a PRINT LINK
     <a
       href="#"
-      style={{
-        display: "inline-block",
-        textDecoration: "none",
-        color: "white",
-        backgroundColor: "#6c757d", // secondary variant color
-        padding: "10px 20px",
-        borderRadius: "4px",
-        width: "calc(70% - 10px)",
-        marginBottom: "10px",
-        textAlign: "center",
-      }}
+      className={styles.printButtonCarousel}
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -254,20 +228,9 @@ const CouponPage = () => {
   );
 
   const PrintButton = ({ coupon }) => (
-    // use a PRINT LINK
     <a
       href="#"
-      style={{
-        display: "inline-block",
-        textDecoration: "none",
-        color: "white",
-        backgroundColor: "#007bff", // "primary" variant color
-        padding: "10px 20px",
-        borderRadius: "4px",
-        width: "calc(70% - 10px)",
-        marginBottom: "10px",
-        textAlign: "center",
-      }}
+      className={styles.printButton}
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -280,71 +243,22 @@ const CouponPage = () => {
 
   // CouponCardCarousel
   const CouponCardCarousel = ({ coupon }) => (
-    <div
-      style={{
-        height: "90%",
-        display: "flex",
-        boxSizing: "border-box",
-        margin: "4px",
-        padding: "4px",
-        // scale down the card
-        flexGrow: 1,
-        minWidth: "calc(30% - 8px)",
-      }}
-    >
-      <button
-        tabIndex="0"
-        type="button"
-        style={{
-          display: "flex",
-          minWidth: "calc(100% - 6px)", // Ensures cards don't touch
-          flexDirection: "column",
-          alignItems: "center",
-          boxSizing: "border-box",
-          borderRadius: "22px",
-          backgroundColor: "#f7f7f7",
-          textAlign: "center",
-          textAlignLast: "center",
-        }}
-        // disabled
-      >
-        <div
-          style={{
-            height: "180px",
-            overflow: "hidden",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            marginBottom: "1%",
-          }}
-        >
-          <img
+    <div className={styles.carouselCard}>
+      <button className={styles.carouselCardButton} tabIndex="0" type="button">
+        <div className={styles.carouselImageContainer}>
+          <Image
             src={coupon.image_url}
             alt="Coupon Image"
-            style={{
-              // maxHeight to prevent image overflow
-              maxHeight: "calc(88% - 11px)",
-              maxWidth: "calc(88% - 11px)",
-              height: "100%",
-              width: "100%",
-              objectFit: "contain",
-            }}
+            className={styles.carouselImage}
           />
         </div>
-        <div
-          style={{
-            width: "100%",
-            boxSizing: "border-box",
-            margin: "0 1%",
-            padding: "0 1%",
-          }}
-        >
+        <div className={styles.carouselCardContent}>
           <h6>{coupon.product_name}</h6>
-          <div style={{ fontSize: "0.8em" }}>
+          <div className={styles.cardText}>
             <p className="text-muted">{coupon.discount_description}</p>
             <p>{coupon.store ? coupon.store : "Online"}</p>
             <p>Expires: {coupon.expiration_date.substring(0, 10)}</p>
-            <p style={{ fontWeight: "bold" }}>Code: {coupon.discount_code}</p>
+            <p className={styles.discountCode}>Code: {coupon.discount_code}</p>
           </div>
 
           {/* PRINT BUTTON */}
@@ -360,7 +274,7 @@ const CouponPage = () => {
     <Card
       bg="light"
       text="dark"
-      style={{ width: "11rem" }}
+      style={{ width: "11rem", position: "relative" }}
       className="h-100" // make sure all cards are the same height
     >
       {coupon.image_url && (
@@ -375,7 +289,7 @@ const CouponPage = () => {
           }}
         />
       )}
-      <Card.Body>
+      <Card.Body style={{ paddingBottom: "60px" }}>
         <Card.Title>{coupon.discount_description}</Card.Title>
         <Card.Subtitle className="mb-2 text-muted">
           {coupon.store ? coupon.store : "Online"}
@@ -496,31 +410,38 @@ const CouponPage = () => {
             </h3>
           </Col>
         )}
-        <Container>
-          {/* For last row to be left-aligned, use 
-          <Row className="justify-content-start">
-          <Col xs={12} sm={6} md={4} lg={2}>
-           */}
-          <Row className="justify-content-start">
-            {/* if city is filled  but noResultsearch is true, show nothing */}
-            {city !== "" && noResultsearch === true && (
-              // IF no coupons found
-              <h5 className="mb-2 text-muted" style={{ fontWeight: "bold" }}>
-                No coupons found in this city: {city}
-              </h5>
-            )}
+        {city !== "" && noResultsearch === true && (
+          <h5 className="mb-2 text-muted" style={{ fontWeight: "bold" }}>
+            No coupons found in this city: {city}
+          </h5>
+        )}
 
-            {/* if city is filled with noResultsearch false, show all coupons
-             */}
-            {city !== "" &&
-              noResultsearch === false &&
-              dataSearch?.map((coupon, index) => (
-                <Col key={index} xs={12} sm={6} md={4} lg={2} className="mb-4">
-                  <CouponCard coupon={coupon} />
-                </Col>
+        {city !== "" && noResultsearch === false && dataSearch.length > 0 && (
+          <>
+            <Carousel
+              swipeable={true}
+              draggable={true}
+              showDots={true}
+              responsive={responsive}
+              ssr={true}
+              infinite={true}
+              autoPlay={true}
+              autoPlaySpeed={6000}
+              keyBoardControl={true}
+              customTransition="all .5"
+              transitionDuration={1000}
+              containerClass="carousel-container"
+              dotListClass="custom-dot-list-style"
+              itemClass="carousel-item-padding-40-px"
+              rewind={true}
+              rewindWithAnimation={true}
+            >
+              {dataSearch.map((coupon, index) => (
+                <CouponCardCarousel key={index} coupon={coupon} />
               ))}
-          </Row>
-        </Container>
+            </Carousel>
+          </>
+        )}
       </div>
       <br />
       <br />
@@ -539,17 +460,17 @@ const CouponPage = () => {
         }}
       >
         <h3 className="text-2xl font-bold">Featured Discounts</h3>
-        <a
+        <Link
           href="/coupons/featuredCoupons"
           style={{
             color: "purple",
             textDecoration: "none", // remove underline
-            marginRight: "15%",
+            marginRight: "16%",
             fontSize: "1.4em",
           }}
         >
           View more
-        </a>
+        </Link>
       </div>
       <Carousel
         swipeable={true}
