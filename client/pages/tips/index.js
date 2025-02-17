@@ -20,7 +20,7 @@ const CuratedTipsPage = () => {
   const [gender, setGender] = useState("All");
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/tips`)
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/tips`)
       .then((res) => res.json())
       .then((data) => {
         // If returned data as Object { data: [...] }), or an array []
