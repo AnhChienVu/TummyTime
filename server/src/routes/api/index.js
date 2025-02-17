@@ -216,6 +216,9 @@ router.post(
   require("./voiceCommand/processVoiceCommand").processVoiceCommand
 );
 
+// ************ /tips routes ************
+router.get('/tips', require('./tips/getAllTips'));
+
 // Testing the authentication middleware
 // router.get('/test', authenticate(), require('./test'));
 module.exports = router;
