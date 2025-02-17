@@ -75,7 +75,7 @@
 .printButtonBase {
   display: block;
   padding: 8px 16px;
-  background-color: #6c757d;
+  background-color: #65558F;
   color: white;
   text-align: center;
   border-radius: 4px;
@@ -85,7 +85,7 @@
 }
 
 .printButtonBase:hover {
-  background-color: #5a6268;
+  background-color: #4D3D7E;
   color: white;
   text-decoration: none;
 }
