@@ -129,7 +129,15 @@ function Sidebar() {
         >
           {t("Coupons")}
         </Nav.Link>
-                <Nav.Link
+        <Nav.Link
+          as={Link}
+          href="/tips"
+          locale={locale}
+          className={styles.navlink}
+        >
+          {t("Curated Tips")}
+        </Nav.Link>
+          <Nav.Link
           as={Link}
           href="/settings"
           locale={locale}
