@@ -85,12 +85,6 @@ function BabyCardGrowth({ buttons }) {
                 </Link>
               ))}
 
-              <Button
-                className={styles.customButton}
-                onClick={() => addMealBtn(baby.baby_id)}
-              >
-                {t("Add meal")}
-              </Button>
             </Card.Body>
           </Card>
         ))
