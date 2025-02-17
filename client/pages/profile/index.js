@@ -150,27 +150,6 @@ function ProfilePage() {
                       <Card.Text>Gender: {baby.gender}</Card.Text>
                       <Card.Text>Weight: {baby.weight}lbs</Card.Text>
                     </div>
-
-                    <Button
-                      className={styles.customButton}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        window.location.href = `/baby/${baby.baby_id}/feedingSchedule`;
-                      }}
-                    >
-                      Feeding Schedule
-                    </Button>
-                    <Button
-                      className={styles.customButton}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        addMealBtn(baby.baby_id);
-                      }}
-                    >
-                      Add meal
-                    </Button>
                   </Card.Body>
                 </Card>
               </Link>

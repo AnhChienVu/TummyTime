@@ -1,18 +1,10 @@
 // client/pages/coupons/[featuredCoupons]/index.js
 import React, { useState, useEffect } from "react";
-import {
-  Modal,
-  Button,
-  Form,
-  Container,
-  Row,
-  Col,
-  Card,
-} from "react-bootstrap";
+import { Button, Form, Container, Row, Col, Card } from "react-bootstrap";
 import "react-multi-carousel/lib/styles.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import styles from "./coupons.module.css";
-import { set } from "date-fns";
+import CouponCard from "@/components/CouponCard/CouponCard";
 
 const CouponPage = () => {
   const [city, setCity] = useState("");
@@ -55,28 +47,6 @@ const CouponPage = () => {
     getCouponsByCity();
   }, [city]); // only run when city changes
 
-  // const express = require("express");
-  // const app = express();
-
-  const couponsMock = [
-    // Toronto
-    {
-      store_name: "Enfamil Family Beginnings",
-      product_name: "Baby Formula",
-      discount_description: "Get up to $400 in FREE gifts from Enfamil.",
-      discount_code: "ENFAMIL400",
-      expiration_date: "2025-04-10",
-      is_online: true,
-      city: "Toronto",
-      image_url:
-        "https://new-lozo-prod.s3.amazonaws.com/offers/images/offer_140945.jpeg",
-      brands: "Enfamil®",
-      store: null,
-      is_featured: true,
-      discount_amount: 400.0,
-    },
-  ];
-
   // fetching for allCoupons, featuredCoupons, and search results by city
   const fetchCoupons = async (
     city = "",
@@ -85,24 +55,6 @@ const CouponPage = () => {
   ) => {
     let data = [];
     try {
-      //   CREATE TABLE Coupons (
-      //     coupon_id SERIAL PRIMARY KEY,
-      //     store_name VARCHAR(255),
-      //     product_name VARCHAR(255),
-      //     discount_description TEXT,
-      //     discount_code VARCHAR(50),
-      //     expiration_date DATE,
-      //     is_online BOOLEAN,
-      //     city VARCHAR(100),
-      //     image_url TEXT,
-      //     brands VARCHAR(255),
-      //     store VARCHAR(255),
-      //     is_featured BOOLEAN DEFAULT FALSE,
-      //     discount_amount DECIMAL(6,2),
-      //     discount_symbol VARCHAR(4) DEFAULT '$',
-      //     label VARCHAR(50) GENERATED ALWAYS AS ('$' || discount_amount || ' off') STORED
-      // );
-
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/coupons`);
       data = await res.json();
 
@@ -118,17 +70,6 @@ const CouponPage = () => {
           return coupon.city.toLowerCase() === city.toLowerCase();
         });
       }
-
-      // // MOCK DATA
-      // // if no city selected, return all coupons
-      // if (city == "") {
-      //   data = couponsMock;
-      // } else {
-      //   // if city is selected, filter by city
-      //   data = couponsMock.filter((coupon) => {
-      //     return coupon.city.toLowerCase() === city.toLowerCase();
-      //   });
-      // }
 
       // if filterValue and filterField are provided, filter by them
       if (filterValue !== "" && filterField !== "") {
@@ -185,108 +126,6 @@ const CouponPage = () => {
     },
   };
 
-  // CouponCard
-  const CouponCard = ({ coupon }) => (
-    <div className={styles.couponCardContainer}>
-      <Card className={styles.couponCard}>
-        <div className={styles.cardImageWrapper}>
-          {coupon.image_url ? (
-            <Card.Img
-              variant="top"
-              src={coupon.image_url}
-              className={styles.cardImage}
-              alt={coupon.product_name}
-            />
-          ) : (
-            <div className={styles.cardImage} />
-          )}
-          <span className={styles.discountAmount}>
-            {coupon.discount_symbol}
-            {coupon.discount_amount} OFF
-          </span>
-        </div>
-        <Card.Body className={`${styles.cardBody} d-flex flex-column`}>
-          <div className={styles.cardContent}>
-            <div className={styles.storeDetails}>
-              <span className={styles.storeName}>
-                {coupon.store || "Online Store"}
-              </span>
-              <span className={styles.location}>{coupon.city || "Online"}</span>
-            </div>
-            <Card.Title className={styles.productTitle}>
-              {coupon.product_name}
-            </Card.Title>
-            <Card.Text className={styles.description}>
-              {coupon.discount_description}
-            </Card.Text>
-          </div>
-          <div className={styles.cardFooter}>
-            <div className={styles.couponCode}>
-              <span>Code:</span>
-              <strong>{coupon.discount_code}</strong>
-            </div>
-            <Button
-              variant="primary"
-              className={styles.printButton}
-              onClick={(e) => {
-                e.stopPropagation();
-                printCoupon(coupon);
-              }}
-            >
-              Print Coupon
-            </Button>
-          </div>
-        </Card.Body>
-      </Card>
-    </div>
-  );
-
-  // ================== /end Carousel ==================
-
-  // ================== PRINT Function ==================
-  const printCoupon = (coupon) => {
-    const printWindow = window.open("", "_blank", "width=600,height=600");
-    if (!printWindow) return;
-
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Print Coupon</title>
-          <style>
-            body { font-family: Arial, sans-serif; margin: 20px; }
-            .coupon-container { border: 1px solid #000; padding: 20px; }
-            .coupon-image { max-width: 100%; max-height: 300px; object-fit: contain; }
-            .discount-code { font-size: 36px; font-weight: bold; margin: 20px 0; }
-            .coupon-details p { margin: 5px 0; }
-          </style>
-        </head>
-        <body>
-          <div class="coupon-container">
-            ${
-              coupon.image_url
-                ? `<img class="coupon-image" src="${coupon.image_url}" alt="Coupon Image" />`
-                : ""
-            }
-            <div class="coupon-details">
-              <h2>${coupon.product_name}</h2>
-              <p>${coupon.discount_description}</p>
-              <p>Store: ${coupon.store ? coupon.store : "Online"}</p>
-              <p>Expires: ${coupon.expiration_date}</p>
-              <div class="discount-code">Code: ${coupon.discount_code}</div>
-            </div>
-          </div>
-        </body>
-      </html>
-    `);
-
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-    printWindow.close();
-  };
-
-  // ================== /end PRINT Function ==================
-
   // *** Render Page ***
   return (
     <div className={styles.couponContainer}>
@@ -320,11 +159,6 @@ const CouponPage = () => {
             style={{ width: "88%" }}
             className="border rounded me-2"
           />
-          {/* 
-          <Button variant="primary" type="submit">
-            Search
-          </Button> 
-          */}
         </Form>
 
         {/**

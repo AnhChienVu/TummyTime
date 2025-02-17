@@ -1,21 +1,3 @@
-/* client/pages/coupons/coupons.module.css */
-/* Coupons page */
-
-.couponContainer {
-  background-color: #ffffff;
-  overflow-x: hidden;
-  padding: 0 15px;
-  margin-left: 50px;
-}
-
-.couponContainer :global(.carousel-container) {
-  padding-bottom: 50px; /* Add space for dots */
-}
-
-.couponContainer :global(.custom-dot-list-style) {
-  bottom: 0px !important; /* Position dots at the bottom */
-}
-
 .couponContainer :global(.react-multi-carousel-dot-list) {
   position: absolute;
   bottom: 0px;
@@ -93,7 +75,7 @@
 .printButtonBase {
   display: block;
   padding: 8px 16px;
-  background-color: #6c757d;
+  background-color: #65558F;
   color: white;
   text-align: center;
   border-radius: 4px;
@@ -103,7 +85,7 @@
 }
 
 .printButtonBase:hover {
-  background-color: #5a6268;
+  background-color: #4D3D7E;
   color: white;
   text-decoration: none;
 }

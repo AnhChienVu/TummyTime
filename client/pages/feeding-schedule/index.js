@@ -185,7 +185,6 @@ const FeedingSchedule = () => {
     };
   };
 
-  h;
   let sortedData = [...scheduleData].sort((a, b) =>
     compareDesc(parseISO(a.date), parseISO(b.date)),
   );
