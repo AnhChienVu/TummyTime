@@ -312,7 +312,10 @@ const CouponPage = () => {
   // ================== PRINT Function ==================
   const printCoupon = (coupon) => {
     const printWindow = window.open("", "_blank", "width=600,height=600");
-    if (!printWindow) return;
+    if (!printWindow) {
+      console.error("Failed to open print window.");
+      return;
+    }
 
     printWindow.document.write(`
       <html>
@@ -344,11 +347,12 @@ const CouponPage = () => {
         </body>
       </html>
     `);
-
     printWindow.document.close();
     printWindow.focus();
     printWindow.print();
-    printWindow.close();
+    printWindow.onafterprint = () => {
+      printWindow.close();
+    };
   };
 
   // ================== /end PRINT Function ==================
