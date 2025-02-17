@@ -41,7 +41,7 @@
 }
 
 .submitButton {
-  width: 50%;
+  width: 20%;
   background-color: #65558F;
 }
 
@@ -98,18 +98,10 @@
 
 .microphone {
     width: 50px;
-    font-size: 16px;
+    font-size: 1.25rem;
     background-color: #65558F;
-}
-
-.microphone:hover {
-    background-color: #4D3D7E;
-}
-
-.microphone {
-    width: 50px;
-    font-size: 16px;
-    background-color: #65558F;
+    color: white;
+    border-radius: 0.25rem;
 }
 
 .microphone:hover {
