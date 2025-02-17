@@ -128,6 +128,7 @@ export default function Forum() {
               <Form.Control
                 as="textarea"
                 rows={3}
+                placeholder={t("Write your thoughts here...")}
                 required
                 {...register("content")}
               />

@@ -3,11 +3,14 @@ import { Card, Button, Image } from "react-bootstrap";
 import styles from "./BabyCardGrowth.module.css";
 import { useTranslation } from "next-i18next";
 import Link from "next/link";
+import { useRouter } from "next/router";
+
 
 function BabyCardGrowth({ buttons }) {
   const { t, i18n } = useTranslation("common");
   const locale = i18n.language;
   const [babyProfiles, setBabyProfiles] = useState([]);
+  const router = useRouter();
 
   useEffect(() => {
     const userId = localStorage.getItem("userId");
@@ -37,6 +40,13 @@ function BabyCardGrowth({ buttons }) {
 
     fetchBabyProfiles();
   }, []); // Ensure the dependency array is empty to run only once on mount
+
+    const addMealBtn = (babyId) => {
+    router.push({
+      pathname: `/baby/${babyId}/addMeal`,
+      query: { user_id: localStorage.getItem("userId") },
+    });
+  };
 
   return (
     <div>
