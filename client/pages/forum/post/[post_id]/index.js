@@ -4,8 +4,11 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { Container, Card, Button, Form, Modal } from "react-bootstrap";
 import styles from "./post.module.css";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 export default function PostDetail() {
+  const { t } = useTranslation("common");
   const router = useRouter();
   const { post_id } = router.query;
   const [post, setPost] = useState(null);
@@ -325,7 +328,7 @@ export default function PostDetail() {
         onClick={() => router.push("/forum")}
         className={styles.backButton}
       >
-        ← Back to Forum
+        ← {t("Back to Forum")}
       </Button>
 
       {post && (
@@ -372,7 +375,7 @@ export default function PostDetail() {
                       onClick={startEditing}
                       className={styles.editButton}
                     >
-                      Edit Post
+                      {t("Edit Post")}
                     </Button>
                     <Button
                       variant="outline-danger"
@@ -380,7 +383,7 @@ export default function PostDetail() {
                       onClick={handleDeleteClick}
                       className={styles.deleteButton}
                     >
-                      Delete Post
+                      {t("Delete Post")}
                     </Button>
                   </div>
                 )}
@@ -408,7 +411,8 @@ export default function PostDetail() {
                 }}
               >
                 <small>
-                  Posted: {new Date(post.created_at).toLocaleDateString()} at{" "}
+                  {t("Posted")}:{" "}
+                  {new Date(post.created_at).toLocaleDateString()} at{" "}
                   {new Date(post.created_at).toLocaleTimeString()}
                 </small>
                 {post.updated_at && post.updated_at !== post.created_at && (
@@ -427,7 +431,9 @@ export default function PostDetail() {
       )}
 
       <div className={styles.repliesSection}>
-        <h5>Replies ({replies.length})</h5>
+        <h5>
+          {t("Replies")} ({replies.length})
+        </h5>
         {replies.length > 0 ? (
           replies.map((reply) => (
             <Card key={reply.reply_id} className={styles.replyCard}>
@@ -451,7 +457,7 @@ export default function PostDetail() {
                         onClick={() => handleReplyEdit(reply.reply_id)}
                         className={styles.editActionButton}
                       >
-                        Save
+                        {t("Save")}
                       </Button>
                       <Button
                         variant="secondary"
@@ -462,7 +468,7 @@ export default function PostDetail() {
                         }}
                         className={styles.editActionButton}
                       >
-                        Cancel
+                        {t("Cancel")}
                       </Button>
                     </div>
                   </>
@@ -522,19 +528,19 @@ export default function PostDetail() {
             </Card>
           ))
         ) : (
-          <p>No replies yet</p>
+          <p>{t("No replies yet")}</p>
         )}
       </div>
 
       <Form onSubmit={handleReplySubmit} className={styles.replyForm}>
         <Form.Group>
-          <Form.Label>Add a reply</Form.Label>
+          <Form.Label>{t("Add a reply")}</Form.Label>
           <Form.Control
             as="textarea"
             rows={3}
             value={replyContent}
             onChange={(e) => setReplyContent(e.target.value)}
-            placeholder="Write your reply here..."
+            placeholder={t("Write your reply here...")}
           />
         </Form.Group>
         <Button
@@ -542,20 +548,22 @@ export default function PostDetail() {
           className={styles.replyButton}
           disabled={!replyContent.trim()}
         >
-          Post Reply
+          {t("Post Reply")}
         </Button>
       </Form>
 
       <Modal show={showDeleteModal} onHide={handleModalClose}>
         <Modal.Header closeButton>
-          <Modal.Title>Confirm Delete</Modal.Title>
+          <Modal.Title>{t("Confirm Delete")}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p>Are you sure you want to delete this post?</p>
+          <p>{t("Are you sure you want to delete this post?")}</p>
           <Form.Check
             type="checkbox"
             id="delete-confirm"
-            label="I understand that this action cannot be undone and all replies will be permanently deleted"
+            label={t(
+              "I understand that this action cannot be undone and all replies will be permanently deleted",
+            )}
             checked={deleteConfirmed}
             onChange={(e) => setDeleteConfirmed(e.target.checked)}
             className="mb-3"
@@ -563,14 +571,14 @@ export default function PostDetail() {
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={handleModalClose}>
-            Cancel
+            {t("Cancel")}
           </Button>
           <Button
             variant="danger"
             onClick={handleDeleteConfirm}
             disabled={!deleteConfirmed}
           >
-            Delete Post
+            {t("Delete Post")}
           </Button>
         </Modal.Footer>
       </Modal>
@@ -584,14 +592,14 @@ export default function PostDetail() {
         }}
       >
         <Modal.Header closeButton>
-          <Modal.Title>Confirm Delete Reply</Modal.Title>
+          <Modal.Title>{t("Confirm Delete Reply")}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <p>Are you sure you want to delete this reply?</p>
+          <p>{t("Are you sure you want to delete this reply?")}</p>
           <Form.Check
             type="checkbox"
             id="delete-reply-confirm"
-            label="I understand that this action cannot be undone"
+            label={t("I understand that this action cannot be undone")}
             checked={deleteReplyConfirmed}
             onChange={(e) => setDeleteReplyConfirmed(e.target.checked)}
             className="mb-3"
@@ -606,17 +614,68 @@ export default function PostDetail() {
               setReplyToDelete(null);
             }}
           >
-            Cancel
+            {t("Cancel")}
           </Button>
           <Button
             variant="danger"
             onClick={() => handleReplyDelete(replyToDelete)}
             disabled={!deleteReplyConfirmed}
           >
-            Delete Reply
+            {t("Delete Reply")}
           </Button>
         </Modal.Footer>
       </Modal>
     </Container>
   );
+}
+
+export async function getStaticPaths() {
+  // Fetch the token from localStorage on the client side
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      return {
+        paths: [],
+        fallback: false,
+      };
+    }
+
+    // Fetch the list of post IDs from your custom API route
+    const res = await fetch(`/api/getAllPosts?token=${token}`);
+    const data = await res.json();
+
+    if (data.status !== "ok") {
+      return {
+        paths: [],
+        fallback: false,
+      };
+    }
+    console.log(data);
+
+    // Generate the paths for each post ID
+    const paths = data.data.map((post) => ({
+      params: { post_id: post.post_id.toString() },
+    }));
+
+    return {
+      paths,
+      fallback: false, // See the "fallback" section below
+    };
+  }
+
+  return {
+    paths: [],
+    fallback: false,
+  };
+}
+
+export async function getStaticProps({ params, locale }) {
+  console.log(locale);
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+      post_id: params.post_id,
+    },
+  };
 }

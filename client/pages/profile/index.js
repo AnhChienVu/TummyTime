@@ -147,8 +147,12 @@ function ProfilePage() {
                       <Card.Title>
                         {baby.first_name} {baby.last_name}
                       </Card.Title>
-                      <Card.Text>Gender: {baby.gender}</Card.Text>
-                      <Card.Text>Weight: {baby.weight}lbs</Card.Text>
+                      <Card.Text>
+                        {t("Gender")}: {t(baby.gender)}
+                      </Card.Text>
+                      <Card.Text>
+                        {t("Weight")}: {baby.weight}lbs
+                      </Card.Text>
                     </div>
                   </Card.Body>
                 </Card>
