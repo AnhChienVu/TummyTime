@@ -7,8 +7,11 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import styles from "./coupons.module.css";
 import Link from "next/link";
 import CouponCardCarousel from "@/components/CouponCardCarousel/CouponCardCarousel";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 const CouponPage = () => {
+  const { t } = useTranslation("common");
   const [city, setCity] = useState("");
   const [noResultsearch, setnoResultsearch] = useState(true);
   const [dataSearch, setDataSearch] = useState([]);
@@ -138,10 +141,11 @@ const CouponPage = () => {
   return (
     <div className={styles.couponContainer}>
       <div className="max-w-4xl mx-auto p-6">
-        <h1 className="text-2xl font-bold">Discounts and Coupons</h1>
+        <h1 className="text-2xl font-bold">{t("Discounts and Coupons")}</h1>
         <p className="text-gray-600">
-          As part of our partner program, find deals and discounts you
-          won&apos;t find anywhere else!
+          {t(
+            "As part of our partner program, find deals and discounts you won't find anywhere else!",
+          )}
         </p>
         {/*  SEARCH FORM by city */}
         <Form
@@ -153,7 +157,7 @@ const CouponPage = () => {
         >
           <Form.Control
             type="text"
-            placeholder="Enter city name"
+            placeholder={t("Enter city name")}
             value={city}
             onChange={(e) => {
               setCity(e.target.value.trim());
@@ -170,13 +174,14 @@ const CouponPage = () => {
         {city !== "" && !noResultsearch && dataSearch.length > 0 && (
           <Col xs={12}>
             <h3 className="text-2xl font-bold mb-3">
-              Discounts near {city.charAt(0).toUpperCase() + city.slice(1)}
+              {t("Discounts near")}{" "}
+              {city.charAt(0).toUpperCase() + city.slice(1)}
             </h3>
           </Col>
         )}
         {city !== "" && noResultsearch === true && (
           <h5 className="mb-2 text-muted" style={{ fontWeight: "bold" }}>
-            No coupons found in this city: {city}
+            {t("No coupons found in this city:")} {city}
           </h5>
         )}
 
@@ -218,7 +223,7 @@ const CouponPage = () => {
           alignItems: "center",
         }}
       >
-        <h3 className="text-2xl font-bold">Featured Discounts</h3>
+        <h3 className="text-2xl font-bold">{t("Featured Discounts")}</h3>
         <Link
           href="/coupons/featuredCoupons"
           style={{
@@ -228,7 +233,7 @@ const CouponPage = () => {
             fontSize: "1.4em",
           }}
         >
-          View more
+          {t("View more")}
         </Link>
       </div>
       <Carousel
@@ -258,7 +263,7 @@ const CouponPage = () => {
       <br />
 
       {/*====== BABY PRODUCT Deals ===== */}
-      <h3 className="text-2xl font-bold">Baby Product Deals</h3>
+      <h3 className="text-2xl font-bold">{t("Baby Product Deals")}</h3>
       <Carousel
         swipeable={true}
         draggable={true}
@@ -289,3 +294,11 @@ const CouponPage = () => {
 };
 
 export default CouponPage;
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
+  };
+}

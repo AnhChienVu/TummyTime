@@ -77,6 +77,7 @@ export default function Forum() {
       if (postsResponse.ok) {
         const response = await postsResponse.json();
         if (response.status === "ok" && Array.isArray(response.data)) {
+          console.log(response.data);
           setPosts(response.data);
         } else {
           setError("Invalid posts data format:", response);

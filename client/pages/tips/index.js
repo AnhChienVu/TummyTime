@@ -10,8 +10,11 @@ import {
   Col,
 } from "react-bootstrap";
 import styles from "./tips.module.css";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 const CuratedTipsPage = () => {
+  const { t } = useTranslation("common");
   const [tips, setTips] = useState([]);
   const [filteredTips, setFilteredTips] = useState([]);
   // FILTER inputs: Age (by month) and Gender
@@ -80,21 +83,21 @@ const CuratedTipsPage = () => {
   // **** RENDER PAGE ****
   return (
     <Container className={styles.container}>
-      <h1 className="mb-4">Curated Tips</h1>
+      <h1 className="mb-4">{t("Curated Tips")}</h1>
 
       {/* Filter Card */}
       <Card className="mb-4">
         <Card.Body>
-          <Card.Title>Filter Tips</Card.Title>
+          <Card.Title>{t("Filter Tips")}</Card.Title>
           <Form>
             <Row>
               {/* Age Input */}
               <Col lg={4} className="mb-1">
                 <Form.Group controlId="ageInput">
-                  <Form.Label>Baby Age (in months)</Form.Label>
+                  <Form.Label>{t("Baby Age (in months)")} </Form.Label>
                   <Form.Control
                     type="number"
-                    placeholder="Enter age in months"
+                    placeholder={t("Enter age in months")}
                     value={babyAge}
                     onChange={(e) => setBabyAge(e.target.value)}
                   />
@@ -104,15 +107,15 @@ const CuratedTipsPage = () => {
               {/* Gender Select */}
               <Col lg={4} className="mb-1">
                 <Form.Group controlId="genderSelect">
-                  <Form.Label>Gender</Form.Label>
+                  <Form.Label>{t("Gender")}</Form.Label>
                   <Form.Control
                     as="select"
                     value={gender}
                     onChange={(e) => setGender(e.target.value)}
                   >
-                    <option value="All">All</option>
-                    <option value="Boy">Boy</option>
-                    <option value="Girl">Girl</option>
+                    <option value="All">{t("All")}</option>
+                    <option value="Boy">{t("Boy")}</option>
+                    <option value="Girl">{t("Girl")}</option>
                   </Form.Control>
                 </Form.Group>
               </Col>
@@ -120,7 +123,7 @@ const CuratedTipsPage = () => {
               {/* Filter Button */}
               <Col lg={4} className="d-flex align-items-end mt-2">
                 <Button variant="primary" onClick={handleFilter}>
-                  Filter
+                  {t("Filter")}
                 </Button>
               </Col>
             </Row>
@@ -136,19 +139,21 @@ const CuratedTipsPage = () => {
           {Object.keys(groupedTips).map((category, index) => (
             <Accordion.Item eventKey={index.toString()} key={category}>
               {/* Category */}
-              <Accordion.Header>{category}</Accordion.Header>
+              <Accordion.Header>{t(category)}</Accordion.Header>
 
               <Accordion.Body>
                 {/* Tip Cards */}
                 {groupedTips[category].map((tip) => (
                   <Card className="mb-3" key={tip.tip_id}>
                     <Card.Body>
-                      <Card.Title>{tip.notification_frequency} Tip</Card.Title>
-                      <Card.Text>{tip.tip_text}</Card.Text>
+                      <Card.Title>
+                        {t(tip.notification_frequency + " Tip")}{" "}
+                      </Card.Title>
+                      <Card.Text>{t(tip.tip_text)}</Card.Text>
                       <Card.Text>
                         <small className="text-muted">
-                          Age: {tip.min_age} - {tip.max_age} months | Target:{" "}
-                          {tip.target_gender}
+                          {t("Age")}: {tip.min_age} - {tip.max_age}{" "}
+                          {t("months")} | {t("Target")}: {t(tip.target_gender)}
                         </small>
                       </Card.Text>
                     </Card.Body>
@@ -168,3 +173,11 @@ const CuratedTipsPage = () => {
 };
 
 export default CuratedTipsPage;
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
+  };
+}

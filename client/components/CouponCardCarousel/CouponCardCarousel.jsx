@@ -3,9 +3,11 @@ import React from "react";
 import { Image } from "react-bootstrap";
 import styles from "./CouponCardCarousel.module.css";
 import printCoupon from "@/utils/printCoupon";
+import { useTranslation } from "next-i18next";
 
 function CouponCardCarousel({ coupon }) {
-  // ================== PRINT Function ==================
+  const { t } = useTranslation("common");
+  
   return (
     <div className={styles.carouselCard}>
       <button className={styles.carouselCardButton} tabIndex="0" type="button">
@@ -35,7 +37,7 @@ function CouponCardCarousel({ coupon }) {
               printCoupon(coupon);
             }}
           >
-            Print
+            {t("Print")}
           </a>
         </div>
       </button>{" "}

@@ -6,8 +6,11 @@ import { Row, Col, Form, Button, Container, Modal } from "react-bootstrap";
 import { useRouter } from "next/router";
 import styles from "./profile.module.css";
 import { useState, useEffect } from "react";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 export default function BabyProfile() {
+  const { t } = useTranslation("common");
   const router = useRouter();
   const { id: baby_id, user_id } = router.query;
   const [baby, setBaby] = useState(null);
@@ -129,12 +132,12 @@ export default function BabyProfile() {
   return (
     <div className="d-flex">
       <Container className="py-4">
-        <h2>Edit Baby Profile</h2>
+        <h2>{t("Edit Baby Profile")}</h2>
         <Form onSubmit={handleSubmit(onSubmit)}>
           <Row>
             <Col md={6}>
               <Form.Group className="mb-3">
-                <Form.Label>First Name</Form.Label>
+                <Form.Label>{t("First Name")}</Form.Label>
                 <Form.Control
                   {...register("first_name")}
                   type="text"
@@ -144,7 +147,7 @@ export default function BabyProfile() {
             </Col>
             <Col md={6}>
               <Form.Group className="mb-3">
-                <Form.Label>Last Name</Form.Label>
+                <Form.Label>{t("Last Name")}</Form.Label>
                 <Form.Control {...register("last_name")} type="text" required />
               </Form.Group>
             </Col>
@@ -152,23 +155,23 @@ export default function BabyProfile() {
           <Row>
             <Col md={6}>
               <Form.Group className="mb-3">
-                <Form.Label>Gender</Form.Label>
+                <Form.Label>{t("Gender")}</Form.Label>
                 <Form.Select {...register("gender")} required>
                   <option value="" disabled>
-                    Select Gender
+                    {t("Select Gender")}
                   </option>
-                  <option value="boy">Boy</option>
-                  <option value="girl">Girl</option>
+                  <option value="boy">{t("Boy")}</option>
+                  <option value="girl">{t("Girl")}</option>
                 </Form.Select>
               </Form.Group>
             </Col>
             <Col md={6}>
               <Form.Group className="mb-3">
-                <Form.Label>Weight (lbs)</Form.Label>
+                <Form.Label>{t("Weight")} (lbs)</Form.Label>
                 <Form.Control
                   name="weight"
                   type="number"
-                  placeholder="Weight at birth (lb)"
+                  placeholder={t("Weight at birth (lb)")}
                   min={5}
                   {...register("weight")}
                   required
@@ -188,10 +191,10 @@ export default function BabyProfile() {
                 !isFormChanged() ? "opacity-50 cursor-not-allowed" : ""
               }`}
             >
-              Save Changes
+              {t("Save Changes")}
             </Button>
             <Button onClick={handleDeleteClick} className={styles.deleteButton}>
-              Delete Profile
+              {t("Delete Profile")}
             </Button>
           </div>
         </Form>
@@ -199,14 +202,16 @@ export default function BabyProfile() {
         {/* "Confirm Delete" popup */}
         <Modal show={showDeleteModal} onHide={handleModalClose}>
           <Modal.Header closeButton>
-            <Modal.Title>Confirm Delete</Modal.Title>
+            <Modal.Title>{t("Confirm Delete")}</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            <p>Are you sure you want to delete this baby profile?</p>
+            <p>{t("Are you sure you want to delete this baby profile?")}</p>
             <Form.Check
               type="checkbox"
               id="delete-confirm"
-              label="I understand that this action cannot be undone and all data will be permanently deleted"
+              label={t(
+                "I understand that this action cannot be undone and all data will be permanently deleted",
+              )}
               checked={deleteConfirmed}
               onChange={(e) => setDeleteConfirmed(e.target.checked)}
               className="mb-3"
@@ -214,18 +219,68 @@ export default function BabyProfile() {
           </Modal.Body>
           <Modal.Footer>
             <Button variant="secondary" onClick={handleModalClose}>
-              Cancel
+              {t("Cancel")}
             </Button>
             <Button
               variant="danger"
               onClick={handleDeleteConfirm}
               disabled={!deleteConfirmed}
             >
-              Delete Profile
+              {t("Delete Profile")}
             </Button>
           </Modal.Footer>
         </Modal>
       </Container>
     </div>
   );
+}
+
+export async function getStaticPaths() {
+  // Fetch the token from localStorage on the client side
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      return {
+        paths: [],
+        fallback: false,
+      };
+    }
+
+    // Fetch the list of baby IDs from your custom API route
+    const res = await fetch(`/api/getBabyProfiles?token=${token}`);
+    const data = await res.json();
+
+    if (data.status !== "ok") {
+      return {
+        paths: [],
+        fallback: false,
+      };
+    }
+
+    // Generate the paths for each baby ID
+    const paths = data.babies.map((baby) => ({
+      params: { id: baby.baby_id.toString() },
+    }));
+
+    return {
+      paths,
+      fallback: false, // See the "fallback" section below
+    };
+  }
+
+  return {
+    paths: [],
+    fallback: false,
+  };
+}
+
+export async function getStaticProps({ params, locale }) {
+  console.log(locale);
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+      babyId: params.id,
+    },
+  };
 }
