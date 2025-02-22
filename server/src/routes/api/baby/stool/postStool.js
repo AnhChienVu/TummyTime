@@ -1,5 +1,5 @@
 // server/src/routes/api/baby/stool/postStool.js
-// Route for POST /baby/:babyId/stool
+// Route for POST /baby/:babyId/stool/:stoolId
 // Post stool entry for a specific baby
 
 const logger = require('../../../../utils/logger');
