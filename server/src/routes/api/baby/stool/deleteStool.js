@@ -1,5 +1,5 @@
 // server/src/routes/api/baby/stool/deleteStool.js
-// Route for DELETE /baby/:babyId/stool
+// Route for DELETE /baby/:babyId/stool/:stoolId
 // Delete stool entry for a specific baby
 
 const logger = require('../../../../utils/logger');
