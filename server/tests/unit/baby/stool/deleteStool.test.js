@@ -5,10 +5,10 @@
 
 const { deleteStoolEntry } = require('../../../../src/routes/api/baby/stool/deleteStool');
 const { createSuccessResponse, createErrorResponse } = require('../../../../src/utils/response');
-const pool = require('../../../database/db');
+const pool = require('../../../../database/db');
 const jwt = require('jsonwebtoken');
 
-jest.mock('../../../database/db');
+jest.mock('../../../../database/db');
 jest.mock('../../../../src/utils/response');
 
 const buildRes = () => {
