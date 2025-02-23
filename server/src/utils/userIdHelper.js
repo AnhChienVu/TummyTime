@@ -1,20 +1,26 @@
 // src/utils/userIdHelper.js
 const pool = require("../../database/db");
 const logger = require("./logger");
+const jwt = require("jsonwebtoken");
 
 /**
  * Retrieves a user's ID from the database using their email address
  *
- * @param {string} email - The email address of the user to look up
- * @returns {Promise<number|null>} The user's ID if found, null if not found or invalid email
+ * @param {string} authHeader - The authorization header containing the JWT token
+ * @returns {Promise<number|null>} The user's ID if found, null if not found or invalid token
  * @throws {Error} If there's a database error during the query
  */
-async function getUserIdByEmail(email) {
+async function getUserId(authHeader) {
   try {
-    if (!email || typeof email !== "string") {
-      logger.error("Invalid email parameter provided");
+    const token = authHeader.split(" ")[1];
+    const decoded = jwt.decode(token);
+
+    if (!decoded || !decoded.email) {
+      logger.error("No email found in token payload");
       return null;
     }
+
+    const email = decoded.email;
 
     const result = await pool.query(
       `SELECT user_id
@@ -30,13 +36,11 @@ async function getUserIdByEmail(email) {
 
     return result.rows[0].user_id; // return the user ID
   } catch (error) {
-    logger.error(
-      `Error retrieving user ID for email ${email}: ${error.message}`
-    );
+    logger.error(`Error retrieving user ID: ${error.message}`);
     throw error;
   }
 }
 
 module.exports = {
-  getUserIdByEmail,
+  getUserId,
 };
