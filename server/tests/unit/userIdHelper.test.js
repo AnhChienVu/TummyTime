@@ -1,84 +1,71 @@
-// tests/unit/userIdHelper.test.js
 const pool = require("../../database/db");
 const logger = require("../../src/utils/logger");
-const { getUserIdByEmail } = require("../../src/utils/userIdHelper");
+const { getUserId } = require("../../src/utils/userIdHelper");
+const jwt = require("jsonwebtoken");
 
 jest.mock("../../database/db");
 jest.mock("../../src/utils/logger");
+jest.mock("jsonwebtoken");
 
-describe("getUserIdByEmail", () => {
+describe("getUserId", () => {
+  // Clear all mocks before each test
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  test("should return user ID when valid email is provided", async () => {
-    const mockEmail = "test@example.com";
-    const mockUserId = 1;
-    const mockQueryResult = {
-      rows: [{ user_id: mockUserId }],
-    };
+  test("should return user ID when valid token and email exists", async () => {
+    // Mock JWT decode
+    jwt.decode.mockReturnValue({ email: "test@example.com" });
 
-    pool.query.mockResolvedValue(mockQueryResult);
+    // Mock database query response
+    pool.query.mockResolvedValue({
+      rows: [{ user_id: 123 }],
+    });
 
-    const result = await getUserIdByEmail(mockEmail);
+    const authHeader = "Bearer fake.jwt.token";
+    const result = await getUserId(authHeader);
 
-    expect(result).toBe(mockUserId);
-    expect(pool.query).toHaveBeenCalledWith(expect.any(String), [mockEmail]);
+    expect(result).toBe(123);
+    expect(jwt.decode).toHaveBeenCalledWith("fake.jwt.token");
+    expect(pool.query).toHaveBeenCalledWith(expect.any(String), [
+      "test@example.com",
+    ]);
   });
 
-  test("should return null when email does not exist", async () => {
-    const mockEmail = "nonexistent@example.com";
-    const mockQueryResult = {
-      rows: [],
-    };
+  test("should return null when user email not found in database", async () => {
+    jwt.decode.mockReturnValue({ email: "nonexistent@example.com" });
+    pool.query.mockResolvedValue({ rows: [] });
 
-    pool.query.mockResolvedValue(mockQueryResult);
-
-    const result = await getUserIdByEmail(mockEmail);
+    const authHeader = "Bearer fake.jwt.token";
+    const result = await getUserId(authHeader);
 
     expect(result).toBeNull();
-    expect(pool.query).toHaveBeenCalledWith(expect.any(String), [mockEmail]);
+  });
+
+  test("should return null when token is invalid", async () => {
+    jwt.decode.mockReturnValue(null);
+
+    const authHeader = "Bearer invalid.token";
+    const result = await getUserId(authHeader);
+
+    expect(result).toBeNull();
   });
 
   test("should throw error when database query fails", async () => {
-    const mockEmail = "test@example.com";
-    const mockError = new Error("Database connection error");
+    jwt.decode.mockReturnValue({ email: "test@example.com" });
+    const dbError = new Error("Database connection failed");
+    pool.query.mockRejectedValue(dbError);
 
-    pool.query.mockRejectedValue(mockError);
-
-    await expect(getUserIdByEmail(mockEmail)).rejects.toThrow(
-      "Database connection error"
-    );
+    const authHeader = "Bearer fake.jwt.token";
+    await expect(getUserId(authHeader)).rejects.toThrow(dbError);
   });
 
-  test("should log error when user is not found", async () => {
-    const mockEmail = "notfound@example.com";
-    const mockQueryResult = { rows: [] };
+  test("should return null when token payload has no email", async () => {
+    jwt.decode.mockReturnValue({ someOtherField: "value" });
 
-    pool.query.mockResolvedValue(mockQueryResult);
-    logger.error = jest.fn();
-
-    const result = await getUserIdByEmail(mockEmail);
+    const authHeader = "Bearer fake.jwt.token";
+    const result = await getUserId(authHeader);
 
     expect(result).toBeNull();
-    expect(logger.error).toHaveBeenCalledWith(
-      `User not found for email: ${mockEmail}`
-    );
-  });
-
-  test("should safely handle emails with SQL injection attempts", async () => {
-    const maliciousEmail = "'; DROP TABLE users; --";
-    const mockQueryResult = { rows: [] };
-
-    pool.query.mockResolvedValue(mockQueryResult);
-
-    await getUserIdByEmail(maliciousEmail);
-
-    expect(pool.query).toHaveBeenCalledWith(expect.any(String), [
-      maliciousEmail,
-    ]);
-    const queryCall = pool.query.mock.calls[0];
-    expect(queryCall[0]).not.toContain(maliciousEmail);
-    expect(queryCall[1]).toContain(maliciousEmail);
   });
 });

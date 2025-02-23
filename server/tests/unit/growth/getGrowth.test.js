@@ -1,140 +1,170 @@
-// tests/unit/growth/getGrowth.test.js
-// Tests the GET /v1/baby/[:babyId]/growth route
-
-const request = require('supertest');
-const express = require('express');
-const passport = require('passport');
-const pool = require('../../../database/db');
+const { getAllGrowth } = require("../../../src/routes/api/growth/getGrowth");
+const pool = require("../../../database/db");
+const { getUserId } = require("../../../src/utils/userIdHelper");
 const {
-  createSuccessResponse,
-  createErrorResponse,
-} = require('../../../src/utils/response');
-const { strategy, authenticate } = require('../../../src/auth/jwt-middleware');
-const { generateToken } = require('../../../src/utils/jwt');
+  checkBabyBelongsToUser,
+} = require("../../../src/utils/babyAccessHelper");
+const logger = require("../../../src/utils/logger");
 
-// app properly handles the route
-const { getAllGrowth } = require('../../../src/routes/api/growth/getGrowth');
-const app = express();
-app.use(express.json());
-app.use(passport.initialize());
-passport.use(strategy());
-app.get('/v1/baby/:babyId/growth', authenticate(), getAllGrowth); // GET /baby/[:babyId]/growth
+// Mock the dependencies
+jest.mock("../../../database/db");
+jest.mock("../../../src/utils/userIdHelper");
+jest.mock("../../../src/utils/babyAccessHelper");
+jest.mock("../../../src/utils/logger");
 
-// mock the database and response functions
-jest.mock('../../../database/db');
-jest.mock('../../../src/utils/response');
+describe("getAllGrowth", () => {
+  let mockReq;
+  let mockRes;
 
-// Test GET /baby/:babyId/growth
-describe('GET /v1/baby/:babyId/growth', () => {
   beforeEach(() => {
+    // Reset all mocks before each test
     jest.clearAllMocks();
+
+    // Mock request object
+    mockReq = {
+      params: {
+        babyId: "1",
+      },
+      headers: {
+        authorization: "Bearer token123",
+      },
+    };
+
+    // Mock response object
+    mockRes = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn(),
+      send: jest.fn(),
+    };
   });
 
-  test('should return 200 and an array of growth records if multiple exist', async () => {
+  test("should return growth records successfully", async () => {
+    // Mock successful database response
     const mockGrowthRecords = [
-      {
-        growth_id: 1,
-        baby_id: 1,
-        date: '2025-01-01',
-        height: 50,
-        weight: 3.5,
-        notes: 'First growth record',
-      },
-      {
-        growth_id: 2,
-        baby_id: 1,
-        date: '2025-02-01',
-        height: 55,
-        weight: 4.2,
-        notes: 'Second growth record',
-      },
+      { id: 1, baby_id: 1, weight: 3.5, height: 50, head_circumference: 35 },
     ];
-
     pool.query.mockResolvedValueOnce({ rows: mockGrowthRecords });
+    getUserId.mockResolvedValueOnce("user123");
+    checkBabyBelongsToUser.mockResolvedValueOnce(true);
 
-    // Fix: Mock `createSuccessResponse` to match actual implementation
-    createSuccessResponse.mockReturnValue({
-      status: 'ok',
-      data: mockGrowthRecords,
-    });
+    await getAllGrowth(mockReq, mockRes);
 
-    const user = {
-      userId: 1,
-      firstName: 'Anh',
-      lastName: 'Vu',
-      email: 'user1@email.com',
-      role: 'Parent',
-    };
-    const token = generateToken(user);
-
-    const res = await request(app)
-      .get('/v1/baby/1/growth')
-      .set('Authorization', `Bearer ${token}`); // Include the token in the Authorization header
-
-    expect(res.status).toBe(200);
-    expect(pool.query).toHaveBeenCalledWith(
-      'SELECT * FROM growth WHERE baby_id = $1',
-      ['1']
+    expect(mockRes.status).toHaveBeenCalledWith(200);
+    expect(mockRes.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: mockGrowthRecords,
+      })
     );
-
-    // Fix: Expect correct response format
-    expect(res.body).toEqual({
-      status: 'ok',
-      data: mockGrowthRecords,
-    });
   });
 
-  test('should return 404 if no growth records are found', async () => {
+  test("should return 400 for missing baby ID", async () => {
+    mockReq.params.babyId = undefined;
+
+    await getAllGrowth(mockReq, mockRes);
+
+    expect(mockRes.status).toHaveBeenCalledWith(400);
+    expect(mockRes.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: "error",
+        error: expect.objectContaining({
+          code: 400,
+          message: expect.any(String),
+        }),
+      })
+    );
+  });
+
+  test("should return 400 for invalid baby ID format", async () => {
+    mockReq.params.babyId = "invalid";
+
+    await getAllGrowth(mockReq, mockRes);
+
+    expect(mockRes.status).toHaveBeenCalledWith(400);
+    expect(mockRes.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: "error",
+        error: expect.objectContaining({
+          code: 400,
+          message: expect.any(String),
+        }),
+      })
+    );
+  });
+
+  test("should return 401 for missing authorization header", async () => {
+    // Clear the authorization header
+    mockReq.headers.authorization = undefined;
+
+    await getAllGrowth(mockReq, mockRes);
+
+    // Check that createErrorResponse was called correctly
+    expect(mockRes.status).toHaveBeenCalledWith(401);
+    expect(mockRes.json).toHaveBeenCalledWith(
+      // Changed from send to json
+      expect.objectContaining({
+        status: "error",
+        error: expect.objectContaining({
+          code: 401,
+          message: "No authorization token provided",
+        }),
+      })
+    );
+  });
+
+  test("should return 403 when user does not have access to baby", async () => {
+    getUserId.mockResolvedValueOnce("user123");
+    checkBabyBelongsToUser.mockResolvedValueOnce(false);
+
+    await getAllGrowth(mockReq, mockRes);
+
+    expect(mockRes.status).toHaveBeenCalledWith(403);
+    expect(mockRes.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: "error",
+        error: expect.objectContaining({
+          code: 403,
+          message: expect.any(String),
+        }),
+      })
+    );
+  });
+
+  test("should return 404 when no growth records found", async () => {
+    getUserId.mockResolvedValueOnce("user123");
+    checkBabyBelongsToUser.mockResolvedValueOnce(true);
     pool.query.mockResolvedValueOnce({ rows: [] });
-    createErrorResponse.mockReturnValue({
-      error: 'No growth records found for [babyId] 999',
-    });
 
-    const user = {
-      userId: 1,
-      firstName: 'Anh',
-      lastName: 'Vu',
-      email: 'user1@email.com',
-      role: 'Parent',
-    };
-    const token = generateToken(user);
+    await getAllGrowth(mockReq, mockRes);
 
-    const res = await request(app)
-      .get('/v1/baby/999/growth')
-      .set('Authorization', `Bearer ${token}`); // Include the token in the Authorization header
-
-    expect(res.status).toBe(404);
-    expect(createErrorResponse).toHaveBeenCalledWith(
-      404,
-      'No growth records found for [babyId] 999'
+    expect(mockRes.status).toHaveBeenCalledWith(404);
+    expect(mockRes.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: "error",
+        error: expect.objectContaining({
+          code: 404,
+          message: expect.any(String),
+        }),
+      })
     );
-    expect(res.body).toEqual({
-      error: 'No growth records found for [babyId] 999',
-    });
   });
 
-  test('should return 500 if there is a database error', async () => {
-    pool.query.mockRejectedValueOnce(new Error('Database error'));
-    createErrorResponse.mockReturnValue({ error: 'Internal server error' });
+  test("should return 500 on database error", async () => {
+    getUserId.mockResolvedValueOnce("user123");
+    checkBabyBelongsToUser.mockResolvedValueOnce(true);
+    pool.query.mockRejectedValueOnce(new Error("Database error"));
 
-    const user = {
-      userId: 1,
-      firstName: 'Anh',
-      lastName: 'Vu',
-      email: 'user1@email.com',
-      role: 'Parent',
-    };
-    const token = generateToken(user);
+    await getAllGrowth(mockReq, mockRes);
 
-    const res = await request(app)
-      .get('/v1/baby/1/growth')
-      .set('Authorization', `Bearer ${token}`); // Include the token in the Authorization header
-
-    expect(res.status).toBe(500);
-    expect(createErrorResponse).toHaveBeenCalledWith(
-      500,
-      'Internal server error'
+    expect(mockRes.status).toHaveBeenCalledWith(500);
+    expect(mockRes.send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: "error",
+        error: expect.objectContaining({
+          code: 500,
+          message: expect.any(String),
+        }),
+      })
     );
-    expect(res.body).toEqual({ error: 'Internal server error' });
+    expect(logger.error).toHaveBeenCalled();
   });
 });
