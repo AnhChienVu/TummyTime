@@ -156,6 +156,12 @@ router.get(
   require("./journal/getJournalEntries")
 );
 
+router.put(
+  "/journal/:entry_id",
+  authenticate(),
+  require("./journal/putJournalEntry")
+);
+
 // ************ /forum routes ************
 router.post(
   "/forum/posts/add",
@@ -208,7 +214,7 @@ router.delete(
 );
 
 // ************ /coupons routes ************
-router.get('/coupons', require('./coupons/getAllCoupons'));
+router.get("/coupons", require("./coupons/getAllCoupons"));
 
 // ************ /voiceCommand routes ************
 router.post(
@@ -217,7 +223,7 @@ router.post(
 );
 
 // ************ /tips routes ************
-router.get('/tips', require('./tips/getAllTips'));
+router.get("/tips", require("./tips/getAllTips"));
 
 // Testing the authentication middleware
 // router.get('/test', authenticate(), require('./test'));
