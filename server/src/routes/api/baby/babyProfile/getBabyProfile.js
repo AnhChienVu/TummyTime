@@ -1,15 +1,12 @@
 // src/routes/api/baby/babyProfile/getBabyProfile.js
 const pool = require("../../../../../database/db");
-const {
-  createSuccessResponse,
-  createErrorResponse,
-} = require("../../../../utils/response");
+const { createErrorResponse } = require("../../../../utils/response");
 const { getUserId } = require("../../../../utils/userIdHelper");
 const {
   checkBabyBelongsToUser,
 } = require("../../../../utils/babyAccessHelper");
 
-// GET /baby/:baby_id/getBabyProfile
+// GET /v1/baby/:baby_id/getBabyProfile
 module.exports = async (req, res) => {
   try {
     const { baby_id } = req.params;
@@ -18,21 +15,22 @@ module.exports = async (req, res) => {
     if (!baby_id || baby_id === "undefined") {
       return res
         .status(400)
-        .json(createErrorResponse("Missing baby_id parameter"));
+        .json(createErrorResponse(400, "Missing baby_id parameter"));
     }
 
     // Validate if baby_id is a number
     if (isNaN(baby_id)) {
       return res
         .status(400)
-        .json(createErrorResponse("Invalid baby_id parameter"));
+        .json(createErrorResponse(400, "Invalid baby_id parameter"));
     }
 
     // Decode the token to get the user ID
     const authHeader = req.headers.authorization;
     if (!authHeader) {
-      logger.error("No authorization header found");
-      return createErrorResponse(res, 401, "No authorization token provided");
+      return res
+        .status(401)
+        .json(createErrorResponse(401, "No authorization token provided"));
     }
 
     const userId = await getUserId(authHeader);
@@ -60,18 +58,23 @@ module.exports = async (req, res) => {
     }
 
     const babyProfile = await pool.query(
-      "SELECT * FROM baby WHERE baby_id = $1",
+      "SELECT first_name, last_name, gender, weight FROM baby WHERE baby_id = $1",
       [baby_id]
     );
 
     if (babyProfile.rows.length === 0) {
       return res
         .status(404)
-        .json(createErrorResponse("Baby profile not found"));
+        .json(createErrorResponse(404, "Baby profile not found"));
     }
 
-    return res.json(createSuccessResponse(babyProfile.rows[0]));
+    return res.status(200).json({
+      status: "ok",
+      data: babyProfile.rows[0],
+    });
   } catch (error) {
-    return res.status(500).json(createErrorResponse("Internal server error"));
+    return res
+      .status(500)
+      .json(createErrorResponse(500, "Internal server error"));
   }
 };
