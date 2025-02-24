@@ -94,4 +94,41 @@ describe('PUT /baby/:babyId/growth/:growthId', () => {
       'Growth record not found'
     );
   });
+
+  test("should return 500 if database query fails", async () => {
+    const testError = new Error("Database error");
+    pool.query.mockRejectedValueOnce(testError);
+    createErrorResponse.mockReturnValue({ error: "Internal server error" });
+
+    const user = {
+      userId: 1,
+      firstName: "Anh",
+      lastName: "Vu",
+      email: "user1@email.com",
+      role: "Parent",
+    };
+    const token = generateToken(user);
+
+    const updatedGrowthRecord = {
+      date: "2025-01-02",
+      height: 52,
+      weight: 3.8,
+      notes: "Updated growth record",
+    };
+
+    const res = await request(app)
+      .put("/v1/baby/1/growth/1")
+      .set("Authorization", `Bearer ${token}`)
+      .send(updatedGrowthRecord);
+
+    expect(res.status).toBe(500);
+    expect(createErrorResponse).toHaveBeenCalledWith(
+      500,
+      "Internal server error"
+    );
+    expect(pool.query).toHaveBeenCalledWith(
+      "UPDATE growth SET date = $1, height = $2, weight = $3, notes = $4 WHERE growth_id = $5 RETURNING *",
+      ["2025-01-02", 52, 3.8, "Updated growth record", "1"]
+    );
+  });
 });

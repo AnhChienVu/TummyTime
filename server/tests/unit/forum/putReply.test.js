@@ -3,7 +3,7 @@ const putReply = require("../../../src/routes/api/forum/replies/putReply");
 const pool = require("../../../database/db");
 const jwt = require("jsonwebtoken");
 const logger = require("../../../src/utils/logger");
-const { getUserIdByEmail } = require("../../../src/utils/userIdHelper");
+const { getUserId } = require("../../../src/utils/userIdHelper");
 const { createErrorResponse } = require("../../../src/utils/response");
 
 jest.mock("../../../database/db");
@@ -32,7 +32,7 @@ describe("PUT V1/forum/replies/:reply_id", () => {
 
     // Mock JWT decode instead of verify
     jwt.decode.mockReturnValue({ email: "test@example.com" });
-    getUserIdByEmail.mockResolvedValue(mockUserId);
+    getUserId.mockResolvedValue(mockUserId);
 
     // Mock successful DB responses
     pool.query.mockImplementation((query) => {
@@ -103,19 +103,8 @@ describe("PUT V1/forum/replies/:reply_id", () => {
     );
   });
 
-  test("should return 401 if token is invalid", async () => {
-    jwt.decode.mockReturnValue(null);
-    await putReply(req, res);
-
-    expect(createErrorResponse).toHaveBeenCalledWith(
-      res,
-      401,
-      "Invalid token format"
-    );
-  });
-
   test("should return 404 if user not found", async () => {
-    getUserIdByEmail.mockResolvedValue(null);
+    getUserId.mockResolvedValue(null);
     await putReply(req, res);
 
     expect(createErrorResponse).toHaveBeenCalledWith(
@@ -167,6 +156,75 @@ describe("PUT V1/forum/replies/:reply_id", () => {
     pool.query.mockRejectedValue(new Error("Database error"));
     await putReply(req, res);
 
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({
+      status: "error",
+      message: "Internal server error",
+    });
+  });
+
+  test("should execute ROLLBACK when transaction fails", async () => {
+    const queryOrder = [];
+
+    // Mock pool.query to track execution order and fail on UPDATE
+    pool.query.mockImplementation((query) => {
+      // Only track the first word of each query
+      const firstWord = query.split(" ")[0];
+
+      if (query === "BEGIN") {
+        queryOrder.push("BEGIN");
+        return Promise.resolve();
+      } else if (query.includes("SELECT")) {
+        queryOrder.push("SELECT");
+        return Promise.resolve({
+          rows: [{ user_id: mockUserId, post_id: 1 }],
+        });
+      } else if (query.includes("UPDATE")) {
+        queryOrder.push("UPDATE");
+        return Promise.reject(new Error("Update failed"));
+      } else if (query === "ROLLBACK") {
+        queryOrder.push("ROLLBACK");
+        return Promise.resolve();
+      }
+    });
+
+    await putReply(req, res);
+
+    // Verify ROLLBACK was called with correct order
+    expect(queryOrder).toEqual(["BEGIN", "SELECT", "UPDATE", "ROLLBACK"]);
+
+    // Verify error response
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith({
+      status: "error",
+      message: "Internal server error",
+    });
+  });
+
+  test("should handle transaction errors and ensure ROLLBACK is called", async () => {
+    let transactionSteps = [];
+
+    pool.query.mockImplementation((query) => {
+      transactionSteps.push(query);
+
+      if (query === "BEGIN") {
+        return Promise.resolve();
+      } else if (query.includes("SELECT")) {
+        // Simulate error after transaction has begun
+        return Promise.reject(new Error("Database error"));
+      }
+    });
+
+    await putReply(req, res);
+
+    // Verify transaction steps
+    expect(transactionSteps).toContain("BEGIN");
+    expect(transactionSteps).toContain("ROLLBACK");
+    expect(transactionSteps.indexOf("BEGIN")).toBeLessThan(
+      transactionSteps.indexOf("ROLLBACK")
+    );
+
+    // Verify error handling
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith({
       status: "error",
