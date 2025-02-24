@@ -1,10 +1,6 @@
 // src/routes/api/forum/post/getAllForumReplies.js
 const pool = require("../../../../../database/db");
-const {
-  createSuccessResponse,
-  createErrorResponse,
-} = require("../../../../utils/response");
-const jwt = require("jsonwebtoken");
+const { createErrorResponse } = require("../../../../utils/response");
 const logger = require("../../../../utils/logger");
 const { getUserId } = require("../../../../utils/userIdHelper");
 

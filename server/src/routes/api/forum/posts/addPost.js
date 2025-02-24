@@ -4,9 +4,8 @@ const {
   createSuccessResponse,
   createErrorResponse,
 } = require("../../../../utils/response");
-const jwt = require("jsonwebtoken");
 const logger = require("../../../../utils/logger");
-const { getUserIdByEmail } = require("../../../../utils/userIdHelper");
+const { getUserId } = require("../../../../utils/userIdHelper");
 
 // POST /v1/forum/posts/add
 // Create a new post
@@ -18,15 +17,7 @@ module.exports = async (req, res) => {
       return createErrorResponse(res, 401, "No authorization token provided");
     }
 
-    const token = authHeader.split(" ")[1];
-    const decoded = jwt.decode(token);
-
-    if (!decoded || !decoded.email) {
-      logger.error("No email found in token payload");
-      return createErrorResponse(res, 401, "Invalid token format");
-    }
-
-    const userId = await getUserIdByEmail(decoded.email);
+    const userId = await getUserId(authHeader);
     if (!userId) {
       return createErrorResponse(res, 404, "User not found");
     }
