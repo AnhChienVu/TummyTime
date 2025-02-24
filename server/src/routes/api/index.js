@@ -9,6 +9,12 @@ const express = require("express");
 // Create a router on which to mount our API endpoints
 const router = express.Router();
 
+// Import all of stool API endpoints
+const { getStoolEntries } = require('./baby/stool/getStool');
+const { createStoolEntry } = require('./baby/stool/postStool');
+const { updateStoolEntry } = require('./baby/stool/putStool');
+const { deleteStoolEntry } = require('./baby/stool/deleteStool');
+
 router.post("/login", require("./login"));
 
 router.post("/signup", require("./signup"));
@@ -218,6 +224,12 @@ router.post(
 
 // ************ /tips routes ************
 router.get('/tips', require('./tips/getAllTips'));
+
+// ************ Stool routes ************
+router.get('/baby/:babyId/stool', authenticate(), getStoolEntries);
+router.post('/baby/:babyId/stool', authenticate(), createStoolEntry);
+router.put('/baby/:babyId/stool/:stoolId', authenticate(), updateStoolEntry);
+router.delete('/baby/:babyId/stool/:stoolId', authenticate(), deleteStoolEntry);
 
 // Testing the authentication middleware
 // router.get('/test', authenticate(), require('./test'));
