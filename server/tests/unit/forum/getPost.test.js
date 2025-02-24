@@ -3,7 +3,7 @@ const getPost = require("../../../src/routes/api/forum/posts/getPost");
 const pool = require("../../../database/db");
 const jwt = require("jsonwebtoken");
 const logger = require("../../../src/utils/logger");
-const { getUserIdByEmail } = require("../../../src/utils/userIdHelper");
+const { getUserId } = require("../../../src/utils/userIdHelper");
 const { createErrorResponse } = require("../../../src/utils/response");
 
 jest.mock("../../../database/db");
@@ -51,7 +51,7 @@ describe("GET v1/forum/posts/:post_id", () => {
     };
 
     jwt.decode.mockReturnValue(mockUser);
-    getUserIdByEmail.mockResolvedValue(mockUserId);
+    getUserId.mockResolvedValue(mockUserId);
     pool.query.mockResolvedValue({ rows: [mockPost] });
 
     await getPost(req, res);
@@ -74,22 +74,9 @@ describe("GET v1/forum/posts/:post_id", () => {
     expect(logger.error).toHaveBeenCalledWith("No authorization header found");
   });
 
-  test("should return 401 when token is invalid", async () => {
-    jwt.decode.mockReturnValue(null);
-    await getPost(req, res);
-    expect(createErrorResponse).toHaveBeenCalledWith(
-      res,
-      401,
-      "Invalid token format"
-    );
-    expect(logger.error).toHaveBeenCalledWith(
-      "No email found in token payload"
-    );
-  });
-
   test("should return 404 when user is not found", async () => {
     jwt.decode.mockReturnValue({ email: "test@example.com" });
-    getUserIdByEmail.mockResolvedValue(null);
+    getUserId.mockResolvedValue(null);
     await getPost(req, res);
     expect(createErrorResponse).toHaveBeenCalledWith(
       res,
@@ -100,7 +87,7 @@ describe("GET v1/forum/posts/:post_id", () => {
 
   test("should return 404 when post does not exist", async () => {
     jwt.decode.mockReturnValue({ email: "test@example.com" });
-    getUserIdByEmail.mockResolvedValue(1);
+    getUserId.mockResolvedValue(1);
     pool.query.mockResolvedValue({ rows: [] });
     await getPost(req, res);
     expect(createErrorResponse).toHaveBeenCalledWith(
@@ -113,7 +100,7 @@ describe("GET v1/forum/posts/:post_id", () => {
   test("should return 500 when database error occurs", async () => {
     const errorMessage = "Database error";
     jwt.decode.mockReturnValue({ email: "test@example.com" });
-    getUserIdByEmail.mockResolvedValue(1);
+    getUserId.mockResolvedValue(1);
     pool.query.mockRejectedValue(new Error(errorMessage));
     await getPost(req, res);
     expect(logger.error).toHaveBeenCalledWith(

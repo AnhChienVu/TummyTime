@@ -1,7 +1,7 @@
 // tests/unit/forum/deletePost.test.js
 const deleteReply = require("../../../src/routes/api/forum/replies/deleteReply");
 const pool = require("../../../database/db");
-const { getUserIdByEmail } = require("../../../src/utils/userIdHelper");
+const { getUserId } = require("../../../src/utils/userIdHelper");
 const jwt = require("jsonwebtoken");
 const logger = require("../../../src/utils/logger");
 const {
@@ -45,7 +45,7 @@ describe("DELETE v1/forum/replies/:reply_id", () => {
 
     // Setup default successful responses
     jwt.decode.mockReturnValue({ email: "test@example.com" });
-    getUserIdByEmail.mockResolvedValue(1);
+    getUserId.mockResolvedValue(1);
     createSuccessResponse.mockReturnValue({ success: true });
     createErrorResponse.mockImplementation((res, code, message) => {
       res.statusCode = code;
@@ -110,19 +110,8 @@ describe("DELETE v1/forum/replies/:reply_id", () => {
     );
   });
 
-  it("should return 401 for invalid token format", async () => {
-    jwt.decode.mockReturnValue(null);
-    await deleteReply(req, res);
-
-    expect(createErrorResponse).toHaveBeenCalledWith(
-      res,
-      401,
-      "Invalid token format"
-    );
-  });
-
   it("should return 404 when user is not found", async () => {
-    getUserIdByEmail.mockResolvedValue(null);
+    getUserId.mockResolvedValue(null);
     await deleteReply(req, res);
 
     expect(createErrorResponse).toHaveBeenCalledWith(

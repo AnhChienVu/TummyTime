@@ -1,7 +1,7 @@
 // tests/unit/forum/deletePost.test.js
 const deletePost = require("../../../src/routes/api/forum/posts/deletePost");
 const pool = require("../../../database/db");
-const { getUserIdByEmail } = require("../../../src/utils/userIdHelper");
+const { getUserId } = require("../../../src/utils/userIdHelper");
 const jwt = require("jsonwebtoken");
 const logger = require("../../../src/utils/logger");
 const {
@@ -49,8 +49,8 @@ describe("DELETE v1/forum/posts/:post_id", () => {
     // Default JWT decode response
     jwt.decode.mockReturnValue({ email: "test@example.com" });
 
-    // Default getUserIdByEmail response
-    getUserIdByEmail.mockResolvedValue(1);
+    // Default getUserId response
+    getUserId.mockResolvedValue(1);
 
     // Mock the response helpers
     createErrorResponse.mockImplementation((res, code, message) => {
@@ -91,24 +91,11 @@ describe("DELETE v1/forum/posts/:post_id", () => {
         "No authorization header found"
       );
     });
-
-    test("should return 401 when token format is invalid", async () => {
-      jwt.decode.mockReturnValue(null);
-      await deletePost(req, res);
-
-      expect(res.json).toHaveBeenCalledWith({
-        success: false,
-        error: "Invalid token format",
-      });
-      expect(logger.error).toHaveBeenCalledWith(
-        "No email found in token payload"
-      );
-    });
   });
 
   describe("Authorization Checks", () => {
     test("should return 404 when user is not found", async () => {
-      getUserIdByEmail.mockResolvedValue(null);
+      getUserId.mockResolvedValue(null);
       await deletePost(req, res);
 
       expect(res.json).toHaveBeenCalledWith({

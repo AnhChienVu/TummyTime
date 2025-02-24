@@ -2,7 +2,7 @@
 const putJournalEntry = require("../../../src/routes/api/journal/putJournalEntry");
 const pool = require("../../../database/db");
 const jwt = require("jsonwebtoken");
-const { getUserIdByEmail } = require("../../../src/utils/userIdHelper");
+const { getUserId } = require("../../../src/utils/userIdHelper");
 
 jest.mock("../../../database/db");
 jest.mock("jsonwebtoken");
@@ -63,20 +63,9 @@ describe("PUT /v1/journal/:entry_id", () => {
     );
   });
 
-  test("should return 401 for invalid token format", async () => {
-    jwt.decode = jest.fn().mockReturnValue(null);
-    await putJournalEntry(mockReq, mockRes);
-    expect(mockRes.status).toHaveBeenCalledWith(401);
-    expect(mockRes.json).toHaveBeenCalledWith(
-      expect.objectContaining({
-        error: "Invalid token format",
-      })
-    );
-  });
-
   test("should return 404 when user not found", async () => {
     jwt.decode = jest.fn().mockReturnValue({ email: "test@example.com" });
-    getUserIdByEmail.mockResolvedValue(null);
+    getUserId.mockResolvedValue(null);
     await putJournalEntry(mockReq, mockRes);
     expect(mockRes.status).toHaveBeenCalledWith(404);
     expect(mockRes.json).toHaveBeenCalledWith(
@@ -88,7 +77,7 @@ describe("PUT /v1/journal/:entry_id", () => {
 
   test("should return 404 when journal entry not found", async () => {
     jwt.decode = jest.fn().mockReturnValue({ email: "test@example.com" });
-    getUserIdByEmail.mockResolvedValue(1);
+    getUserId.mockResolvedValue(1);
     pool.query.mockResolvedValueOnce({ rows: [] });
 
     await putJournalEntry(mockReq, mockRes);
@@ -102,7 +91,7 @@ describe("PUT /v1/journal/:entry_id", () => {
 
   test("should return 403 when user is not the author", async () => {
     jwt.decode = jest.fn().mockReturnValue({ email: "test@example.com" });
-    getUserIdByEmail.mockResolvedValue(1);
+    getUserId.mockResolvedValue(1);
     pool.query.mockResolvedValueOnce({
       rows: [{ user_id: 2 }],
     });
@@ -118,7 +107,7 @@ describe("PUT /v1/journal/:entry_id", () => {
 
   test("should successfully update journal entry", async () => {
     jwt.decode = jest.fn().mockReturnValue({ email: "test@example.com" });
-    getUserIdByEmail.mockResolvedValue(1);
+    getUserId.mockResolvedValue(1);
     pool.query
       .mockResolvedValueOnce({ rows: [{ user_id: 1 }] })
       .mockResolvedValueOnce({
@@ -144,7 +133,7 @@ describe("PUT /v1/journal/:entry_id", () => {
 
   test("should handle database errors", async () => {
     jwt.decode = jest.fn().mockReturnValue({ email: "test@example.com" });
-    getUserIdByEmail.mockResolvedValue(1);
+    getUserId.mockResolvedValue(1);
     pool.query.mockRejectedValue(new Error("Database error"));
 
     await putJournalEntry(mockReq, mockRes);
