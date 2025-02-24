@@ -2,7 +2,6 @@
     background-color: #ffffff;
     overflow-x: hidden;
     padding: 0 15px;
-    margin-left: 50px;
 }
 
 .couponCardContainer {
@@ -139,7 +138,7 @@
 
 .printButton {
   width: 100%;
-  background-color: #0984e3;
+  background-color: #65558F;
   border: none;
   padding: 0.5rem;
   border-radius: 6px;
@@ -148,7 +147,7 @@
 }
 
 .printButton:hover {
-  background: #0766b0;
+  background: #4D3D7E;
 }
 
 .searchInput {

@@ -1,2 +1,8 @@
 /* client/pages/tips/tips.module.css */
 /* Tips page */
+.container {
+    background-color: #ffffff;
+    overflow-x: hidden;
+    padding: 0 15px;
+    margin-left: 50px;
+}

@@ -14,6 +14,12 @@ import {
 import styles from "./forum.module.css";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import useSpeechToText from "@/hooks/useSpeechToText";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faMicrophone,
+  faMicrophoneSlash,
+} from "@fortawesome/free-solid-svg-icons";
 
 export default function Forum() {
   const { t } = useTranslation("common");
@@ -22,6 +28,32 @@ export default function Forum() {
   const [filePreview, setFilePreview] = useState(null);
   const [error, setError] = useState("");
   const router = useRouter();
+  const [text, setText] = useState("");
+
+  const { isListening, transcript, startListening, stopListening } =
+    useSpeechToText({
+      continuous: true,
+      interimResults: true,
+      lang: "en-US",
+    });
+
+  const startStopListening = (e) => {
+    e.preventDefault();
+    if (isListening) {
+      stopVoiceInput();
+    } else {
+      startListening();
+    }
+  };
+
+  const stopVoiceInput = () => {
+    setText(
+      (preVal) =>
+        preVal +
+        (transcript.length ? (preVal.length ? " " : "") + transcript : ""),
+    );
+    stopListening();
+  };
 
   const fetchPosts = async () => {
     if (typeof window === "undefined") return;
@@ -45,6 +77,7 @@ export default function Forum() {
       if (postsResponse.ok) {
         const response = await postsResponse.json();
         if (response.status === "ok" && Array.isArray(response.data)) {
+          console.log(response.data);
           setPosts(response.data);
         } else {
           setError("Invalid posts data format:", response);
@@ -131,6 +164,15 @@ export default function Forum() {
                 placeholder={t("Write your thoughts here...")}
                 required
                 {...register("content")}
+                disabled={isListening}
+                value={
+                  isListening
+                    ? text + (transcript.length ? transcript : "")
+                    : text
+                }
+                onChange={(e) => {
+                  setText(e.target.value);
+                }}
               />
             </Col>
           </Row>
@@ -163,6 +205,16 @@ export default function Forum() {
               >
                 {t("Post")}
               </Button>
+            </Col>
+            <Col md={6}>
+              <button
+                onClick={(e) => startStopListening(e)}
+                className={styles.microphone}
+              >
+                <FontAwesomeIcon
+                  icon={isListening ? faMicrophoneSlash : faMicrophone}
+                />
+              </button>
             </Col>
           </Row>
         </Form>

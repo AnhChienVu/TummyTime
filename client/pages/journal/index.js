@@ -13,6 +13,12 @@ import {
 import styles from "./journal.module.css";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import useSpeechToText from "@/hooks/useSpeechToText";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faMicrophone,
+  faMicrophoneSlash,
+} from "@fortawesome/free-solid-svg-icons";
 
 export default function Journal() {
   const { t } = useTranslation("common");
@@ -21,6 +27,31 @@ export default function Journal() {
   const [filePreview, setFilePreview] = useState(null);
   const [text, setText] = useState("");
   const [userId, setUserId] = useState(null);
+
+  const { isListening, transcript, startListening, stopListening } =
+    useSpeechToText({
+      continuous: true,
+      interimResults: true,
+      lang: "en-US",
+    });
+
+  const startStopListening = (e) => {
+    e.preventDefault();
+    if (isListening) {
+      stopVoiceInput();
+    } else {
+      startListening();
+    }
+  };
+
+  const stopVoiceInput = () => {
+    setText(
+      (preVal) =>
+        preVal +
+        (transcript.length ? (preVal.length ? " " : "") + transcript : ""),
+    );
+    stopListening();
+  };
 
   useEffect(() => {
     const userId = localStorage.getItem("userId");
@@ -120,10 +151,19 @@ export default function Journal() {
                 required
                 {...register("text")}
                 className="form-control"
+                disabled={isListening}
+                value={
+                  isListening
+                    ? text + (transcript.length ? transcript : "")
+                    : text
+                }
+                onChange={(e) => {
+                  setText(e.target.value);
+                }}
               />
             </Col>
           </Row>
-          <Row className="mb-3">
+          <Row className={styles.postRow}>
             <Col md={6}>
               <Button
                 variant="primary"
@@ -132,6 +172,16 @@ export default function Journal() {
               >
                 {t("Post")}
               </Button>
+            </Col>
+            <Col md={6}>
+              <button
+                onClick={(e) => startStopListening(e)}
+                className={styles.microphone}
+              >
+                <FontAwesomeIcon
+                  icon={isListening ? faMicrophoneSlash : faMicrophone}
+                />
+              </button>
             </Col>
           </Row>
         </Form>
