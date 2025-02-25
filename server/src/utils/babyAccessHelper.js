@@ -1,6 +1,5 @@
+// src/utils/babyAccessHelper.js
 const pool = require("../../database/db");
-const { createErrorResponse } = require("./response");
-
 /**
  * Checks if a baby belongs to a specific user
  * @param {number} babyId - The ID of the baby
