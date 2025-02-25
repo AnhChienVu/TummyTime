@@ -1,59 +1,93 @@
 // src/routes/api/baby/babyProfile/putBabyProfile.js
 const pool = require("../../../../../database/db");
+const { getUserId } = require("../../../../utils/userIdHelper");
 const {
-  createSuccessResponse,
-  createErrorResponse,
-} = require("../../../../utils/response");
+  checkBabyBelongsToUser,
+} = require("../../../../utils/babyAccessHelper");
 
+// PUT /v1/baby/:baby_id/putBabyProfile
+// Update baby profile information
 module.exports = async (req, res) => {
-  const user_id = req.body.user_id;
-  const { baby_id } = req.params;
-
-  // Check if data object exists
-  if (!req.body.data) {
-    return res
-      .status(400)
-      .json(createErrorResponse("Missing required parameters: data object"));
-  }
-
-  const { first_name, last_name, gender, weight } = req.body.data;
-
-  // Validate all required fields
-  const requiredFields = { first_name, last_name, gender, weight };
-  const missingFields = Object.entries(requiredFields)
-    .filter(([_, value]) => !value)
-    .map(([key]) => key);
-
-  if (missingFields.length > 0) {
-    return res
-      .status(400)
-      .json(
-        createErrorResponse(
-          `Missing required parameters: ${missingFields.join(", ")}`
-        )
-      );
-  }
-
   try {
-    // Validate user and baby IDs
-    if (!user_id || !baby_id) {
-      return res
-        .status(400)
-        .json(createErrorResponse("Missing required parameters"));
+    const { baby_id } = req.params;
+
+    // Validate baby_id parameter
+    if (!baby_id || baby_id === "undefined") {
+      return res.status(400).json({
+        status: "error",
+        error: {
+          message: "Missing baby_id parameter",
+        },
+      });
     }
 
-    // Verify user has access to this baby
-    const userBaby = await pool.query(
-      "SELECT * FROM user_baby WHERE user_id = $1 AND baby_id = $2",
-      [user_id, baby_id]
-    );
+    // Validate if baby_id is a number
+    if (isNaN(baby_id)) {
+      return res.status(400).json({
+        status: "error",
+        error: {
+          message: "Invalid baby_id parameter",
+        },
+      });
+    }
 
-    if (!userBaby.rows.length) {
-      return res
-        .status(403)
-        .json(
-          createErrorResponse("Not authorized to update this baby profile")
-        );
+    // Check if data object exists
+    if (!req.body.data) {
+      return res.status(400).json({
+        status: "error",
+        error: {
+          message: "Missing required parameters: data object",
+        },
+      });
+    }
+
+    const { first_name, last_name, gender, weight } = req.body.data;
+
+    // Validate all required fields
+    const requiredFields = { first_name, last_name, gender, weight };
+    const missingFields = Object.entries(requiredFields)
+      .filter(([_, value]) => !value)
+      .map(([key]) => key);
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        status: "error",
+        error: {
+          message: `Missing required parameters: ${missingFields.join(", ")}`,
+        },
+      });
+    }
+
+    // Decode the token to get the user ID
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({
+        status: "error",
+        error: {
+          message: "No authorization token provided",
+        },
+      });
+    }
+
+    const user_id = await getUserId(authHeader);
+    if (!user_id) {
+      return res.status(404).json({
+        status: "error",
+        error: {
+          message: "User not found",
+        },
+      });
+    }
+
+    // Check baby ownership using the utility function
+    const hasBabyAccess = await checkBabyBelongsToUser(baby_id, user_id);
+    if (!hasBabyAccess) {
+      return res.status(403).json({
+        status: "error",
+        error: {
+          message: "Access denied: Baby does not belong to current user",
+        },
+      });
     }
 
     // Update baby information
@@ -63,15 +97,24 @@ module.exports = async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json(createErrorResponse("Baby not found"));
+      return res.status(404).json({
+        status: "error",
+        error: {
+          message: "Baby not found",
+        },
+      });
     }
 
-    return res.json(createSuccessResponse(result.rows[0]));
+    return res.json({
+      status: "success",
+      data: result.rows[0],
+    });
   } catch (error) {
-    return res
-      .status(500)
-      .json(
-        createErrorResponse("Internal server error while updating baby profile")
-      );
+    return res.status(500).json({
+      status: "error",
+      error: {
+        message: "Internal server error while updating baby profile",
+      },
+    });
   }
 };
