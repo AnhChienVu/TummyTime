@@ -1,28 +1,28 @@
 // src/routes/api/baby/babyProfile/getAllBabyProfiles.js
-const pool = require('../../../../../database/db');
+const pool = require("../../../../../database/db");
 const {
   createSuccessResponse,
   createErrorResponse,
-} = require('../../../../utils/response');
+} = require("../../../../utils/response");
+const { getUserId } = require("../../../../utils/userIdHelper");
 
+// GET /v1/babyProfiles
+// Get all baby profiles for a user
 module.exports = async (req, res) => {
-  const { user_id } = req.params;
-
-  // Validate user_id parameter
-  if (!user_id || user_id === 'undefined') {
-    return res
-      .status(400)
-      .json(createErrorResponse('Missing user_id parameter'));
-  }
-
-  // Validate if user_id is a number
-  if (isNaN(user_id)) {
-    return res
-      .status(400)
-      .json(createErrorResponse('Invalid user_id parameter'));
-  }
-
   try {
+    // Decode the token to get the user ID
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res
+        .status(401)
+        .json(createErrorResponse(401, "No authorization token provided"));
+    }
+    const user_id = await getUserId(authHeader); // Get user ID from the token
+    console.log(user_id);
+    if (!user_id) {
+      return res.status(401).json(createErrorResponse("Invalid user ID"));
+    }
+
     const babyProfiles = await pool.query(
       `SELECT b.* FROM baby b
       JOIN user_baby ub ON b.baby_id = ub.baby_id
@@ -35,11 +35,11 @@ module.exports = async (req, res) => {
     if (babyProfiles.rows.length === 0) {
       return res
         .status(404)
-        .json(createErrorResponse('No baby profiles found for this user'));
+        .json(createErrorResponse("No baby profiles found for this user"));
     }
 
     return res.json(createSuccessResponse({ babies: babyProfiles.rows }));
   } catch (error) {
-    return res.status(500).json(createErrorResponse('Internal server error'));
+    return res.status(500).json(createErrorResponse("Internal server error"));
   }
 };

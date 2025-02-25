@@ -3,7 +3,7 @@ const addPost = require("../../../src/routes/api/forum/posts/addPost");
 const pool = require("../../../database/db");
 const jwt = require("jsonwebtoken");
 const logger = require("../../../src/utils/logger");
-const { getUserIdByEmail } = require("../../../src/utils/userIdHelper");
+const { getUserId } = require("../../../src/utils/userIdHelper");
 const {
   createErrorResponse,
   createSuccessResponse,
@@ -47,7 +47,7 @@ describe("POST v1/forum/posts/add", () => {
     };
 
     jwt.decode.mockReturnValue(mockUser);
-    getUserIdByEmail.mockResolvedValue(mockUserId);
+    getUserId.mockResolvedValue(mockUserId);
     pool.query.mockResolvedValue({ rows: [mockPost] });
     createSuccessResponse.mockReturnValue({
       status: "success",
@@ -74,22 +74,9 @@ describe("POST v1/forum/posts/add", () => {
     expect(logger.error).toHaveBeenCalledWith("No authorization header found");
   });
 
-  test("should return 401 when token is invalid", async () => {
-    jwt.decode.mockReturnValue(null);
-    await addPost(req, res);
-    expect(createErrorResponse).toHaveBeenCalledWith(
-      res,
-      401,
-      "Invalid token format"
-    );
-    expect(logger.error).toHaveBeenCalledWith(
-      "No email found in token payload"
-    );
-  });
-
   test("should return 404 when user is not found", async () => {
     jwt.decode.mockReturnValue({ email: "test@example.com" });
-    getUserIdByEmail.mockResolvedValue(null);
+    getUserId.mockResolvedValue(null);
     await addPost(req, res);
     expect(createErrorResponse).toHaveBeenCalledWith(
       res,
@@ -100,7 +87,7 @@ describe("POST v1/forum/posts/add", () => {
 
   test("should return 400 when title is missing", async () => {
     jwt.decode.mockReturnValue({ email: "test@example.com" });
-    getUserIdByEmail.mockResolvedValue(1);
+    getUserId.mockResolvedValue(1);
     req.body = { content: "Test Content" };
     await addPost(req, res);
     expect(createErrorResponse).toHaveBeenCalledWith(
@@ -112,7 +99,7 @@ describe("POST v1/forum/posts/add", () => {
 
   test("should return 400 when content is missing", async () => {
     jwt.decode.mockReturnValue({ email: "test@example.com" });
-    getUserIdByEmail.mockResolvedValue(1);
+    getUserId.mockResolvedValue(1);
     req.body = { title: "Test Title" };
     await addPost(req, res);
     expect(createErrorResponse).toHaveBeenCalledWith(
@@ -124,7 +111,7 @@ describe("POST v1/forum/posts/add", () => {
 
   test("should return 500 when database error occurs", async () => {
     jwt.decode.mockReturnValue({ email: "test@example.com" });
-    getUserIdByEmail.mockResolvedValue(1);
+    getUserId.mockResolvedValue(1);
     pool.query.mockRejectedValue(new Error("Database error"));
     await addPost(req, res);
     expect(logger.error).toHaveBeenCalledWith(

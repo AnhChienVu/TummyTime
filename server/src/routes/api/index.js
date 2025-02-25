@@ -10,10 +10,10 @@ const express = require("express");
 const router = express.Router();
 
 // Import all of stool API endpoints
-const { getStoolEntries } = require('./baby/stool/getStool');
-const { createStoolEntry } = require('./baby/stool/postStool');
-const { updateStoolEntry } = require('./baby/stool/putStool');
-const { deleteStoolEntry } = require('./baby/stool/deleteStool');
+const { getStoolEntries } = require("./baby/stool/getStool");
+const { createStoolEntry } = require("./baby/stool/postStool");
+const { updateStoolEntry } = require("./baby/stool/putStool");
+const { deleteStoolEntry } = require("./baby/stool/deleteStool");
 
 router.post("/login", require("./login"));
 
@@ -125,7 +125,7 @@ router.post(
 );
 
 router.get(
-  "/user/:user_id/getAllBabyProfiles",
+  "/babyProfiles",
   authenticate(),
   require("./baby/babyProfile/getAllBabyProfiles")
 );
@@ -144,7 +144,7 @@ router.put(
 );
 
 router.delete(
-  "/baby/:baby_id/deleteBabyProfile",
+  "/baby/:baby_id/delete",
   authenticate(),
   require("./baby/babyProfile/deleteBabyProfile")
 );
@@ -160,6 +160,12 @@ router.get(
   "/user/:user_id/getJournalEntries",
   authenticate(),
   require("./journal/getJournalEntries")
+);
+
+router.put(
+  "/journal/:entry_id",
+  authenticate(),
+  require("./journal/putJournalEntry")
 );
 
 // ************ /forum routes ************
@@ -214,7 +220,7 @@ router.delete(
 );
 
 // ************ /coupons routes ************
-router.get('/coupons', require('./coupons/getAllCoupons'));
+router.get("/coupons", require("./coupons/getAllCoupons"));
 
 // ************ /voiceCommand routes ************
 router.post(
@@ -223,13 +229,13 @@ router.post(
 );
 
 // ************ /tips routes ************
-router.get('/tips', require('./tips/getAllTips'));
+router.get("/tips", require("./tips/getAllTips"));
 
 // ************ Stool routes ************
-router.get('/baby/:babyId/stool', authenticate(), getStoolEntries);
-router.post('/baby/:babyId/stool', authenticate(), createStoolEntry);
-router.put('/baby/:babyId/stool/:stoolId', authenticate(), updateStoolEntry);
-router.delete('/baby/:babyId/stool/:stoolId', authenticate(), deleteStoolEntry);
+router.get("/baby/:babyId/stool", authenticate(), getStoolEntries);
+router.post("/baby/:babyId/stool", authenticate(), createStoolEntry);
+router.put("/baby/:babyId/stool/:stoolId", authenticate(), updateStoolEntry);
+router.delete("/baby/:babyId/stool/:stoolId", authenticate(), deleteStoolEntry);
 
 // Testing the authentication middleware
 // router.get('/test', authenticate(), require('./test'));
