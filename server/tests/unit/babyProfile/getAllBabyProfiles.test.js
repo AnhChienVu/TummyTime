@@ -17,9 +17,9 @@ const getAllBabyProfiles = require("../../../src/routes/api/baby/babyProfile/get
 
 const app = express();
 app.use(express.json());
-app.get("/v1/user/getAllBabyProfiles", getAllBabyProfiles);
+app.get("/v1/babies", getAllBabyProfiles);
 
-describe("GET /v1/user/getAllBabyProfiles", () => {
+describe("GET /v1/user/babyProfiles", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
@@ -45,7 +45,7 @@ describe("GET /v1/user/getAllBabyProfiles", () => {
     createSuccessResponse.mockImplementation((data) => data);
 
     const res = await request(app)
-      .get("/v1/user/getAllBabyProfiles")
+      .get("/v1/babies")
       .set("Authorization", "Bearer valid-token");
 
     expect(res.status).toBe(200);
@@ -57,7 +57,7 @@ describe("GET /v1/user/getAllBabyProfiles", () => {
   });
 
   test("should return 401 when no authorization header is provided", async () => {
-    const res = await request(app).get("/v1/user/getAllBabyProfiles");
+    const res = await request(app).get("/v1/babies");
 
     expect(res.status).toBe(401);
     expect(createErrorResponse).toHaveBeenCalledWith(
@@ -70,7 +70,7 @@ describe("GET /v1/user/getAllBabyProfiles", () => {
     getUserId.mockResolvedValue(null);
 
     const res = await request(app)
-      .get("/v1/user/getAllBabyProfiles")
+      .get("/v1/babies")
       .set("Authorization", "Bearer invalid-token");
 
     expect(res.status).toBe(401);
@@ -82,7 +82,7 @@ describe("GET /v1/user/getAllBabyProfiles", () => {
     pool.query.mockResolvedValue({ rows: [] });
 
     const res = await request(app)
-      .get("/v1/user/getAllBabyProfiles")
+      .get("/v1/babies")
       .set("Authorization", "Bearer valid-token");
 
     expect(res.status).toBe(404);
@@ -96,7 +96,7 @@ describe("GET /v1/user/getAllBabyProfiles", () => {
     pool.query.mockRejectedValue(new Error("Database error"));
 
     const res = await request(app)
-      .get("/v1/user/getAllBabyProfiles")
+      .get("/v1/babies")
       .set("Authorization", "Bearer valid-token");
 
     expect(res.status).toBe(500);
@@ -107,7 +107,7 @@ describe("GET /v1/user/getAllBabyProfiles", () => {
     getUserId.mockRejectedValue(new Error("Token verification failed"));
 
     const res = await request(app)
-      .get("/v1/user/getAllBabyProfiles")
+      .get("/v1/babies")
       .set("Authorization", "Bearer valid-token");
 
     expect(res.status).toBe(500);

@@ -13,13 +13,13 @@ jest.mock("../../../database/db");
 jest.mock("../../../src/utils/userIdHelper");
 jest.mock("../../../src/utils/babyAccessHelper");
 
-describe("PUT /v1/baby/:baby_id/putBabyProfile", () => {
+describe("PUT /v1/baby/:baby_id", () => {
   let app;
 
   beforeEach(() => {
     app = express();
     app.use(express.json());
-    app.put("/v1/baby/:baby_id/putBabyProfile", putBabyProfile);
+    app.put("/v1/baby/:baby_id", putBabyProfile);
   });
 
   afterEach(() => {
@@ -47,7 +47,7 @@ describe("PUT /v1/baby/:baby_id/putBabyProfile", () => {
     });
 
     const response = await request(app)
-      .put("/v1/baby/1/putBabyProfile")
+      .put("/v1/baby/1")
       .set("Authorization", mockAuthHeader)
       .send(mockValidBabyData);
 
@@ -58,7 +58,7 @@ describe("PUT /v1/baby/:baby_id/putBabyProfile", () => {
 
   test("should return 400 when baby_id is missing", async () => {
     const response = await request(app)
-      .put("/v1/baby/undefined/putBabyProfile")
+      .put("/v1/baby/undefined")
       .set("Authorization", mockAuthHeader)
       .send(mockValidBabyData);
 
@@ -68,7 +68,7 @@ describe("PUT /v1/baby/:baby_id/putBabyProfile", () => {
 
   test("should return 400 when baby_id is not a number", async () => {
     const response = await request(app)
-      .put("/v1/baby/invalid/putBabyProfile")
+      .put("/v1/baby/invalid")
       .set("Authorization", mockAuthHeader)
       .send(mockValidBabyData);
 
@@ -78,7 +78,7 @@ describe("PUT /v1/baby/:baby_id/putBabyProfile", () => {
 
   test("should return 400 when data object is missing", async () => {
     const response = await request(app)
-      .put("/v1/baby/1/putBabyProfile")
+      .put("/v1/baby/1")
       .set("Authorization", mockAuthHeader)
       .send({});
 
@@ -98,7 +98,7 @@ describe("PUT /v1/baby/:baby_id/putBabyProfile", () => {
     };
 
     const response = await request(app)
-      .put("/v1/baby/1/putBabyProfile")
+      .put("/v1/baby/1")
       .set("Authorization", mockAuthHeader)
       .send(invalidData);
 
@@ -111,7 +111,7 @@ describe("PUT /v1/baby/:baby_id/putBabyProfile", () => {
 
   test("should return 401 when authorization header is missing", async () => {
     const response = await request(app)
-      .put("/v1/baby/1/putBabyProfile")
+      .put("/v1/baby/1")
       .send(mockValidBabyData);
 
     expect(response.status).toBe(401);
@@ -123,7 +123,7 @@ describe("PUT /v1/baby/:baby_id/putBabyProfile", () => {
     checkBabyBelongsToUser.mockResolvedValue(false);
 
     const response = await request(app)
-      .put("/v1/baby/1/putBabyProfile")
+      .put("/v1/baby/1")
       .set("Authorization", mockAuthHeader)
       .send(mockValidBabyData);
 
@@ -139,7 +139,7 @@ describe("PUT /v1/baby/:baby_id/putBabyProfile", () => {
     pool.query.mockResolvedValue({ rows: [] });
 
     const response = await request(app)
-      .put("/v1/baby/1/putBabyProfile")
+      .put("/v1/baby/1")
       .set("Authorization", mockAuthHeader)
       .send(mockValidBabyData);
 
@@ -154,7 +154,7 @@ describe("PUT /v1/baby/:baby_id/putBabyProfile", () => {
     pool.query.mockRejectedValue(new Error("Database error"));
 
     const response = await request(app)
-      .put("/v1/baby/1/putBabyProfile")
+      .put("/v1/baby/1")
       .set("Authorization", mockAuthHeader)
       .send(mockValidBabyData);
 
@@ -163,5 +163,23 @@ describe("PUT /v1/baby/:baby_id/putBabyProfile", () => {
     expect(response.body.error.message).toBe(
       "Internal server error while updating baby profile"
     );
+  });
+
+  test("should return 404 when user is not found", async () => {
+    // Mock getUserId to return null to simulate user not found
+    getUserId.mockResolvedValue(null);
+
+    const response = await request(app)
+      .put("/v1/baby/1")
+      .set("Authorization", mockAuthHeader)
+      .send(mockValidBabyData);
+
+    expect(response.status).toBe(404);
+    expect(response.body.status).toBe("error");
+    expect(response.body.error.message).toBe("User not found");
+
+    // Verify getUserId was called with correct auth header
+    expect(getUserId).toHaveBeenCalledWith(mockAuthHeader);
+    expect(getUserId).toHaveBeenCalledTimes(1);
   });
 });
