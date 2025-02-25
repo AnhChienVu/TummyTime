@@ -6,7 +6,8 @@ const {
   checkBabyBelongsToUser,
 } = require("../../../../utils/babyAccessHelper");
 
-// GET /v1/baby/:baby_id/getBabyProfile
+// GET /v1/baby/:baby_id/profile
+// Get a baby's profile
 module.exports = async (req, res) => {
   try {
     const { baby_id } = req.params;

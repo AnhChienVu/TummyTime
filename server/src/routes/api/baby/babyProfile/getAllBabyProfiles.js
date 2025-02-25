@@ -6,7 +6,7 @@ const {
 } = require("../../../../utils/response");
 const { getUserId } = require("../../../../utils/userIdHelper");
 
-// GET /v1/babyProfiles
+// GET /v1/babies
 // Get all baby profiles for a user
 module.exports = async (req, res) => {
   try {
