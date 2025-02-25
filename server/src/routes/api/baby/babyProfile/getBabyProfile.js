@@ -33,8 +33,8 @@ module.exports = async (req, res) => {
         .json(createErrorResponse(401, "No authorization token provided"));
     }
 
-    const userId = await getUserId(authHeader);
-    if (!userId) {
+    const user_id = await getUserId(authHeader);
+    if (!user_id) {
       return res.status(404).json({
         status: "error",
         error: {
@@ -45,7 +45,7 @@ module.exports = async (req, res) => {
     }
 
     // Check baby ownership using the utility function
-    const hasBabyAccess = await checkBabyBelongsToUser(baby_id, userId);
+    const hasBabyAccess = await checkBabyBelongsToUser(baby_id, user_id);
     if (!hasBabyAccess) {
       return res
         .status(403)
