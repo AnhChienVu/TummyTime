@@ -12,7 +12,7 @@ import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 export default function BabyProfile() {
   const { t } = useTranslation("common");
   const router = useRouter();
-  const { id: baby_id, user_id } = router.query;
+  const { id: baby_id } = router.query;
   const [baby, setBaby] = useState(null);
   const { register, handleSubmit, setValue, watch } = useForm();
   const [originalData, setOriginalData] = useState(null);
@@ -20,20 +20,23 @@ export default function BabyProfile() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmed, setDeleteConfirmed] = useState(false);
 
-  // Get the selected baby's profile information
+  // Get the selected baby's profile information and pre-fill the form fields
   useEffect(() => {
     const fetchBabyProfile = async () => {
       if (baby_id) {
         try {
           const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${baby_id}/getBabyProfile`,
+            `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${baby_id}`,
             {
               headers: {
                 Authorization: `Bearer ${localStorage.getItem("token")}`,
               },
             },
           );
-          const data = await res.json();
+
+          // Destructure the data property since the API response has a nested data object
+          // So we can't just do `const data = await res.json()`
+          const { data } = await res.json();
 
           setBaby(data);
           // Pre-fill form fields
@@ -67,7 +70,7 @@ export default function BabyProfile() {
   const onSubmit = async (data) => {
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${baby_id}/updateBabyProfile`,
+        `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${baby_id}`,
         {
           method: "PUT",
           headers: {
@@ -76,7 +79,6 @@ export default function BabyProfile() {
           },
           body: JSON.stringify({
             data,
-            user_id: user_id,
           }),
         },
       );
@@ -100,16 +102,13 @@ export default function BabyProfile() {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${baby_id}/deleteBabyProfile`,
+        `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${baby_id}`,
         {
           method: "DELETE",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-          body: JSON.stringify({
-            user_id: user_id,
-          }),
         },
       );
       if (res.ok) {

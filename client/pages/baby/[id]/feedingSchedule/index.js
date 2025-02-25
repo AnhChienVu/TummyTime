@@ -735,7 +735,11 @@ export async function getStaticPaths() {
     }
 
     // Fetch the list of baby IDs from your custom API route
-    const res = await fetch(`/api/getBabyProfiles?token=${token}`);
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/babies`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
     const data = await res.json();
 
     if (data.status !== "ok") {

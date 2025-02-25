@@ -16,19 +16,14 @@ function ProfilePage() {
   const router = useRouter();
 
   useEffect(() => {
-    const userId = localStorage.getItem("userId");
-
     async function fetchProfile() {
       // Fetches the user's profile
       try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/v1/user/${userId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/user`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-        );
+        });
         const data = await res.json();
         if (res.ok) {
           setProfile(data);
@@ -41,9 +36,10 @@ function ProfilePage() {
     }
 
     async function fetchBabyProfiles() {
+      // Fetches the user's baby profiles
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/v1/user/${userId}/getAllBabyProfiles`,
+          `${process.env.NEXT_PUBLIC_API_URL}/v1/babies`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -127,7 +123,6 @@ function ProfilePage() {
               <Link
                 href={{
                   pathname: `${process.env.NEXT_PUBLIC_CLIENT_URL}/baby/${baby.baby_id}/profile`,
-                  query: { user_id: localStorage.getItem("userId") },
                 }}
                 key={baby.baby_id}
                 style={{ textDecoration: "none", cursor: "pointer" }}
