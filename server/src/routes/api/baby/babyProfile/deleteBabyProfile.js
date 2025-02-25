@@ -6,7 +6,7 @@ const {
 } = require("../../../../utils/babyAccessHelper");
 const { getUserId } = require("../../../../utils/userIdHelper");
 
-// DELETE /v1/baby/:baby_id/deleteBabyProfile
+// DELETE /v1/baby/:baby_id/delete
 // Delete a baby profile
 module.exports = async (req, res) => {
   try {
