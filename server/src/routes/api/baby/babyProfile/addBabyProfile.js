@@ -4,12 +4,23 @@ const {
   createSuccessResponse,
   createErrorResponse,
 } = require("../../../../utils/response");
+const { getUserId } = require("../../../../utils/userIdHelper");
 
+// POST /v1/baby
+// Add a new baby profile
 module.exports = async (req, res) => {
-  const userId = req.params.user_id;
-  const { first_name, last_name, gender, weight } = req.body;
-
   try {
+    const { first_name, last_name, gender, weight } = req.body;
+
+    // Decode the token to get the user ID
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res
+        .status(401)
+        .json(createErrorResponse(401, "No authorization token provided"));
+    }
+    const user_id = await getUserId(authHeader); // Get user ID from the token
+
     const newBaby = await pool.query(
       "INSERT INTO Baby (first_name, last_name, gender, weight) VALUES ($1, $2, $3, $4) RETURNING *",
       [first_name, last_name, gender, weight]
@@ -17,7 +28,7 @@ module.exports = async (req, res) => {
 
     await pool.query(
       "INSERT INTO user_baby (user_id, baby_id) VALUES ($1, $2)",
-      [userId, newBaby.rows[0].baby_id]
+      [user_id, newBaby.rows[0].baby_id]
     );
 
     return res.json(createSuccessResponse(newBaby.rows[0]));
