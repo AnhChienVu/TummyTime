@@ -10,13 +10,13 @@ jest.mock("../../../src/utils/logger");
 jest.mock("../../../src/utils/userIdHelper");
 jest.mock("../../../src/utils/response");
 
-describe("PUT /v1/journal/:entry_id", () => {
+describe("PUT /v1/journal/:id", () => {
   let mockReq;
   let mockRes;
 
   beforeEach(() => {
     mockReq = {
-      params: { entry_id: "1" },
+      params: { id: "1" },
       body: { title: "Test Title", content: "Test Content" },
       headers: { authorization: "Bearer validtoken" },
     };
@@ -31,7 +31,7 @@ describe("PUT /v1/journal/:entry_id", () => {
   });
 
   test("should return 400 for invalid entry_id", async () => {
-    mockReq.params.entry_id = "invalid";
+    mockReq.params.id = "invalid";
     await putJournalEntry(mockReq, mockRes);
     expect(mockRes.status).toHaveBeenCalledWith(400);
     expect(mockRes.json).toHaveBeenCalledWith(
