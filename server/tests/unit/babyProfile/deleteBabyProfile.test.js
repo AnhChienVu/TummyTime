@@ -11,7 +11,7 @@ const {
 } = require("../../../src/utils/babyAccessHelper");
 const { getUserId } = require("../../../src/utils/userIdHelper");
 
-// Update mock implementations
+// Mock dependencies
 jest.mock("../../../src/utils/babyAccessHelper", () => ({
   checkBabyBelongsToUser: jest.fn(),
 }));
@@ -33,9 +33,9 @@ const app = express();
 app.use(express.json());
 app.use(passport.initialize());
 passport.use(strategy());
-app.delete("/v1/baby/:baby_id/deleteBabyProfile", authenticate(), deleteBaby);
+app.delete("/v1/baby/:baby_id", authenticate(), deleteBaby);
 
-describe("DELETE v1/baby/:baby_id/deleteBabyProfile", () => {
+describe("DELETE v1/baby/:baby_id", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     createErrorResponse.mockImplementation((message) => ({
@@ -62,7 +62,7 @@ describe("DELETE v1/baby/:baby_id/deleteBabyProfile", () => {
     const token = generateToken(user);
 
     const res = await request(app)
-      .delete("/v1/baby/1/deleteBabyProfile")
+      .delete("/v1/baby/1")
       .set("Authorization", `Bearer ${token}`);
 
     expect(res.status).toBe(200);
@@ -89,7 +89,7 @@ describe("DELETE v1/baby/:baby_id/deleteBabyProfile", () => {
     const token = generateToken(user);
 
     const res = await request(app)
-      .delete("/v1/baby/1/deleteBabyProfile")
+      .delete("/v1/baby/1")
       .set("Authorization", `Bearer ${token}`);
 
     expect(res.status).toBe(403);
@@ -101,7 +101,7 @@ describe("DELETE v1/baby/:baby_id/deleteBabyProfile", () => {
   });
 
   test("should return 401 when missing authorization header", async () => {
-    const res = await request(app).delete("/v1/baby/1/deleteBabyProfile");
+    const res = await request(app).delete("/v1/baby/1");
 
     expect(res.status).toBe(401);
     expect(createErrorResponse).toHaveBeenCalledWith(401, "Unauthorized");
@@ -123,7 +123,7 @@ describe("DELETE v1/baby/:baby_id/deleteBabyProfile", () => {
     const token = generateToken(user);
 
     const res = await request(app)
-      .delete("/v1/baby/1/deleteBabyProfile")
+      .delete("/v1/baby/1")
       .set("Authorization", `Bearer ${token}`);
 
     expect(res.status).toBe(500);
@@ -148,7 +148,7 @@ describe("DELETE v1/baby/:baby_id/deleteBabyProfile", () => {
     const token = generateToken(user);
 
     const res = await request(app)
-      .delete("/v1/baby/999/deleteBabyProfile")
+      .delete("/v1/baby/999")
       .set("Authorization", `Bearer ${token}`);
 
     expect(res.status).toBe(404);
@@ -168,7 +168,7 @@ describe("DELETE v1/baby/:baby_id/deleteBabyProfile", () => {
     const token = generateToken(user);
 
     const res = await request(app)
-      .delete("/v1/baby/1/deleteBabyProfile")
+      .delete("/v1/baby/1")
       .set("Authorization", `Bearer ${token}`);
 
     expect(res.status).toBe(400);
@@ -191,7 +191,7 @@ describe("DELETE v1/baby/:baby_id/deleteBabyProfile", () => {
     const token = generateToken(user);
 
     const res = await request(app)
-      .delete("/v1/baby/  /deleteBabyProfile") // Missing baby_id in URL
+      .delete("/v1/baby/invalid") // Missing baby_id in URL
       .set("Authorization", `Bearer ${token}`);
 
     expect(res.status).toBe(400);

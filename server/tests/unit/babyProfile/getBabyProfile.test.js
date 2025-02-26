@@ -12,7 +12,7 @@ jest.mock("../../../database/db");
 jest.mock("../../../src/utils/userIdHelper");
 jest.mock("../../../src/utils/babyAccessHelper");
 
-describe("GET /baby/:baby_id/getBabyProfile", () => {
+describe("GET /baby/:baby_id", () => {
   let app;
 
   beforeEach(() => {

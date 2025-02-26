@@ -53,7 +53,7 @@ router.get(
 //************ /user routes ************
 router.get("/user/me", authenticate(), require("./user/me").getUserDetails);
 
-router.get("/user/:id", authenticate(), require("./user/getUser").getUserById);
+router.get("/user", authenticate(), require("./user/getUser").getUserById);
 
 router.put(
   "/user/:id",
@@ -119,32 +119,32 @@ router.delete(
 
 // ************ /babyProfile routes ************
 router.post(
-  "/user/:user_id/addBabyProfile",
+  "/baby",
   authenticate(),
   require("./baby/babyProfile/addBabyProfile")
 );
 
 router.get(
-  "/babyProfiles",
+  "/babies",
   authenticate(),
   require("./baby/babyProfile/getAllBabyProfiles")
 );
 
 // GET one baby profile
 router.get(
-  "/baby/:baby_id/getBabyProfile",
+  "/baby/:baby_id",
   authenticate(),
   require("./baby/babyProfile/getBabyProfile")
 );
 
 router.put(
-  "/baby/:baby_id/updateBabyProfile",
+  "/baby/:baby_id",
   authenticate(),
   require("./baby/babyProfile/putBabyProfile")
 );
 
 router.delete(
-  "/baby/:baby_id/delete",
+  "/baby/:baby_id",
   authenticate(),
   require("./baby/babyProfile/deleteBabyProfile")
 );

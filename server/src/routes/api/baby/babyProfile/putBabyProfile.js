@@ -5,7 +5,7 @@ const {
   checkBabyBelongsToUser,
 } = require("../../../../utils/babyAccessHelper");
 
-// PUT /v1/baby/:baby_id/putBabyProfile
+// PUT /v1/baby/:baby_id
 // Update baby profile information
 module.exports = async (req, res) => {
   try {

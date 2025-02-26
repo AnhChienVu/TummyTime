@@ -1,8 +1,9 @@
-// pages/addBaby/index.js
+// pages/add.js
+// Form for adding a baby profile
 import { useForm } from "react-hook-form";
 import { Row, Col, Form, Button, Container } from "react-bootstrap";
 import { useRouter } from "next/router";
-import styles from "./addBaby.module.css";
+import styles from "./add.module.css";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
@@ -25,19 +26,15 @@ export default function AddBaby() {
   const router = useRouter();
 
   async function submitForm(data) {
-    const userId = localStorage.getItem("userId");
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/v1/user/${userId}/addBabyProfile`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify(data),
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/baby`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-      );
+        body: JSON.stringify(data),
+      });
       console.log("Data:", data);
 
       if (res.ok) {
@@ -58,7 +55,7 @@ export default function AddBaby() {
         <Form onSubmit={handleSubmit(submitForm)}>
           <p>
             {t(
-              "Congratulations on growing your family! Start by adding your new baby to Tummy Time.",
+              "Congratulations on growing your family! Let's start by adding your new baby to Tummy Time.",
             )}
           </p>
           <Row className="mb-3">

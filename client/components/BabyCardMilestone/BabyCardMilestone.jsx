@@ -15,7 +15,7 @@ function BabyCardMilestone({ addMilestoneBtn }) {
       // Fetches the user's baby profiles
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/v1/user/${userId}/getAllBabyProfiles`,
+          `${process.env.NEXT_PUBLIC_API_URL}/v1/babies`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,

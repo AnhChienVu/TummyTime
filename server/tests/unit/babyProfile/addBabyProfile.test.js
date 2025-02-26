@@ -1,84 +1,110 @@
-// tests/unit/babyProfile/addBabyProfile.test.js
+// server/tests/unit/babyProfile/addBabyProfile.test.js
 const request = require("supertest");
 const express = require("express");
-const passport = require("passport");
 const pool = require("../../../database/db");
+const { getUserId } = require("../../../src/utils/userIdHelper");
 const {
   createSuccessResponse,
   createErrorResponse,
 } = require("../../../src/utils/response");
-const { strategy, authenticate } = require("../../../src/auth/jwt-middleware");
-const { generateToken } = require("../../../src/utils/jwt");
 
-// app properly handles the route
-const addBaby = require("../../../src/routes/api/baby/babyProfile/addBabyProfile");
-const app = express();
-app.use(express.json());
-app.use(passport.initialize());
-passport.use(strategy());
-app.post("/v1/user/:user_id/addBaby", authenticate(), addBaby);
-
+// Mock dependencies
 jest.mock("../../../database/db");
+jest.mock("../../../src/utils/userIdHelper");
 jest.mock("../../../src/utils/response");
 
-describe("POST v1/user/:user_id/addBaby", () => {
+const app = express();
+app.use(express.json());
+const addBabyProfile = require("../../../src/routes/api/baby/babyProfile/addBabyProfile");
+app.post("/v1/baby", addBabyProfile);
+
+describe("POST /v1/baby", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  test("should return 200 and add a new baby", async () => {
-    const newBaby = {
+  test("should successfully add a new baby", async () => {
+    const mockBabyData = {
       first_name: "John",
       last_name: "Doe",
-      gender: "boy",
-      weight: "10",
+      gender: "male",
+      weight: "3.5",
     };
 
-    pool.query.mockResolvedValueOnce({
-      rows: [newBaby],
-    });
+    const mockUserId = 1;
+    getUserId.mockResolvedValue(mockUserId);
 
-    const user = {
-      userId: 1,
-      firstName: "Anh",
-      lastName: "Vu",
-      email: "user1@email.com",
-      role: "Parent",
+    const mockNewBaby = {
+      rows: [
+        {
+          baby_id: 1,
+          ...mockBabyData,
+          created_at: new Date().toISOString(),
+        },
+      ],
     };
-    const token = generateToken(user);
+
+    pool.query
+      .mockResolvedValueOnce(mockNewBaby) // First query for baby insertion
+      .mockResolvedValueOnce({ rows: [] }); // Second query for user_baby insertion
+
+    createSuccessResponse.mockImplementation((data) => ({
+      status: "success",
+      data,
+    }));
 
     const res = await request(app)
-      .post("/v1/user/1/addBaby")
-      .set("Authorization", `Bearer ${token}`) // Include the token in the Authorization header
-      .send(newBaby);
+      .post("/v1/baby")
+      .set("Authorization", "Bearer mock-token")
+      .send(mockBabyData);
 
     expect(res.status).toBe(200);
-    expect(createSuccessResponse).toHaveBeenCalledWith(newBaby);
+    expect(pool.query).toHaveBeenCalledTimes(2);
+    expect(createSuccessResponse).toHaveBeenCalledWith(mockNewBaby.rows[0]);
   });
 
-  test("should return 500 if there is a database error", async () => {
-    const newBaby = {
-      first_name: "Jane",
+  test("should return 401 when no authorization header is provided", async () => {
+    const mockBabyData = {
+      first_name: "John",
       last_name: "Doe",
-      gender: "girl",
-      weight: "15",
+      gender: "male",
+      weight: "3.5",
     };
 
-    pool.query.mockRejectedValueOnce(new Error("Database error"));
+    createErrorResponse.mockImplementation((status, message) => ({
+      status: "error",
+      error: { message },
+    }));
 
-    const user = {
-      userId: 1,
-      firstName: "Anh",
-      lastName: "Vu",
-      email: "user1@email.com",
-      role: "Parent",
+    const res = await request(app).post("/v1/baby").send(mockBabyData);
+
+    expect(res.status).toBe(401);
+    expect(createErrorResponse).toHaveBeenCalledWith(
+      401,
+      "No authorization token provided"
+    );
+  });
+
+  test("should return 500 when database operation fails", async () => {
+    const mockBabyData = {
+      first_name: "John",
+      last_name: "Doe",
+      gender: "male",
+      weight: "3.5",
     };
-    const token = generateToken(user);
+
+    getUserId.mockResolvedValue(1);
+    pool.query.mockRejectedValue(new Error("Database error"));
+
+    createErrorResponse.mockImplementation((status, message) => ({
+      status: "error",
+      error: { message },
+    }));
 
     const res = await request(app)
-      .post("/v1/user/1/addBaby")
-      .set("Authorization", `Bearer ${token}`) // Include the token in the Authorization header
-      .send(newBaby);
+      .post("/v1/baby")
+      .set("Authorization", "Bearer mock-token")
+      .send(mockBabyData);
 
     expect(res.status).toBe(500);
     expect(createErrorResponse).toHaveBeenCalledWith(
