@@ -110,7 +110,7 @@ function ProfilePage() {
           </Card>
           <div className="d-flex justify-content-between align-items-center mb-3">
             <h2>{t("Baby Profiles")}</h2>
-            <Link href={`/addBaby`} locale={locale}>
+            <Link href={`/baby/add`} locale={locale}>
               <Button variant="primary" className={styles.customButton}>
                 {t("Add Baby")}
               </Button>
