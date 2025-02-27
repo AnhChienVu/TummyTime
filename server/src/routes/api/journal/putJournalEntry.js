@@ -56,7 +56,7 @@ module.exports = async (req, res) => {
 
     // Update the entry
     const result = await pool.query(
-      "UPDATE journalentry SET title = $1, text = $2, updated_at = NOW() WHERE entry_id = $3 RETURNING *",
+      "UPDATE journalentry SET title = $1, text = $2, updated_at = NOW() WHERE entry_id = $3 RETURNING entry_id, title, text, updated_at, image",
       [title, text, entryId]
     );
 
