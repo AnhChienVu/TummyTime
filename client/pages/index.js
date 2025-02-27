@@ -1,7 +1,6 @@
 import React from "react";
 import { Container, Row, Col } from "react-bootstrap";
 import NavBar from "@/components/Navbar/NavBar";
-import Footer from "@/components/Footer/Footer";
 import styles from "./index.module.css";
 
 export default function Home() {
@@ -25,9 +24,6 @@ export default function Home() {
           </Col>
         </Row>
       </Container>
-
-      {/* Footer */}
-      <Footer />
     </div>
   );
 }
