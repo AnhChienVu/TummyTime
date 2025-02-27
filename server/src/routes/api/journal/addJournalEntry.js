@@ -60,7 +60,14 @@ module.exports = async (req, res) => {
         return res.status(400).json({ errors: validationErrors });
       }
 
-      const userId = getUserId(req);
+      // Validate authorization header
+      if (!req.headers.authorization) {
+        return res.status(401).json({
+          error: "No authorization token provided",
+        });
+      }
+
+      const userId = await getUserId(req.headers.authorization);
       if (!userId) {
         logger.warn("User not found when creating journal entry", {
           hasTitle: !!title?.trim(),
@@ -77,7 +84,6 @@ module.exports = async (req, res) => {
 
       if (!journalEntry?.rows?.[0]) {
         logger.error("Failed to create journal entry:", {
-          userId,
           hasTitle: !!title?.trim(),
         });
         return res
@@ -86,7 +92,6 @@ module.exports = async (req, res) => {
       }
 
       logger.info("Journal entry created successfully", {
-        userId,
         entryId: journalEntry.rows[0].id,
         hasTitle: !!title?.trim(),
       });
@@ -96,7 +101,6 @@ module.exports = async (req, res) => {
       logger.error("Database error while creating journal entry:", {
         error: error.message,
         stack: error.stack,
-        userId: getUserId(req),
         fields: {
           hasFields: !!fields,
         },
