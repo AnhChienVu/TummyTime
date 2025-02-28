@@ -9,7 +9,8 @@ const pool = require("../../../../database/db");
 const { getUserId } = require("../../../utils/userIdHelper");
 const { checkBabyBelongsToUser } = require("../../../utils/babyAccessHelper");
 
-// GET /baby/:baby_id/getMilestones
+// GET /v1/baby/:baby_id/milestones
+// Get all milestones for a baby
 module.exports.getMilestoneByBabyId = async (req, res) => {
   try {
     const { baby_id } = req.params;
