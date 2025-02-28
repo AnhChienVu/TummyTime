@@ -94,25 +94,25 @@ router.delete(
 
 // ************ /milestones routes ************
 router.get(
-  "/baby/:baby_id/getMilestones/",
+  "/baby/:baby_id/milestones",
   authenticate(),
   require("./milestones/getMilestones").getMilestoneByBabyId
 );
 
 router.post(
-  "/baby/:baby_id/addMilestone/",
+  "/baby/:baby_id/milestones",
   authenticate(),
   require("./milestones/postMilestone").createMilestone
 );
 
 router.put(
-  "/baby/:baby_id/updateMilestone/:milestone_id",
+  "/baby/:baby_id/milestones/:milestone_id",
   authenticate(),
   require("./milestones/putMilestone").updateMilestoneById
 );
 
 router.delete(
-  "/baby/:baby_id/deleteMilestone/:milestone_id",
+  "/baby/:baby_id/milestones/:milestone_id",
   authenticate(),
   require("./milestones/deleteMilestone").deleteMilestoneById
 );
@@ -130,7 +130,6 @@ router.get(
   require("./baby/babyProfile/getAllBabyProfiles")
 );
 
-// GET one baby profile
 router.get(
   "/baby/:baby_id",
   authenticate(),
