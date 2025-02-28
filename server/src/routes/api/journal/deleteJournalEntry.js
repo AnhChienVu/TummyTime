@@ -1,19 +1,18 @@
 // src/routes/api/journal/deleteJournalEntry.js
 const pool = require("../../../../database/db");
 const logger = require("../../../utils/logger");
-const { getUserIdByEmail } = require("../../../utils/userIdHelper");
+const { getUserId } = require("../../../utils/userIdHelper");
 const {
   createSuccessResponse,
   createErrorResponse,
 } = require("../../../utils/response");
-const jwt = require("jsonwebtoken");
 
-// DELETE /v1/journal/:entry_id
+// DELETE /v1/journal/:id
 // Delete a journal entry
 module.exports = async (req, res) => {
-  let client;
+  let client; // Create a client to connect to the database
   try {
-    const { entry_id } = req.params;
+    const entry_id = req.params.id;
 
     // Validate entry_id
     if (!entry_id || isNaN(entry_id)) {
@@ -27,16 +26,8 @@ module.exports = async (req, res) => {
       return createErrorResponse(res, 401, "No authorization token provided");
     }
 
-    const token = authHeader.split(" ")[1];
-    const decoded = jwt.decode(token);
-
-    if (!decoded || !decoded.email) {
-      logger.error("No email found in token payload");
-      return createErrorResponse(res, 401, "Invalid token format");
-    }
-
     // Get user_id using the helper function
-    const userId = await getUserIdByEmail(decoded.email);
+    const userId = await getUserId(authHeader);
     if (!userId) {
       return createErrorResponse(res, 404, "User not found");
     }

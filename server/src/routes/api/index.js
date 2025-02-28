@@ -150,22 +150,26 @@ router.delete(
 );
 
 // ************ /journal routes ************
-router.post(
-  "/user/:user_id/addJournalEntry",
-  authenticate(),
-  require("./journal/addJournalEntry")
-);
+router.post("/journal", authenticate(), require("./journal/addJournalEntry"));
+
+router.get("/journal", authenticate(), require("./journal/getJournalEntries"));
 
 router.get(
-  "/user/:user_id/getJournalEntries",
+  "/journal/:id",
   authenticate(),
-  require("./journal/getJournalEntries")
+  require("./journal/getJournalEntry")
 );
 
 router.put(
-  "/journal/:entry_id",
+  "/journal/:id",
   authenticate(),
   require("./journal/putJournalEntry")
+);
+
+router.delete(
+  "/journal/:id",
+  authenticate(),
+  require("./journal/deleteJournalEntry")
 );
 
 // ************ /forum routes ************

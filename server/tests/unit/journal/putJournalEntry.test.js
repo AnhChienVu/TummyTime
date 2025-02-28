@@ -10,14 +10,14 @@ jest.mock("../../../src/utils/logger");
 jest.mock("../../../src/utils/userIdHelper");
 jest.mock("../../../src/utils/response");
 
-describe("PUT /v1/journal/:entry_id", () => {
+describe("PUT /v1/journal/:id", () => {
   let mockReq;
   let mockRes;
 
   beforeEach(() => {
     mockReq = {
-      params: { entry_id: "1" },
-      body: { title: "Test Title", content: "Test Content" },
+      params: { id: "1" },
+      body: { title: "Test Title", text: "Test Content" },
       headers: { authorization: "Bearer validtoken" },
     };
 
@@ -31,7 +31,7 @@ describe("PUT /v1/journal/:entry_id", () => {
   });
 
   test("should return 400 for invalid entry_id", async () => {
-    mockReq.params.entry_id = "invalid";
+    mockReq.params.id = "invalid";
     await putJournalEntry(mockReq, mockRes);
     expect(mockRes.status).toHaveBeenCalledWith(400);
     expect(mockRes.json).toHaveBeenCalledWith(
@@ -47,7 +47,7 @@ describe("PUT /v1/journal/:entry_id", () => {
     expect(mockRes.status).toHaveBeenCalledWith(400);
     expect(mockRes.json).toHaveBeenCalledWith(
       expect.objectContaining({
-        error: "Title and content are required",
+        error: "Title and text are required",
       })
     );
   });
@@ -108,27 +108,28 @@ describe("PUT /v1/journal/:entry_id", () => {
   test("should successfully update journal entry", async () => {
     jwt.decode = jest.fn().mockReturnValue({ email: "test@example.com" });
     getUserId.mockResolvedValue(1);
+
+    const mockDate = new Date("2025-02-27T14:59:17.683Z");
+    const mockUpdatedEntry = {
+      entry_id: 18,
+      title: "test2",
+      text: "hello4",
+      updated_at: mockDate,
+      image: null,
+    };
+
     pool.query
       .mockResolvedValueOnce({ rows: [{ user_id: 1 }] })
       .mockResolvedValueOnce({
-        rows: [
-          {
-            entry_id: 1,
-            title: "Updated Title",
-            content: "Updated Content",
-            updated_at: new Date(),
-          },
-        ],
+        rows: [mockUpdatedEntry],
       });
 
     await putJournalEntry(mockReq, mockRes);
     expect(mockRes.status).toHaveBeenCalledWith(200);
-    expect(mockRes.json).toHaveBeenCalledWith(
-      expect.objectContaining({
-        status: "ok",
-        data: expect.any(Object),
-      })
-    );
+    expect(mockRes.json).toHaveBeenCalledWith({
+      status: "ok",
+      data: mockUpdatedEntry,
+    });
   });
 
   test("should handle database errors", async () => {

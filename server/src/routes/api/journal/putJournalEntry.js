@@ -1,14 +1,13 @@
 // src/routes/api/journal/putJournalEntry.js
 const pool = require("../../../../database/db");
-const jwt = require("jsonwebtoken");
 const { getUserId } = require("../../../utils/userIdHelper");
 
-// PUT /v1/journal/:entry_id
+// PUT /v1/journal/:id
 // Update a journal entry
 module.exports = async (req, res) => {
   try {
     // Validate entry_id
-    const entryId = parseInt(req.params.entry_id);
+    const entryId = parseInt(req.params.id);
     if (isNaN(entryId) || entryId <= 0) {
       return res.status(400).json({
         error: "Invalid entry ID provided",
@@ -23,17 +22,14 @@ module.exports = async (req, res) => {
     }
 
     // Validate request body
-    const { title, content } = req.body;
-    if (!title || !content) {
+    const { title, text } = req.body;
+    if (!title || !text) {
       return res.status(400).json({
-        error: "Title and content are required",
+        error: "Title and text are required",
       });
     }
 
-    const token = req.headers.authorization.split(" ")[1];
-    const decoded = jwt.decode(token);
-    const userId = await getUserId(decoded.email);
-
+    const userId = await getUserId(req.headers.authorization);
     if (!userId) {
       return res.status(404).json({
         error: "User not found",
@@ -42,7 +38,7 @@ module.exports = async (req, res) => {
 
     // Check if entry exists and belongs to user
     const entryResult = await pool.query(
-      "SELECT user_id FROM journal_entries WHERE entry_id = $1",
+      "SELECT user_id FROM journalentry WHERE entry_id = $1",
       [entryId]
     );
 
@@ -60,8 +56,8 @@ module.exports = async (req, res) => {
 
     // Update the entry
     const result = await pool.query(
-      "UPDATE journal_entries SET title = $1, content = $2, updated_at = NOW() WHERE entry_id = $3 RETURNING *",
-      [title, content, entryId]
+      "UPDATE journalentry SET title = $1, text = $2, updated_at = NOW() WHERE entry_id = $3 RETURNING entry_id, title, text, updated_at, image",
+      [title, text, entryId]
     );
 
     return res.status(200).json({

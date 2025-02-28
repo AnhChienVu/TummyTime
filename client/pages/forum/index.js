@@ -118,7 +118,6 @@ export default function Forum() {
       );
 
       if (res.ok) {
-        const result = await res.json();
         // Clear the form
         reset();
         // Fetch updated posts
