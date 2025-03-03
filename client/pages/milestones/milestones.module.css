@@ -1,10 +1,8 @@
-/* Center the entire Milestones section,
-   limit its width, and add top space so it doesn’t clash with the navbar */
 .container {
   max-width: 800px;
-  margin: 80px auto 0 auto;
-  padding: 0 16px;
-  font-family: Arial, sans-serif;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 20px;
 }
 
 .headerRow {
