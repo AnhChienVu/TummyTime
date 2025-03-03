@@ -1,4 +1,4 @@
-// server/src/routes/api/milestones/getMilestone.js
+// server/src/routes/api/milestones/getMilestones.js
 
 const logger = require("../../../utils/logger");
 const {
