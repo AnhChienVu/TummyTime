@@ -1,10 +1,7 @@
 // server/src/routes/api/milestones/getMilestones.js
 
 const logger = require("../../../utils/logger");
-const {
-  createSuccessResponse,
-  createErrorResponse,
-} = require("../../../utils/response");
+const { createErrorResponse } = require("../../../utils/response");
 const pool = require("../../../../database/db");
 const { getUserId } = require("../../../utils/userIdHelper");
 const { checkBabyBelongsToUser } = require("../../../utils/babyAccessHelper");
