@@ -94,6 +94,12 @@ router.delete(
 
 // ************ /milestones routes ************
 router.get(
+  "/milestones",
+  authenticate(),
+  require("./milestones/getAllMilestones")
+);
+
+router.get(
   "/baby/:baby_id/milestones",
   authenticate(),
   require("./milestones/getMilestones").getMilestoneByBabyId
