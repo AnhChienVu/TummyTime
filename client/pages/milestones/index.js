@@ -19,6 +19,9 @@ import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { Calendar, dateFnsLocalizer } from "react-big-calendar";
+import { parse, startOfWeek, getDay } from "date-fns";
+import "react-big-calendar/lib/css/react-big-calendar.css";
 
 function Milestones() {
   const { t } = useTranslation("common");
@@ -33,6 +36,20 @@ function Milestones() {
   const [titleError, setTitleError] = useState("");
   const [detailsError, setDetailsError] = useState("");
   const [dateError, setDateError] = useState("");
+  const [milestones, setMilestones] = useState([]);
+
+  const locales = {
+    "en-US": require("date-fns/locale/en-US"),
+  };
+
+  const localizer = dateFnsLocalizer({
+    format,
+    parse,
+    startOfWeek,
+    getDay,
+    locales,
+  });
+
   const router = useRouter();
 
   const handleOpenAddMilestoneModal = (baby_id) => {
@@ -140,6 +157,7 @@ function Milestones() {
     return isValid;
   };
 
+  // Add a new milestone
   const handleSaveNewMilestone = async () => {
     setNewModalError("");
 
@@ -149,7 +167,6 @@ function Milestones() {
     }
 
     try {
-      // Add milestone
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${selectedBaby}/milestones`,
         {
@@ -169,16 +186,55 @@ function Milestones() {
       const data = await res.json();
 
       if (data.status === "ok") {
-        setModalShow(false);
-        showToast("Milstone added to server!");
-        router.reload();
+        setAddMilestoneModalShow(false);
+        showToast("Milestone added successfully!");
+        fetchMilestones(); // Refresh the calendar instead of reloading the page
+        setTitle("");
+        setDetails("");
+        setSelectedDate(null);
       } else {
-        showToast("Failed to add milestone to server.", "danger");
+        showToast("Failed to add milestone", "error");
       }
     } catch (error) {
       console.error("Error:", error);
-      showToast("Error adding milestone to server.", "danger");
+      showToast("Error adding milestone", "error");
     }
+  };
+
+  // Get all milestones for all babies
+  const fetchMilestones = async () => {
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/v1/milestones`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
+      const data = await res.json();
+      if (data.status === "ok") {
+        // Convert the milestones data to the format expected by react-big-calendar
+        const formattedMilestones = data.data.map((milestone) => ({
+          title: `${milestone.first_name} ${milestone.last_name}: ${milestone.title}`,
+          start: new Date(milestone.date),
+          end: new Date(milestone.date),
+          details: milestone.details,
+        }));
+        setMilestones(formattedMilestones);
+      }
+    } catch (error) {
+      console.error("Error fetching milestones:", error);
+      showToast("Error fetching milestones", "error");
+    }
+  };
+
+  useEffect(() => {
+    fetchMilestones();
+  }, []);
+
+  const handleEventClick = (event) => {
+    showToast(`${event.title} - ${event.details}`, "info");
   };
 
   return (
@@ -188,6 +244,35 @@ function Milestones() {
           <h1>{t("Milestones")}</h1>
           <br />
           <BabyCardMilestone addMilestoneBtn={handleOpenAddMilestoneModal} />
+        </Col>
+      </Row>
+
+      <Row className="mt-4">
+        <Col>
+          <div className={styles.calendarWrapper}>
+            <Calendar
+              localizer={localizer}
+              events={milestones}
+              startAccessor="start"
+              endAccessor="end"
+              views={["month", "week", "day"]}
+              tooltipAccessor="details"
+              eventPropGetter={(event) => ({
+                style: {
+                  backgroundColor: event.isSpecial ? "#28a745" : "#007bff",
+                },
+              })}
+              dayPropGetter={(date) => ({
+                style: {
+                  backgroundColor:
+                    date.getDay() === 0 || date.getDay() === 6
+                      ? "#f8f9fa"
+                      : "white",
+                },
+              })}
+              onSelectEvent={handleEventClick}
+            />
+          </div>
         </Col>
       </Row>
 
