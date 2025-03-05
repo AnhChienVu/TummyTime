@@ -41,7 +41,30 @@ function CheckProduct() {
       console.log(data);
       setResult(data);
     } catch (err) {
-      setError("Failed to fetch product safety information");
+      setError("Failed to fetch product safety information by barcode");
+      setResult(null);
+    }
+  };
+
+  const fetchSafetyInfoFromProductName = async (productName) => {
+    console.log(productName);
+    setError(null);
+    let url = `${process.env.NEXT_PUBLIC_API_URL}/v1/products/checkProduct?productName=${productName}`;
+
+    try {
+      const res = await fetch(url, {
+        method: "GET",
+      });
+      const data = await res.json();
+      if (data.status === "error") {
+        setError("Product not found");
+        setResult(null);
+        return;
+      }
+      console.log(data);
+      setResult(data);
+    } catch (err) {
+      setError("Failed to fetch product safety information by product name");
       setResult(null);
     }
   };
@@ -57,7 +80,7 @@ function CheckProduct() {
       handleBarcodeDetected(input);
     } else {
       // It's a product name
-      fetchSafetyInfo(input, "productName");
+      fetchSafetyInfoFromProductName(input);
     }
   };
 
@@ -75,10 +98,12 @@ function CheckProduct() {
           {cameraActive ? " Turn Off Camera" : " Turn On Camera"}
         </button>
         {cameraActive && (
-          <BarcodeScanner
-            onDetected={handleBarcodeDetected}
-            cameraActive={cameraActive}
-          />
+          <div className={styles.scannerCamera}>
+            <BarcodeScanner
+              onDetected={handleBarcodeDetected}
+              cameraActive={cameraActive}
+            />
+          </div>
         )}
         {/* <BarcodeScanner onDetected={fetchSafetyInfoFromBarcode} /> */}
 
