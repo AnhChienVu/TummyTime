@@ -19,6 +19,7 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "formidable": "^3.5.2",
+    "fuse.js": "^7.1.0",
     "http-auth": "^4.2.0",
     "http-auth-passport": "^1.0.7",
     "jsonwebtoken": "^9.0.2",
