@@ -66,7 +66,7 @@ function BarcodeScanner({ onDetected }) {
   return (
     <div>
       {error && <p style={{ color: "red" }}>{error}</p>}
-      <div ref={scannerRef} id="interactive" className="viewport" style={{ width: "100%", height: "auto" }} />
+      <div ref={scannerRef} id="interactive" className="viewport" style={{ width: "100%", height: "500px" }} />
     </div>
   );
 }
