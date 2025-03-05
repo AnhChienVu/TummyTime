@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import Quagga from "quagga";
 
-function BarcodeScanner({ onDetected }) {
+function BarcodeScanner({ onDetected, cameraActive }) {
   const scannerRef = useRef(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!scannerRef.current) return;
+    if (!cameraActive || !scannerRef.current) return;
 
     Quagga.init(
       {
@@ -61,7 +61,7 @@ function BarcodeScanner({ onDetected }) {
     return () => {
       Quagga.stop();
     };
-  }, [onDetected]);
+  }, [cameraActive, onDetected]);
 
   return (
     <div>

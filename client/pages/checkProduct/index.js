@@ -135,12 +135,17 @@ function CheckProduct() {
 
       {result && (
         <div>
-          <h3>{result.product}</h3>
-          <p>Safety Levels: {result.safetyLevel}</p>
+          <h4>Search: {result.product}</h4>
+          <h3>Safety Levels: {result.safetyLevel}</h3>
           {result.recalls.map((alert) => (
-            <div key={alert.NID}>
+            <div key={alert.NID} className={styles.alert}>
               <h4>{alert.Title}</h4>
-              <a href={alert.URL} target="_blank" rel="noopener noreferrer">
+              <a
+                href={alert.URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.alertLink}
+              >
                 View Recall Details
               </a>
             </div>
