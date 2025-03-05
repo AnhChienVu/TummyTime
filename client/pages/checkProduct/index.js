@@ -18,7 +18,7 @@ function CheckProduct() {
     setCameraActive((prev) => !prev);
   };
 
-  const fetchSafetyInfoFromBarcode = async (code) => {
+  const fetchSafetyInfoFromBarcode = useCallback(async (code) => {
     console.log(code);
     setError(null);
     let url = `${process.env.NEXT_PUBLIC_API_URL}/v1/products/checkProduct?barcode=${code}`;
@@ -44,9 +44,9 @@ function CheckProduct() {
       setError("Failed to fetch product safety information by barcode");
       setResult(null);
     }
-  };
+  }, []);
 
-  const fetchSafetyInfoFromProductName = async (productName) => {
+  const fetchSafetyInfoFromProductName = useCallback(async (productName) => {
     console.log(productName);
     setError(null);
     let url = `${process.env.NEXT_PUBLIC_API_URL}/v1/products/checkProduct?productName=${productName}`;
@@ -67,22 +67,21 @@ function CheckProduct() {
       setError("Failed to fetch product safety information by product name");
       setResult(null);
     }
-  };
+  }, []);
 
-  const handleBarcodeDetected = (code) => {
-    fetchSafetyInfoFromBarcode(code);
-  };
-
-  const checkInput = (input) => {
-    console.log(input);
-    if (/^\d{1,13}$/.test(input)) {
-      // It's a barcode
-      handleBarcodeDetected(input);
-    } else {
-      // It's a product name
-      fetchSafetyInfoFromProductName(input);
-    }
-  };
+  const checkInput = useCallback(
+    (input) => {
+      console.log(input);
+      if (/^\d{1,13}$/.test(input)) {
+        // It's a barcode
+        fetchSafetyInfoFromBarcode(input);
+      } else {
+        // It's a product name
+        fetchSafetyInfoFromProductName(input);
+      }
+    },
+    [fetchSafetyInfoFromBarcode, fetchSafetyInfoFromProductName],
+  );
 
   const handleInputChange = useCallback((e) => {
     setInput(e.target.value);
@@ -100,7 +99,7 @@ function CheckProduct() {
         {cameraActive && (
           <div className={styles.scannerCamera}>
             <BarcodeScanner
-              onDetected={handleBarcodeDetected}
+              onDetected={fetchSafetyInfoFromBarcode}
               cameraActive={cameraActive}
             />
           </div>
