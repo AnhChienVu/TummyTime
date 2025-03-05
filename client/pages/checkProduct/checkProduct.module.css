@@ -4,6 +4,7 @@
     min-height: 100vh;
     background-color: #f8f9fa;
     padding-left: 50px;
+    padding-right: 50px;
 }
 
 .barcodeScanner {
@@ -47,4 +48,17 @@
 
 .productNameForm {
     margin-top: 50px;
+}
+
+.alert {
+    margin-top: 20px;
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.alertLink {
+    color: #721c24;
+    text-decoration: underline;
 }
