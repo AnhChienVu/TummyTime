@@ -137,13 +137,21 @@ function Sidebar() {
         >
           {t("Curated Tips")}
         </Nav.Link>
-          <Nav.Link
+        <Nav.Link
           as={Link}
           href="/settings"
           locale={locale}
           className={styles.navlink}
         >
           {t("Settings")}
+        </Nav.Link>
+        <Nav.Link
+          as={Link}
+          href="/medicalProfessional"
+          locale={locale}
+          className={styles.navlink}
+        >
+          {t("Medical Professional")}
         </Nav.Link>
       </Nav>
     </Col>
