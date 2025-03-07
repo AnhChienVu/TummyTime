@@ -14,11 +14,8 @@ import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import styles from "./milestones.module.css";
 import BabyCardMilestone from "@/components/BabyCardMilestone/BabyCardMilestone";
 import { AiOutlineInfoCircle } from "react-icons/ai";
-import { useRouter } from "next/router";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 import { Calendar, dateFnsLocalizer } from "react-big-calendar";
 import { parse, startOfWeek, getDay } from "date-fns";
 import "react-big-calendar/lib/css/react-big-calendar.css";
@@ -31,12 +28,15 @@ function Milestones() {
   const [newModalError, setNewModalError] = useState("");
   const [selectedBaby, setSelectedBaby] = useState(null);
   const [toasts, setToasts] = useState([]);
-  const [modalShow, setModalShow] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const [titleError, setTitleError] = useState("");
   const [detailsError, setDetailsError] = useState("");
   const [dateError, setDateError] = useState("");
   const [milestones, setMilestones] = useState([]);
+
+  // modal for displaying milestone details
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedMilestone, setSelectedMilestone] = useState(null);
 
   const locales = {
     "en-US": require("date-fns/locale/en-US"),
@@ -49,8 +49,6 @@ function Milestones() {
     getDay,
     locales,
   });
-
-  const router = useRouter();
 
   const handleOpenAddMilestoneModal = (baby_id) => {
     setNewModalError("");
@@ -148,8 +146,26 @@ function Milestones() {
       isValid = false;
     } else {
       const selectedDateTime = new Date(selectedDate);
+
+      // Check if date is valid
       if (isNaN(selectedDateTime.getTime())) {
         setDateError(t("Invalid date format."));
+        isValid = false;
+      }
+
+      // Check if date is too far in the future (max 5 years)
+      const fiveYearsFromNow = new Date();
+      fiveYearsFromNow.setFullYear(fiveYearsFromNow.getFullYear() + 5);
+      if (selectedDateTime > fiveYearsFromNow) {
+        setDateError(t("Date cannot be more than 5 years in the future."));
+        isValid = false;
+      }
+
+      // Check if date is too far in the past (max 50 years)
+      const fiftyYearsAgo = new Date();
+      fiftyYearsAgo.setFullYear(fiftyYearsAgo.getFullYear() - 50);
+      if (selectedDateTime < fiftyYearsAgo) {
+        setDateError(t("Date cannot be more than 50 years in the past."));
         isValid = false;
       }
     }
@@ -234,7 +250,8 @@ function Milestones() {
   }, []);
 
   const handleEventClick = (event) => {
-    showToast(`${event.title} - ${event.details}`, "info");
+    setSelectedMilestone(event);
+    setShowDetailsModal(true);
   };
 
   return (
@@ -242,37 +259,40 @@ function Milestones() {
       <Row>
         <Col>
           <h1>{t("Milestones")}</h1>
-          <br />
+          <Col>
+            <div className={styles.calendarWrapper}>
+              <Calendar
+                localizer={localizer}
+                events={milestones}
+                startAccessor="start"
+                endAccessor="end"
+                views={["month", "week", "day"]}
+                tooltipAccessor="details"
+                eventPropGetter={(event) => ({
+                  style: {
+                    backgroundColor: "#007bff",
+                  },
+                })}
+                dayPropGetter={(date) => {
+                  const isToday =
+                    format(date, "yyyy-MM-dd") ===
+                    format(new Date(), "yyyy-MM-dd");
+                  const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+                  return {
+                    style: {
+                      backgroundColor: isToday
+                        ? "#f756566c" // background for today
+                        : isWeekend
+                        ? "#f8f9fa"
+                        : "white",
+                    },
+                  };
+                }}
+                onSelectEvent={handleEventClick}
+              />
+            </div>
+          </Col>
           <BabyCardMilestone addMilestoneBtn={handleOpenAddMilestoneModal} />
-        </Col>
-      </Row>
-
-      <Row className="mt-4">
-        <Col>
-          <div className={styles.calendarWrapper}>
-            <Calendar
-              localizer={localizer}
-              events={milestones}
-              startAccessor="start"
-              endAccessor="end"
-              views={["month", "week", "day"]}
-              tooltipAccessor="details"
-              eventPropGetter={(event) => ({
-                style: {
-                  backgroundColor: event.isSpecial ? "#28a745" : "#007bff",
-                },
-              })}
-              dayPropGetter={(date) => ({
-                style: {
-                  backgroundColor:
-                    date.getDay() === 0 || date.getDay() === 6
-                      ? "#f8f9fa"
-                      : "white",
-                },
-              })}
-              onSelectEvent={handleEventClick}
-            />
-          </div>
         </Col>
       </Row>
 
@@ -304,26 +324,19 @@ function Milestones() {
             </Form.Group>
 
             <Form.Group className="mb-3" controlId="date">
-              <Form.Label>{t("Date")}&nbsp;&nbsp;</Form.Label>
-              <div>
-                <DatePicker
-                  selected={selectedDate}
-                  onChange={(date) => {
-                    setSelectedDate(date);
-                  }}
-                  className={`form-control ${dateError ? "is-invalid" : ""}`}
-                  dateFormat="yyyy-MM-dd"
-                  placeholderText={t("Select date")}
-                />
-                {dateError && (
-                  <div
-                    className="invalid-feedback"
-                    style={{ display: "block" }}
-                  >
-                    {dateError}
-                  </div>
-                )}
-              </div>
+              <Form.Label>{t("Date")}</Form.Label>
+              <Form.Control
+                type="date"
+                value={selectedDate ? format(selectedDate, "yyyy-MM-dd") : ""}
+                onChange={(e) => {
+                  const date = e.target.value ? new Date(e.target.value) : null;
+                  setSelectedDate(date);
+                }}
+                isInvalid={!!dateError}
+              />
+              <Form.Control.Feedback type="invalid">
+                {dateError}
+              </Form.Control.Feedback>
             </Form.Group>
 
             <Form.Group className="mb-3" controlId="details">
@@ -354,6 +367,32 @@ function Milestones() {
           </Button>
           <Button className={styles.btnSave} onClick={handleSaveNewMilestone}>
             {t("Save")}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Milestone details Modal */}
+      <Modal show={showDetailsModal} onHide={() => setShowDetailsModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>{t("Milestone Details")}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {selectedMilestone && (
+            <>
+              <h5>{selectedMilestone.title}</h5>
+              <small>{format(selectedMilestone.start, "MMMM d, yyyy")}</small>
+              <br />
+              <br />
+              <p>{selectedMilestone.details}</p>
+            </>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => setShowDetailsModal(false)}
+          >
+            {t("Close")}
           </Button>
         </Modal.Footer>
       </Modal>
