@@ -1,245 +1,251 @@
 // src/routes/api/index.js
 // Our authentication middleware
-const { authenticate } = require("../../auth");
+const { authenticate } = require('../../auth');
 /**
  * The main entry-point for the v1 version of the API.
  */
-const express = require("express");
+const express = require('express');
 
 // Create a router on which to mount our API endpoints
 const router = express.Router();
 
 // Import all of stool API endpoints
-const { getStoolEntries } = require("./baby/stool/getStool");
-const { createStoolEntry } = require("./baby/stool/postStool");
-const { updateStoolEntry } = require("./baby/stool/putStool");
-const { deleteStoolEntry } = require("./baby/stool/deleteStool");
+const { getStoolEntries } = require('./baby/stool/getStool');
+const { createStoolEntry } = require('./baby/stool/postStool');
+const { updateStoolEntry } = require('./baby/stool/putStool');
+const { deleteStoolEntry } = require('./baby/stool/deleteStool');
 
-router.post("/login", require("./login"));
+router.post('/login', require('./login'));
 
-router.post("/signup", require("./signup"));
+router.post('/signup', require('./signup'));
 
 // ************ /feedingSchedule routes ************
 router.get(
-  "/baby/:id/getFeedingSchedules",
+  '/baby/:id/getFeedingSchedules',
   authenticate(),
-  require("./baby/getFeedingSchedules")
+  require('./baby/getFeedingSchedules')
 );
 
 router.put(
-  "/baby/:id/updateFeedingSchedule/:mealId",
+  '/baby/:id/updateFeedingSchedule/:mealId',
   authenticate(),
-  require("./baby/updateFeedingSchedule")
+  require('./baby/updateFeedingSchedule')
 );
 
 router.delete(
-  "/baby/:id/deleteFeedingSchedule/:mealId",
+  '/baby/:id/deleteFeedingSchedule/:mealId',
   authenticate(),
-  require("./baby/deleteFeedingSchedule")
+  require('./baby/deleteFeedingSchedule')
 );
 
 router.post(
-  "/baby/:id/addFeedingSchedule",
+  '/baby/:id/addFeedingSchedule',
   authenticate(),
-  require("./baby/addFeedingSchedule")
+  require('./baby/addFeedingSchedule')
 );
 
 router.get(
-  "/user/:id/getBabyProfiles",
+  '/user/:id/getBabyProfiles',
   authenticate(),
-  require("./baby/babyProfile/getBabyProfile")
+  require('./baby/babyProfile/getBabyProfile')
 );
 
 //************ /user routes ************
-router.get("/user/me", authenticate(), require("./user/me").getUserDetails);
+router.get('/user/me', authenticate(), require('./user/me').getUserDetails);
 
-router.get("/user", authenticate(), require("./user/getUser").getUserById);
+router.get('/user', authenticate(), require('./user/getUser').getUserById);
 
 router.put(
-  "/user/:id",
+  '/user/:id',
   authenticate(),
-  require("./user/putUser").updateUserById
+  require('./user/putUser').updateUserById
 );
 
 router.delete(
-  "/user/:id",
+  '/user/:id',
   authenticate(),
-  require("./user/deleteUser").deleteUserById
+  require('./user/deleteUser').deleteUserById
 );
 
 // ************ /growth routes ************
 router.get(
-  "/baby/:babyId/growth/",
+  '/baby/:babyId/growth/',
   authenticate(),
-  require("./growth/getGrowth").getAllGrowth
+  require('./growth/getGrowth').getAllGrowth
 ); // Get all Growth records by [:babyId]
 
 router.post(
-  "/baby/:babyId/growth",
+  '/baby/:babyId/growth',
   authenticate(),
-  require("./growth/postGrowth").createGrowth
+  require('./growth/postGrowth').createGrowth
 );
 
 router.put(
-  "/baby/:babyId/growth/:growthId",
+  '/baby/:babyId/growth/:growthId',
   authenticate(),
-  require("./growth/putGrowth").updateGrowthById
+  require('./growth/putGrowth').updateGrowthById
 );
 
 router.delete(
-  "/baby/:babyId/growth/:growthId",
+  '/baby/:babyId/growth/:growthId',
   authenticate(),
-  require("./growth/deleteGrowth").deleteGrowthById
+  require('./growth/deleteGrowth').deleteGrowthById
 );
 
 // ************ /milestones routes ************
 router.get(
-  "/baby/:baby_id/getMilestones/",
+  '/baby/:baby_id/getMilestones/',
   authenticate(),
-  require("./milestones/getMilestones").getMilestoneByBabyId
+  require('./milestones/getMilestones').getMilestoneByBabyId
 );
 
 router.post(
-  "/baby/:baby_id/addMilestone/",
+  '/baby/:baby_id/addMilestone/',
   authenticate(),
-  require("./milestones/postMilestone").createMilestone
+  require('./milestones/postMilestone').createMilestone
 );
 
 router.put(
-  "/baby/:baby_id/updateMilestone/:milestone_id",
+  '/baby/:baby_id/updateMilestone/:milestone_id',
   authenticate(),
-  require("./milestones/putMilestone").updateMilestoneById
+  require('./milestones/putMilestone').updateMilestoneById
 );
 
 router.delete(
-  "/baby/:baby_id/deleteMilestone/:milestone_id",
+  '/baby/:baby_id/deleteMilestone/:milestone_id',
   authenticate(),
-  require("./milestones/deleteMilestone").deleteMilestoneById
+  require('./milestones/deleteMilestone').deleteMilestoneById
 );
 
 // ************ /babyProfile routes ************
 router.post(
-  "/baby",
+  '/baby',
   authenticate(),
-  require("./baby/babyProfile/addBabyProfile")
+  require('./baby/babyProfile/addBabyProfile')
 );
 
 router.get(
-  "/babies",
+  '/babies',
   authenticate(),
-  require("./baby/babyProfile/getAllBabyProfiles")
+  require('./baby/babyProfile/getAllBabyProfiles')
 );
 
 // GET one baby profile
 router.get(
-  "/baby/:baby_id",
+  '/baby/:baby_id',
   authenticate(),
-  require("./baby/babyProfile/getBabyProfile")
+  require('./baby/babyProfile/getBabyProfile')
 );
 
 router.put(
-  "/baby/:baby_id",
+  '/baby/:baby_id',
   authenticate(),
-  require("./baby/babyProfile/putBabyProfile")
+  require('./baby/babyProfile/putBabyProfile')
 );
 
 router.delete(
-  "/baby/:baby_id",
+  '/baby/:baby_id',
   authenticate(),
-  require("./baby/babyProfile/deleteBabyProfile")
+  require('./baby/babyProfile/deleteBabyProfile')
 );
 
 // ************ /journal routes ************
-router.post("/journal", authenticate(), require("./journal/addJournalEntry"));
+router.post('/journal', authenticate(), require('./journal/addJournalEntry'));
 
-router.get("/journal", authenticate(), require("./journal/getJournalEntries"));
+router.get('/journal', authenticate(), require('./journal/getJournalEntries'));
 
 router.get(
-  "/journal/:id",
+  '/journal/:id',
   authenticate(),
-  require("./journal/getJournalEntry")
+  require('./journal/getJournalEntry')
 );
 
 router.put(
-  "/journal/:id",
+  '/journal/:id',
   authenticate(),
-  require("./journal/putJournalEntry")
+  require('./journal/putJournalEntry')
 );
 
 router.delete(
-  "/journal/:id",
+  '/journal/:id',
   authenticate(),
-  require("./journal/deleteJournalEntry")
+  require('./journal/deleteJournalEntry')
 );
 
 // ************ /forum routes ************
 router.post(
-  "/forum/posts/add",
+  '/forum/posts/add',
   authenticate(),
-  require("./forum/posts/addPost")
+  require('./forum/posts/addPost')
 );
 
 router.get(
-  "/forum/posts/:post_id",
+  '/forum/posts/:post_id',
   authenticate(),
-  require("./forum/posts/getPost")
+  require('./forum/posts/getPost')
 );
 
-router.get("/forum/posts", authenticate(), require("./forum/posts/getPosts"));
+router.get('/forum/posts', authenticate(), require('./forum/posts/getPosts'));
 
 router.put(
-  "/forum/posts/:post_id",
+  '/forum/posts/:post_id',
   authenticate(),
-  require("./forum/posts/putPost")
+  require('./forum/posts/putPost')
 );
 
 router.delete(
-  "/forum/posts/:post_id",
+  '/forum/posts/:post_id',
   authenticate(),
-  require("./forum/posts/deletePost")
+  require('./forum/posts/deletePost')
 );
 
 router.post(
-  "/forum/posts/:post_id/reply",
+  '/forum/posts/:post_id/reply',
   authenticate(),
-  require("./forum/replies/addReply")
+  require('./forum/replies/addReply')
 );
 
 router.get(
-  "/forum/posts/:post_id/replies",
+  '/forum/posts/:post_id/replies',
   authenticate(),
-  require("./forum/replies/getReplies")
+  require('./forum/replies/getReplies')
 );
 
 router.put(
-  "/forum/replies/:reply_id",
+  '/forum/replies/:reply_id',
   authenticate(),
-  require("./forum/replies/putReply")
+  require('./forum/replies/putReply')
 );
 
 router.delete(
-  "/forum/replies/:reply_id",
+  '/forum/replies/:reply_id',
   authenticate(),
-  require("./forum/replies/deleteReply")
+  require('./forum/replies/deleteReply')
 );
 
 // ************ /coupons routes ************
-router.get("/coupons", require("./coupons/getAllCoupons"));
+router.get('/coupons', require('./coupons/getAllCoupons'));
 
 // ************ /voiceCommand routes ************
 router.post(
-  "/voiceCommand",
-  require("./voiceCommand/processVoiceCommand").processVoiceCommand
+  '/voiceCommand',
+  require('./voiceCommand/processVoiceCommand').processVoiceCommand
 );
 
 // ************ /tips routes ************
-router.get("/tips", require("./tips/getAllTips"));
+router.get('/tips', require('./tips/getAllTips'));
 
 // ************ Stool routes ************
-router.get("/baby/:babyId/stool", authenticate(), getStoolEntries);
-router.post("/baby/:babyId/stool", authenticate(), createStoolEntry);
-router.put("/baby/:babyId/stool/:stoolId", authenticate(), updateStoolEntry);
-router.delete("/baby/:babyId/stool/:stoolId", authenticate(), deleteStoolEntry);
+router.get('/baby/:babyId/stool', authenticate(), getStoolEntries);
+router.post('/baby/:babyId/stool', authenticate(), createStoolEntry);
+router.put('/baby/:babyId/stool/:stoolId', authenticate(), updateStoolEntry);
+router.delete('/baby/:babyId/stool/:stoolId', authenticate(), deleteStoolEntry);
+
+// ************ /healthRecord routes ************
+router.get(
+  '/doctor/:doctorId/healthRecords',
+  require('./healthRecord/getAllHealthRecords').getAllHealthRecords
+);
 
 // Testing the authentication middleware
 // router.get('/test', authenticate(), require('./test'));

@@ -40,10 +40,14 @@ export default function Login() {
           localStorage.setItem("token", data.token);
           router.push("/register");
         } else {
-          console.log("Login successfully");
+          const userRole = data.userRole;
+          console.log(`Login as ${userRole} successfully`);
           localStorage.setItem("token", data.token);
           localStorage.setItem("userId", data.userId);
-          router.push("/profile");
+          localStorage.setItem("userRole", userRole);
+          if (userRole === "Parent") router.push("/profile");
+          else if (userRole === "Medical Professional")
+            router.push(`/doctor/${data.userId}`);
         }
       } else {
         setError("Invalid credentials");
