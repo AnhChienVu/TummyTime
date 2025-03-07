@@ -1,34 +1,80 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaUserMd, FaSearch } from "react-icons/fa";
 import { Line, Pie } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+} from "chart.js";
+import { format } from "date-fns";
 import styles from "./doctor.module.css";
+
+// Register the necessary components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+);
 
 const DoctorDashboard = () => {
   const [activeTab, setActiveTab] = useState("vitals");
+  const [healthRecords, setHealthRecords] = useState([]);
 
-  const dummyPatients = [
-    {
-      id: 1,
-      name: "John Doe",
-      age: 45,
-      lastConsult: "2024-01-15",
-      status: "Stable",
-    },
-    {
-      id: 2,
-      name: "Jane Smith",
-      age: 32,
-      lastConsult: "2024-01-14",
-      status: "Critical",
-    },
-    {
-      id: 3,
-      name: "Robert Brown",
-      age: 58,
-      lastConsult: "2024-01-13",
-      status: "Review",
-    },
-  ];
+  useEffect(() => {
+    const fetchBabyHealthRecords = async () => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/v1/doctor/${localStorage.userId}/healthRecords`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.token}`,
+          },
+        },
+      );
+
+      const data = await res.json();
+      if (data.status === "ok") {
+        setHealthRecords(data.combinedData);
+      }
+    };
+    fetchBabyHealthRecords();
+  }, []);
+
+  // const dummyPatients = [
+  //   {
+  //     id: 1,
+  //     name: "John Doe",
+  //     age: 45,
+  //     lastConsult: "2024-01-15",
+  //     status: "Stable",
+  //   },
+  //   {
+  //     id: 2,
+  //     name: "Jane Smith",
+  //     age: 32,
+  //     lastConsult: "2024-01-14",
+  //     status: "Critical",
+  //   },
+  //   {
+  //     id: 3,
+  //     name: "Robert Brown",
+  //     age: 58,
+  //     lastConsult: "2024-01-13",
+  //     status: "Review",
+  //   },
+  // ];
 
   const vitalData = {
     labels: ["Jan", "Feb", "Mar", "Apr", "May"],
@@ -65,8 +111,10 @@ const DoctorDashboard = () => {
         {/* Overview Cards */}
         <div className={styles.overviewCard}>
           <div className={styles.card}>
-            <h3 className="text-lg font-semibold mb-2">Recent Patients</h3>
-            <p className={`${styles.value} ${styles.value1}`}>24</p>
+            <h3 className="text-lg font-semibold mb-2">Recent Babies</h3>
+            <p className={`${styles.value} ${styles.value1}`}>
+              {healthRecords.length}
+            </p>
           </div>
           <div className={styles.card}>
             <h3 className="text-lg font-semibold mb-2">
@@ -84,12 +132,12 @@ const DoctorDashboard = () => {
           {/* Patient List */}
           <div className={styles.patientList}>
             <div className={styles.patientListHeader}>
-              <h2 className="text-lg font-bold">Patient Directory</h2>
+              <h2 className="text-lg font-bold">Baby Directory</h2>
               <div className={styles.searchBar}>
                 <FaSearch className={styles.searchIcon} />
                 <input
                   type="text"
-                  placeholder="Search patients..."
+                  placeholder="Search babies..."
                   className="pl-10 pr-4 py-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-700"
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -100,32 +148,33 @@ const DoctorDashboard = () => {
                 <thead>
                   <tr>
                     <th>Name</th>
-                    <th>Age</th>
                     <th>Last Consultation</th>
                     <th>Status</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {dummyPatients.map((patient) => (
-                    <tr key={patient.id} className={styles.tableRow}>
-                      <td>{patient.name}</td>
-                      <td>{patient.age}</td>
-                      <td>{patient.lastConsult}</td>
-                      <td>
-                        <span
-                          className={`${styles.status} ${
-                            patient.status === "Critical"
-                              ? styles.statusCritical
-                              : patient.status === "Stable"
-                              ? styles.statusStable
-                              : styles.statusReview
-                          }`}
-                        >
-                          {patient.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  {healthRecords &&
+                    healthRecords.map((patient) => (
+                      <tr key={patient.record_id} className={styles.tableRow}>
+                        <td>
+                          {patient.first_name} {patient.last_name}
+                        </td>
+                        <td>{format(new Date(patient.date), "yyyy-MM-dd")}</td>
+                        <td>
+                          <span
+                            className={`${styles.status} ${
+                              patient.status === "Critical"
+                                ? styles.statusCritical
+                                : patient.status === "Stable"
+                                ? styles.statusStable
+                                : styles.statusReview
+                            }`}
+                          >
+                            {patient.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             </div>
