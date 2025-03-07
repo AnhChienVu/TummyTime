@@ -26,6 +26,8 @@ function MilestoneEachBaby() {
   const [details, setDetails] = useState("");
   const [toasts, setToasts] = useState([]);
   const [date, setDate] = useState("");
+  const [deleteModalShow, setDeleteModalShow] = useState(false);
+  const [milestoneToDelete, setMilestoneToDelete] = useState(null);
 
   const router = useRouter();
   const baby_id = router.query.id;
@@ -192,12 +194,15 @@ function MilestoneEachBaby() {
     }
   };
 
-  // DELETE milestone
-  const handleDeleteMilestone = async (milstone) => {
-    const milestone_id = milstone.milestone_id;
+  const handleDeleteClick = (milestone) => {
+    setMilestoneToDelete(milestone);
+    setDeleteModalShow(true);
+  };
+
+  const handleDeleteConfirm = async () => {
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${milstone.baby_id}/milestones/${milestone_id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${milestoneToDelete.baby_id}/milestones/${milestoneToDelete.milestone_id}`,
         {
           method: "DELETE",
           headers: {
@@ -209,16 +214,18 @@ function MilestoneEachBaby() {
 
       const data = await res.json();
       if (data.status === "ok") {
-        setModalShow(false);
-        // Update the milestones state directly instead of reloading the page
+        setDeleteModalShow(false);
         setMilestones(
-          milestones.filter((m) => m.milestone_id !== milestone_id),
+          milestones.filter(
+            (m) => m.milestone_id !== milestoneToDelete.milestone_id,
+          ),
         );
         showToast("Milestone deleted!");
       }
     } catch (error) {
       showToast("Error deleting milestone.", "danger");
     }
+    setMilestoneToDelete(null);
   };
 
   return (
@@ -255,7 +262,7 @@ function MilestoneEachBaby() {
                   </button>
                   <button
                     className={styles.deleteBtn}
-                    onClick={() => handleDeleteMilestone(milestone)}
+                    onClick={() => handleDeleteClick(milestone)}
                   >
                     <FaTrash />
                   </button>
@@ -331,11 +338,34 @@ function MilestoneEachBaby() {
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setModalShow(false)}>
-            {t("Close")}
+          <Button
+            variant="outline-secondary"
+            onClick={() => setModalShow(false)}
+          >
+            {t("Cancel")}
           </Button>
           <Button variant="primary" onClick={handleSaveMilestone}>
             {t("Save Changes")}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <Modal show={deleteModalShow} onHide={() => setDeleteModalShow(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>{t("Confirm Deletion")}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {t("Are you sure you want to delete this milestone?")}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="outline-secondary"
+            onClick={() => setDeleteModalShow(false)}
+          >
+            {t("Cancel")}
+          </Button>
+          <Button variant="danger" onClick={handleDeleteConfirm}>
+            {t("Delete")}
           </Button>
         </Modal.Footer>
       </Modal>
