@@ -329,7 +329,9 @@ function Milestones() {
                 type="date"
                 value={selectedDate ? format(selectedDate, "yyyy-MM-dd") : ""}
                 onChange={(e) => {
-                  const date = e.target.value ? new Date(e.target.value) : null;
+                  const date = e.target.value
+                    ? new Date(e.target.value + "T00:00:00")
+                    : null;
                   setSelectedDate(date);
                 }}
                 isInvalid={!!dateError}
