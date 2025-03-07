@@ -360,7 +360,7 @@ function Milestones() {
         </Modal.Body>
         <Modal.Footer>
           <Button
-            className={styles.btnCancel}
+            variant="outline-secondary"
             onClick={() => setAddMilestoneModalShow(false)}
           >
             {t("Cancel")}
@@ -389,7 +389,7 @@ function Milestones() {
         </Modal.Body>
         <Modal.Footer>
           <Button
-            variant="secondary"
+            variant="outline-secondary"
             onClick={() => setShowDetailsModal(false)}
           >
             {t("Close")}
