@@ -246,6 +246,12 @@ router.post("/baby/:babyId/stool", authenticate(), createStoolEntry);
 router.put("/baby/:babyId/stool/:stoolId", authenticate(), updateStoolEntry);
 router.delete("/baby/:babyId/stool/:stoolId", authenticate(), deleteStoolEntry);
 
+// ************ /healthRecord routes ************
+router.get(
+  "/doctor/:doctorId/healthRecords",
+  require("./healthRecord/getAllHealthRecords").getAllHealthRecords
+);
+
 // Testing the authentication middleware
 // router.get('/test', authenticate(), require('./test'));
 module.exports = router;
