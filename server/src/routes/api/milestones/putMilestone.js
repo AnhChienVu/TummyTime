@@ -1,21 +1,21 @@
 // server/src/routes/api/milestones/putMilestone.js
-// Route for PUT /v1/baby/:baby_id/updateMilestone/:milestone_id
 
-const logger = require('../../../utils/logger');
+const logger = require("../../../utils/logger");
 const {
   createSuccessResponse,
   createErrorResponse,
-} = require('../../../utils/response');
-const pool = require('../../../../database/db');
+} = require("../../../utils/response");
+const pool = require("../../../../database/db");
 
-// PUT /milestones/:milestoneId - Update a Milestone record by milestoneId
+// PUT /baby/:baby_id/milestones/:milestone_id
+// Update a milestone by milestone_id
 module.exports.updateMilestoneById = async (req, res) => {
   const { milestone_id } = req.params;
   const { date, title, details } = req.body;
 
   try {
     const result = await pool.query(
-      'UPDATE milestones SET date = $1, title = $2, details = $3 WHERE milestone_id = $4 RETURNING *',
+      "UPDATE milestones SET date = $1, title = $2, details = $3 WHERE milestone_id = $4 RETURNING *",
       [date, title, details, milestone_id]
     );
 

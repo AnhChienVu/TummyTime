@@ -40,7 +40,6 @@ function BabyCardMilestone({ addMilestoneBtn }) {
 
     fetchBabyProfiles();
   }, []); // Ensure the dependency array is empty to run only once on mount
-  babyProfiles.map(baby => console.log(baby.baby_id));
 
   return (
     <div>
@@ -64,7 +63,7 @@ function BabyCardMilestone({ addMilestoneBtn }) {
 
               <Link href={`/baby/${baby.baby_id}/milestones`} passHref>
                 <Button className={styles.customButton}>
-                  {t("See details")}
+                  {t("View milestones")}
                 </Button>
               </Link>
               <Button
