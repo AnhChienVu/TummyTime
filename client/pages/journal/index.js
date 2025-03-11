@@ -36,6 +36,7 @@ export default function Journal() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmed, setDeleteConfirmed] = useState(false);
   const [selectedInput, setSelectedInput] = useState(null);
+  const [editSelectedInput, setEditSelectedInput] = useState(null);
 
   const {
     isListening,
@@ -92,6 +93,55 @@ export default function Journal() {
     }
     stopListening();
     setSelectedInput(null);
+  };
+
+  const startStopListeningEdit = (e, inputType) => {
+    e.preventDefault();
+
+    // Check if using Firefox only when button is clicked
+    const isFirefox =
+      typeof window !== "undefined" &&
+      navigator.userAgent.toLowerCase().indexOf("firefox") > -1;
+
+    // Check for SpeechRecognition support
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition && isFirefox) {
+      setShowFirefoxModal(true);
+      return;
+    }
+
+    if (isListening) {
+      stopVoiceInputEdit();
+    } else {
+      setEditSelectedInput(inputType);
+      startListening();
+    }
+  };
+
+  const stopVoiceInputEdit = () => {
+    if (editSelectedInput === "title") {
+      setEditedEntry({
+        ...editedEntry,
+        title:
+          editedEntry.title +
+          (transcript.length
+            ? (editedEntry.title.length ? " " : "") + transcript
+            : ""),
+      });
+    } else {
+      setEditedEntry({
+        ...editedEntry,
+        text:
+          editedEntry.text +
+          (transcript.length
+            ? (editedEntry.text.length ? " " : "") + transcript
+            : ""),
+      });
+    }
+    stopListening();
+    setEditSelectedInput(null);
   };
 
   useEffect(() => {
@@ -208,6 +258,12 @@ export default function Journal() {
   const handleUpdate = async () => {
     if (!editedEntry || !selectedEntry) return;
 
+    // Validate empty values
+    if (!editedEntry.title?.trim() || !editedEntry.text?.trim()) {
+      alert(t("Title and content cannot be empty"));
+      return;
+    }
+
     // Check if data was modified
     if (
       editedEntry.title === selectedEntry.title &&
@@ -232,8 +288,8 @@ export default function Journal() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            title: editedEntry.title,
-            text: editedEntry.text,
+            title: editedEntry.title.trim(),
+            text: editedEntry.text.trim(),
             updated_at: currentTime,
           }),
         },
@@ -499,40 +555,88 @@ export default function Journal() {
         >
           <Modal.Header closeButton>
             {isEditing ? (
-              <Form.Control
-                type="text"
-                value={editedEntry?.title || ""}
-                onChange={(e) =>
-                  setEditedEntry({ ...editedEntry, title: e.target.value })
-                }
-                className="border-0 h4"
-              />
+              <div className="d-flex w-100 align-items-center">
+                <Form.Control
+                  type="text"
+                  value={
+                    isListening && editSelectedInput === "title"
+                      ? editedEntry?.title + (transcript || "")
+                      : editedEntry?.title || ""
+                  }
+                  required
+                  onChange={(e) =>
+                    setEditedEntry({ ...editedEntry, title: e.target.value })
+                  }
+                  className={`border-0 h4 flex-grow-1 me-2 ${
+                    editedEntry?.title?.trim() === "" ? "is-invalid" : ""
+                  }`}
+                  disabled={isListening}
+                />
+                <button
+                  onClick={(e) => startStopListeningEdit(e, "title")}
+                  className={`${styles.microphone} btn-sm`}
+                >
+                  <FontAwesomeIcon
+                    icon={
+                      isListening && editSelectedInput === "title"
+                        ? faMicrophoneSlash
+                        : faMicrophone
+                    }
+                    size="sm"
+                  />
+                </button>
+              </div>
             ) : (
               <Modal.Title>{selectedEntry?.title}</Modal.Title>
             )}
           </Modal.Header>
           <Modal.Body>
             {isEditing ? (
-              <Form.Control
-                as="textarea"
-                rows={5}
-                value={editedEntry?.text || ""}
-                onChange={(e) =>
-                  setEditedEntry({ ...editedEntry, text: e.target.value })
-                }
-                className="border-0"
-              />
+              <div>
+                <div className="d-flex">
+                  <Form.Control
+                    as="textarea"
+                    rows={5}
+                    required
+                    value={
+                      isListening && editSelectedInput === "text"
+                        ? editedEntry?.text + (transcript || "")
+                        : editedEntry?.text || ""
+                    }
+                    onChange={(e) =>
+                      setEditedEntry({ ...editedEntry, text: e.target.value })
+                    }
+                    className={`border-0 ${
+                      editedEntry?.text?.trim() === "" ? "is-invalid" : ""
+                    }`}
+                    disabled={isListening}
+                  />
+                  <button
+                    onClick={(e) => startStopListeningEdit(e, "text")}
+                    className={`${styles.microphone} btn-sm ms-2`}
+                  >
+                    <FontAwesomeIcon
+                      icon={
+                        isListening && editSelectedInput === "text"
+                          ? faMicrophoneSlash
+                          : faMicrophone
+                      }
+                      size="sm"
+                    />
+                  </button>
+                </div>
+              </div>
             ) : (
               <p className={styles.modalText}>{selectedEntry?.text}</p>
             )}
-            {selectedEntry?.image && (
+            {/* {selectedEntry?.image && (
               <Image
                 src={selectedEntry.image}
                 alt="journal entry"
                 className={styles.modalImage}
                 fluid
               />
-            )}
+            )} */}
             <div className={styles.modalFooter}>
               {selectedEntry && (
                 <small className="text-muted">
@@ -573,13 +677,6 @@ export default function Journal() {
             {isEditing ? (
               <div className="w-100 d-flex justify-content-end">
                 <Button
-                  variant="primary"
-                  onClick={handleUpdate}
-                  className="me-2"
-                >
-                  {t("Save Changes")}
-                </Button>
-                <Button
                   variant="light"
                   onClick={() => {
                     setIsEditing(false);
@@ -588,6 +685,14 @@ export default function Journal() {
                   className="border border-secondary"
                 >
                   {t("Cancel")}
+                </Button>
+                &nbsp;
+                <Button
+                  variant="primary"
+                  onClick={handleUpdate}
+                  className="me-2"
+                >
+                  {t("Save Changes")}
                 </Button>
               </div>
             ) : (
@@ -605,6 +710,14 @@ export default function Journal() {
                 </div>
                 <div>
                   <Button
+                    variant="light"
+                    onClick={() => setShowModal(false)}
+                    className="border border-secondary"
+                  >
+                    {t("Close")}
+                  </Button>
+                  &nbsp;
+                  <Button
                     variant="primary"
                     onClick={() => {
                       setEditedEntry({ ...selectedEntry });
@@ -612,14 +725,7 @@ export default function Journal() {
                     }}
                     className="me-2"
                   >
-                    {t("Edit")}
-                  </Button>
-                  <Button
-                    variant="light"
-                    onClick={() => setShowModal(false)}
-                    className="border border-secondary"
-                  >
-                    {t("Close")}
+                    {t("Edit Entry")}
                   </Button>
                 </div>
               </>
