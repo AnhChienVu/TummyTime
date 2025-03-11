@@ -34,7 +34,7 @@ function useSpeechToText(options) {
       recognition.onresult = (event) => {
         const current = event.resultIndex;
         const transcript = event.results[current][0].transcript;
-        setTranscript(transcript);
+        setTranscript((prev) => prev + transcript); // Append new transcript to existing one
       };
 
       recognition.onerror = (event) => {
@@ -58,6 +58,10 @@ function useSpeechToText(options) {
     };
   }, []); // Empty dependency array since we only want to initialize once
 
+  const resetTranscript = () => {
+    setTranscript("");
+  };
+
   const startListening = () => {
     if (!recognitionRef.current) {
       console.error("Speech recognition not initialized");
@@ -66,6 +70,7 @@ function useSpeechToText(options) {
     }
 
     try {
+      resetTranscript(); // Clear transcript before starting new session
       recognitionRef.current.start();
       setIsListening(true);
       setError(null);
@@ -93,6 +98,7 @@ function useSpeechToText(options) {
     error,
     startListening,
     stopListening,
+    resetTranscript, // Add this to the returned object
     showFirefoxModal,
     setShowFirefoxModal,
   };
