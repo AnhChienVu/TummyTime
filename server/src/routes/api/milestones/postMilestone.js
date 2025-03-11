@@ -1,21 +1,21 @@
 // server/src/routes/api/milestones/postMilestone.js
-// Route for POST /milestones
 
-const logger = require('../../../utils/logger');
+const logger = require("../../../utils/logger");
 const {
   createSuccessResponse,
   createErrorResponse,
-} = require('../../../utils/response');
-const pool = require('../../../../database/db');
+} = require("../../../utils/response");
+const pool = require("../../../../database/db");
 
-// POST /milestones - Create a new Milestone record
+// POST /v1/baby/:baby_id/milestones
+// Create a new milestone
 module.exports.createMilestone = async (req, res) => {
   const { date, title, details } = req.body;
   const baby_id = req.params.baby_id;
 
   try {
     const result = await pool.query(
-      'INSERT INTO milestones (baby_id, date, title, details) VALUES ($1, $2, $3, $4) RETURNING *',
+      "INSERT INTO milestones (baby_id, date, title, details) VALUES ($1, $2, $3, $4) RETURNING *",
       [baby_id, date, title, details]
     );
 
