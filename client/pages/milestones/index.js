@@ -10,7 +10,7 @@ import {
   Alert,
 } from "react-bootstrap";
 import { format, set } from "date-fns";
-import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
 import styles from "./milestones.module.css";
 import BabyCardMilestone from "@/components/BabyCardMilestone/BabyCardMilestone";
 import { AiOutlineInfoCircle } from "react-icons/ai";
@@ -33,6 +33,9 @@ function Milestones() {
   const [detailsError, setDetailsError] = useState("");
   const [dateError, setDateError] = useState("");
   const [milestones, setMilestones] = useState([]);
+  const [isListening, setIsListening] = useState(false);
+  const [currentInputField, setCurrentInputField] = useState(null);
+  const [currentDate, setCurrentDate] = useState(new Date());
 
   // modal for displaying milestone details
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -254,6 +257,41 @@ function Milestones() {
     setShowDetailsModal(true);
   };
 
+  const handleVoiceInput = async (fieldName) => {
+    if (!isListening) {
+      try {
+        setCurrentInputField(fieldName);
+        setIsListening(true);
+
+        const recognition = new (window.SpeechRecognition ||
+          window.webkitSpeechRecognition)();
+        recognition.lang = "en-US";
+
+        recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          if (fieldName === "title") {
+            setTitle((prev) => prev + " " + transcript);
+          } else if (fieldName === "details") {
+            setDetails((prev) => prev + " " + transcript);
+          }
+        };
+
+        recognition.onend = () => {
+          setIsListening(false);
+        };
+
+        recognition.start();
+      } catch (error) {
+        console.error("Voice input error:", error);
+        showToast(t("Voice input is not supported in this browser"), "error");
+        setIsListening(false);
+      }
+    } else {
+      setIsListening(false);
+      setCurrentInputField(null);
+    }
+  };
+
   return (
     <Container className={styles.container} fluid>
       <Row>
@@ -266,8 +304,17 @@ function Milestones() {
                 events={milestones}
                 startAccessor="start"
                 endAccessor="end"
-                views={["month", "week", "day"]}
+                views={["month"]}
                 tooltipAccessor="details"
+                date={currentDate}
+                onNavigate={(date) => setCurrentDate(date)}
+                defaultView="month"
+                messages={{
+                  today: t("Today"),
+                  previous: t("Back"),
+                  next: t("Next"),
+                  month: t("Month"),
+                }}
                 eventPropGetter={(event) => ({
                   style: {
                     backgroundColor: "#007bff",
@@ -308,13 +355,26 @@ function Milestones() {
           <Form>
             <Form.Group className="mb-3" controlId="title">
               <Form.Label>{t("Title")}</Form.Label>
-              <Form.Control
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder={t("Enter milestone title")}
-                isInvalid={!!titleError}
-              />
+              <div className="d-flex align-items-center">
+                <Form.Control
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder={t("Enter milestone title")}
+                  isInvalid={!!titleError}
+                />
+                <Button
+                  variant="link"
+                  className="ms-2 p-0"
+                  onClick={() => handleVoiceInput("title")}
+                >
+                  {isListening && currentInputField === "title" ? (
+                    <FaMicrophoneSlash className="text-danger" />
+                  ) : (
+                    <FaMicrophone className="text-primary" />
+                  )}
+                </Button>
+              </div>
               <Form.Control.Feedback type="invalid">
                 {titleError}
               </Form.Control.Feedback>
@@ -343,14 +403,27 @@ function Milestones() {
 
             <Form.Group className="mb-3" controlId="details">
               <Form.Label>{t("Details")}</Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={3}
-                value={details}
-                onChange={(e) => setDetails(e.target.value)}
-                placeholder={t("Enter milestone details")}
-                isInvalid={!!detailsError}
-              />
+              <div className="d-flex align-items-start">
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  value={details}
+                  onChange={(e) => setDetails(e.target.value)}
+                  placeholder={t("Enter milestone details")}
+                  isInvalid={!!detailsError}
+                />
+                <Button
+                  variant="link"
+                  className="ms-2 p-0"
+                  onClick={() => handleVoiceInput("details")}
+                >
+                  {isListening && currentInputField === "details" ? (
+                    <FaMicrophoneSlash className="text-danger" />
+                  ) : (
+                    <FaMicrophone className="text-primary" />
+                  )}
+                </Button>
+              </div>
               <Form.Control.Feedback type="invalid">
                 {detailsError}
               </Form.Control.Feedback>

@@ -1,7 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import styles from "./milestones.module.css";
-import { FaBaby, FaEdit, FaTrash } from "react-icons/fa";
+import {
+  FaBaby,
+  FaEdit,
+  FaTrash,
+  FaMicrophone,
+  FaMicrophoneSlash,
+} from "react-icons/fa";
 import { Modal, Form, Button, Alert, Row, Col } from "react-bootstrap";
 import { AiOutlineInfoCircle } from "react-icons/ai";
 import { useTranslation } from "next-i18next";
@@ -28,6 +34,8 @@ function MilestoneEachBaby() {
   const [date, setDate] = useState("");
   const [deleteModalShow, setDeleteModalShow] = useState(false);
   const [milestoneToDelete, setMilestoneToDelete] = useState(null);
+  const [isListening, setIsListening] = useState(false);
+  const [currentInputField, setCurrentInputField] = useState(null);
 
   const router = useRouter();
   const baby_id = router.query.id;
@@ -141,13 +149,26 @@ function MilestoneEachBaby() {
 
     // Validate date format and range
     const selectedDate = new Date(date);
-    const today = new Date();
+
+    // Check if date is valid
     if (isNaN(selectedDate.getTime())) {
-      setModalError(t("Invalid date format"));
+      setModalError(t("Invalid date format."));
       return false;
     }
-    if (selectedDate > today) {
-      setModalError(t("Date cannot be in the future"));
+
+    // Check if date is too far in the future (max 5 years)
+    const fiveYearsFromNow = new Date();
+    fiveYearsFromNow.setFullYear(fiveYearsFromNow.getFullYear() + 5);
+    if (selectedDate > fiveYearsFromNow) {
+      setModalError(t("Date cannot be more than 5 years in the future."));
+      return false;
+    }
+
+    // Check if date is too far in the past (max 50 years)
+    const fiftyYearsAgo = new Date();
+    fiftyYearsAgo.setFullYear(fiftyYearsAgo.getFullYear() - 50);
+    if (selectedDate < fiftyYearsAgo) {
+      setModalError(t("Date cannot be more than 50 years in the past."));
       return false;
     }
 
@@ -228,6 +249,41 @@ function MilestoneEachBaby() {
     setMilestoneToDelete(null);
   };
 
+  const handleVoiceInput = async (fieldName) => {
+    if (!isListening) {
+      try {
+        setCurrentInputField(fieldName);
+        setIsListening(true);
+
+        const recognition = new (window.SpeechRecognition ||
+          window.webkitSpeechRecognition)();
+        recognition.lang = "en-US";
+
+        recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          if (fieldName === "title") {
+            setTitle((prev) => prev + " " + transcript);
+          } else if (fieldName === "details") {
+            setDetails((prev) => prev + " " + transcript);
+          }
+        };
+
+        recognition.onend = () => {
+          setIsListening(false);
+        };
+
+        recognition.start();
+      } catch (error) {
+        console.error("Voice input error:", error);
+        showToast(t("Voice input is not supported in this browser"), "error");
+        setIsListening(false);
+      }
+    } else {
+      setIsListening(false);
+      setCurrentInputField(null);
+    }
+  };
+
   return (
     <div className={styles.container}>
       <ToastContainer toasts={toasts} removeToast={removeToast} />
@@ -295,30 +351,56 @@ function MilestoneEachBaby() {
               <Form.Label>
                 {t("Title")} <span className="text-danger">*</span>
               </Form.Label>
-              <Form.Control
-                type="text"
-                value={title}
-                onChange={(e) => {
-                  setTitle(e.target.value);
-                  setModalError("");
-                }}
-                isInvalid={modalError && !title.trim()}
-              />
+              <div className="d-flex align-items-center">
+                <Form.Control
+                  type="text"
+                  value={title}
+                  onChange={(e) => {
+                    setTitle(e.target.value);
+                    setModalError("");
+                  }}
+                  isInvalid={modalError && !title.trim()}
+                />
+                <Button
+                  variant="link"
+                  className="ms-2 p-0"
+                  onClick={() => handleVoiceInput("title")}
+                >
+                  {isListening && currentInputField === "title" ? (
+                    <FaMicrophoneSlash className="text-danger" />
+                  ) : (
+                    <FaMicrophone className="text-primary" />
+                  )}
+                </Button>
+              </div>
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>
                 {t("Details")} <span className="text-danger">*</span>
               </Form.Label>
-              <Form.Control
-                as="textarea"
-                rows={3}
-                value={details}
-                onChange={(e) => {
-                  setDetails(e.target.value);
-                  setModalError("");
-                }}
-                isInvalid={modalError && !details.trim()}
-              />
+              <div className="d-flex align-items-start">
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  value={details}
+                  onChange={(e) => {
+                    setDetails(e.target.value);
+                    setModalError("");
+                  }}
+                  isInvalid={modalError && !details.trim()}
+                />
+                <Button
+                  variant="link"
+                  className="ms-2 p-0"
+                  onClick={() => handleVoiceInput("details")}
+                >
+                  {isListening && currentInputField === "details" ? (
+                    <FaMicrophoneSlash className="text-danger" />
+                  ) : (
+                    <FaMicrophone className="text-primary" />
+                  )}
+                </Button>
+              </div>
             </Form.Group>
             <Form.Group className="mb-3">
               <Form.Label>
@@ -332,7 +414,11 @@ function MilestoneEachBaby() {
                   setModalError("");
                 }}
                 isInvalid={modalError && !date}
-                max={new Date().toISOString().split("T")[0]}
+                max={
+                  new Date(new Date().setFullYear(new Date().getFullYear() + 5))
+                    .toISOString()
+                    .split("T")[0]
+                } // allow up to 5 years in the future
               />
             </Form.Group>
           </Form>

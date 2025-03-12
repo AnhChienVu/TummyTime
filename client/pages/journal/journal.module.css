@@ -41,8 +41,10 @@
 }
 
 .submitButton {
-  width: 20%;
+  width:auto;
   background-color: #65558F;
+  min-width: 80px;
+  padding: 0.25rem 0.5rem;
 }
 
 .submitButton:hover {
@@ -100,13 +102,16 @@
 
 .microphone {
     width: 50px;
-    font-size: 1.25rem;
-    background-color: #65558F;
-    color: white;
-    border-radius: 0.25rem;
+    font-size: 1.2rem;
+    background: none;
+    border: none;
+    color: #0d6efd;
+    padding: 0.25rem 0.5rem;
+    transition: color 0.2s;
 }
 
 .microphone:hover {
+    color: #0a58ca;
     background-color: #4D3D7E;
 }
 
@@ -135,4 +140,8 @@
 
 .modalBackdrop :global(.modal-backdrop.show) {
   transition: opacity 0.2s linear;
+}
+
+.postRow {
+  margin-top: 1rem;
 }
