@@ -195,5 +195,13 @@
     "Confirm Delete Reply": "Confirmer la suppression de la réponse",
     "I understand that this action cannot be undone": "Je comprends que cette action ne peut pas être annulée",
     "Delete Reply": "Supprimer la réponse",
-    "Are you sure you want to delete this reply?": "Êtes-vous sûr de vouloir supprimer cette réponse?"
+    "Are you sure you want to delete this reply?": "Êtes-vous sûr de vouloir supprimer cette réponse?",
+    "Check Product Safety": "Vérifier la sécurité du produit",
+    "Barcode Scanner": "Scanner de code-barres",
+    "Turn On Camera": "Allumer la caméra",
+    "Enter barcode or product code": "Entrez le code-barres ou le nom du produit",
+    "Search": "Rechercher",
+    "Safety Levels": "Niveaux de sécurité",
+    "Recalled": "Rappelé",
+    "Safe": "Sûr"
 }
