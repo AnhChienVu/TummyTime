@@ -1,15 +1,13 @@
-// server/src/routes/api/milestones/getMilestone.js
+// server/src/routes/api/milestones/getMilestones.js
 
 const logger = require("../../../utils/logger");
-const {
-  createSuccessResponse,
-  createErrorResponse,
-} = require("../../../utils/response");
+const { createErrorResponse } = require("../../../utils/response");
 const pool = require("../../../../database/db");
 const { getUserId } = require("../../../utils/userIdHelper");
 const { checkBabyBelongsToUser } = require("../../../utils/babyAccessHelper");
 
-// GET /baby/:baby_id/getMilestones
+// GET /v1/baby/:baby_id/milestones
+// Get all milestones for a baby
 module.exports.getMilestoneByBabyId = async (req, res) => {
   try {
     const { baby_id } = req.params;

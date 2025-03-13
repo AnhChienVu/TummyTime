@@ -1,5 +1,5 @@
 // tests/unit/milestones/getMilestones.test.js
-// Tests the GET /v1/baby/:baby_id/getMilestones route
+// Tests GET /v1/baby/:baby_id/milestones
 
 const {
   getMilestoneByBabyId,
@@ -17,7 +17,7 @@ jest.mock("../../../src/utils/babyAccessHelper");
 jest.mock("../../../database/db");
 jest.mock("../../../src/utils/logger");
 
-describe("getMilestoneByBabyId", () => {
+describe("GET /v1/baby/:baby_id/milestones", () => {
   let mockReq;
   let mockRes;
 

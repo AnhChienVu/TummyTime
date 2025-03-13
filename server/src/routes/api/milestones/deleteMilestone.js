@@ -1,20 +1,20 @@
 // server/src/routes/api/milestones/deleteMilestone.js
-// Route for DELETE /milestones/:milestoneId
 
-const logger = require('../../../utils/logger');
+const logger = require("../../../utils/logger");
 const {
   createSuccessResponse,
   createErrorResponse,
-} = require('../../../utils/response');
-const pool = require('../../../../database/db');
+} = require("../../../utils/response");
+const pool = require("../../../../database/db");
 
-// DELETE /milestones/:milestoneId - Delete a Milestone record by milestoneId
+// DELETE /v1/baby/:baby_id/milestones/:milestone_id
+// Delete a Milestone record by milestone_id
 module.exports.deleteMilestoneById = async (req, res) => {
   const { milestone_id } = req.params;
 
   try {
     const result = await pool.query(
-      'DELETE FROM milestones WHERE milestone_id = $1',
+      "DELETE FROM milestones WHERE milestone_id = $1",
       [milestone_id]
     );
 
@@ -26,10 +26,7 @@ module.exports.deleteMilestoneById = async (req, res) => {
         .send(createErrorResponse(404, `Milestone record not found`)); // 404 Not Found
     }
   } catch (err) {
-    logger.error(
-      err,
-      `ERROR in DELETE /milestones/:milestoneId, Error deleting milestone`
-    );
+    logger.error(err, `Error deleting milestone`);
 
     res.status(500).send(createErrorResponse(500, `Internal server error`)); // 500 Internal Server Error
   }

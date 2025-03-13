@@ -11,6 +11,7 @@ module.exports.config = {
   api: { bodyParser: false },
 };
 
+// POST /v1/journal/addJournalEntry
 module.exports = async (req, res) => {
   const form = new formidable.IncomingForm();
   form.parse(req, async (err, fields, files) => {

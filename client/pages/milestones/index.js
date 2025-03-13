@@ -1,248 +1,24 @@
+// pages/milestones/index.js
 import React, { useState, useEffect } from "react";
 import {
   Button,
   Modal,
   Form,
-  ListGroup,
   Container,
   Row,
   Col,
-  Card,
-  Tab,
-  Nav,
   Alert,
 } from "react-bootstrap";
 import { format, set } from "date-fns";
-import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
 import styles from "./milestones.module.css";
 import BabyCardMilestone from "@/components/BabyCardMilestone/BabyCardMilestone";
 import { AiOutlineInfoCircle } from "react-icons/ai";
-import { useRouter } from "next/router";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
-
-const mockApi = {
-  fetchMilestones: () => Promise.resolve([]),
-  addMilestone: (newMilestone) =>
-    Promise.resolve({ success: true, data: newMilestone }),
-  deleteMilestone: (index) => Promise.resolve({ success: true }),
-  updateMilestone: (updatedMilestone, index) =>
-    Promise.resolve({ success: true, data: updatedMilestone }),
-};
-
-// const Milestones = () => {
-//   const [milestones, setMilestones] = useState([]);
-//   const [modalShow, setModalShow] = useState(false);
-//   const [newTitle, setNewTitle] = useState("");
-//   const [newDetails, setNewDetails] = useState("");
-//   const [newDate, setNewDate] = useState(
-//     new Date().toISOString().split("T")[0],
-//   );
-//   const [isEditing, setIsEditing] = useState(false);
-//   const [currentEditIndex, setCurrentEditIndex] = useState(null);
-
-//   useEffect(() => {
-//     mockApi.fetchMilestones().then((data) => setMilestones(data));
-//   }, []);
-
-//   const handleSaveMilestone = async () => {
-//     const newMilestone = {
-//       title: newTitle,
-//       date: newDate,
-//       details: newDetails,
-//       meals: [{ time: format(new Date(), "h:mm a") }],
-//     };
-
-//     if (isEditing && currentEditIndex !== null) {
-//       const response = await mockApi.updateMilestone(
-//         newMilestone,
-//         currentEditIndex,
-//       );
-//       if (response.success) {
-//         const updated = [...milestones];
-//         updated[currentEditIndex] = newMilestone;
-//         setMilestones(updated);
-//       }
-//     } else {
-//       const response = await mockApi.addMilestone(newMilestone);
-//       if (response.success) {
-//         setMilestones([...milestones, newMilestone]);
-//       }
-//     }
-
-//     setModalShow(false);
-//     setNewTitle("");
-//     setNewDetails("");
-//     setNewDate(new Date().toISOString().split("T")[0]);
-//     setIsEditing(false);
-//     setCurrentEditIndex(null);
-//   };
-
-//   const handleDeleteMilestone = async (index) => {
-//     const response = await mockApi.deleteMilestone(index);
-//     if (response.success) {
-//       setMilestones(milestones.filter((_, i) => i !== index));
-//     }
-//   };
-
-//   const handleEditMilestone = (index) => {
-//     const mile = milestones[index];
-//     setNewTitle(mile.title);
-//     setNewDetails(mile.details);
-//     setNewDate(mile.date);
-//     setIsEditing(true);
-//     setCurrentEditIndex(index);
-//     setModalShow(true);
-//   };
-
-//   return (
-//     <div className={styles.container}>
-//       {/* Header Row (Title & Add button) */}
-//       <div className={styles.headerRow}>
-//         <h1>Milestones</h1>
-//         <Button
-//           className={styles.addButton}
-//           onClick={() => {
-//             setModalShow(true);
-//             setIsEditing(false);
-//             setNewTitle("");
-//             setNewDetails("");
-//             setNewDate(new Date().toISOString().split("T")[0]);
-//           }}
-//         >
-//           Add
-//         </Button>
-//       </div>
-
-//       {/* Main content: List of milestones or "no milestones" message */}
-//       {milestones.length === 0 ? (
-//         <div
-//           style={{
-//             textAlign: "center",
-//             marginTop: 32,
-//             color: "#888",
-//             fontSize: 16,
-//           }}
-//         >
-//           <p>No milestones found.</p>
-//           <p>Click "Add" to create your first milestone!</p>
-//         </div>
-//       ) : (
-//         <ListGroup>
-//           {milestones.map((milestone, idx) => (
-//             <ListGroup.Item className={styles.listItem} key={idx}>
-//               <div className={styles.milestoneContainer}>
-//                 <div style={{ flex: 1 }}>
-//                   <div
-//                     style={{ display: "flex", alignItems: "center", gap: 8 }}
-//                   >
-//                     <h5 style={{ fontWeight: "bold", margin: 0 }}>
-//                       {milestone.title}
-//                     </h5>
-//                     <span style={{ color: "gray", fontSize: 12 }}>
-//                       {format(
-//                         new Date(milestone.date + "T00:00:00"),
-//                         "MMM d, yyyy",
-//                       )}
-//                     </span>
-//                   </div>
-//                   <p style={{ marginTop: 8 }}>{milestone.details}</p>
-//                 </div>
-//                 <div className={styles.iconContainer}>
-//                   <Button
-//                     variant="link"
-//                     className={styles.iconButton}
-//                     onClick={() => handleEditMilestone(idx)}
-//                   >
-//                     <FaEdit />
-//                   </Button>
-//                   <Button
-//                     variant="link"
-//                     className={styles.iconButton}
-//                     onClick={() => handleDeleteMilestone(idx)}
-//                   >
-//                     <FaTrashAlt />
-//                   </Button>
-//                 </div>
-//               </div>
-//             </ListGroup.Item>
-//           ))}
-//         </ListGroup>
-//       )}
-
-//       {/* Modal */}
-//       <Modal show={modalShow} onHide={() => setModalShow(false)}>
-//         <Modal.Header closeButton>
-//           <Modal.Title>
-//             {isEditing ? "Edit Milestone" : "Add a Milestone"}
-//           </Modal.Title>
-//         </Modal.Header>
-//         <Modal.Body>
-//           <Form>
-//             <Form.Group controlId="title">
-//               <Form.Label>Title</Form.Label>
-//               <Form.Control
-//                 type="text"
-//                 value={newTitle}
-//                 onChange={(e) => setNewTitle(e.target.value)}
-//                 placeholder="Enter milestone title"
-//               />
-//             </Form.Group>
-//             <Form.Group controlId="details" className="mt-3">
-//               <Form.Label>Details</Form.Label>
-//               <Form.Control
-//                 as="textarea"
-//                 rows={3}
-//                 value={newDetails}
-//                 onChange={(e) => setNewDetails(e.target.value)}
-//                 placeholder="Enter milestone details"
-//               />
-//             </Form.Group>
-//             <Form.Group controlId="date" className="mt-3">
-//               <Form.Label>Date</Form.Label>
-//               <Form.Control
-//                 type="date"
-//                 value={newDate}
-//                 onChange={(e) => setNewDate(e.target.value)}
-//               />
-//             </Form.Group>
-//           </Form>
-//         </Modal.Body>
-//         <Modal.Footer>
-//           <Button
-//             onClick={() => setModalShow(false)}
-//             style={{
-//               backgroundColor: "transparent",
-//               border: "1px solid #ccc",
-//               color: "#6a0dad",
-//               borderRadius: 8,
-//             }}
-//           >
-//             Cancel
-//           </Button>
-//           <Button
-//             onClick={handleSaveMilestone}
-//             disabled={!newTitle.trim() || !newDetails.trim() || !newDate.trim()}
-//             style={{
-//               backgroundColor:
-//                 !newTitle.trim() || !newDetails.trim() || !newDate.trim()
-//                   ? "#e0e0e0"
-//                   : "#65558f",
-//               border: "none",
-//               color:
-//                 !newTitle.trim() || !newDetails.trim() || !newDate.trim()
-//                   ? "#a0a0a0"
-//                   : "#fff",
-//               borderRadius: 8,
-//             }}
-//           >
-//             {isEditing ? "Save" : "Add"}
-//           </Button>
-//         </Modal.Footer>
-//       </Modal>
-//     </div>
-//   );
-// };
+import { Calendar, dateFnsLocalizer } from "react-big-calendar";
+import { parse, startOfWeek, getDay } from "date-fns";
+import "react-big-calendar/lib/css/react-big-calendar.css";
 
 function Milestones() {
   const { t } = useTranslation("common");
@@ -252,8 +28,30 @@ function Milestones() {
   const [newModalError, setNewModalError] = useState("");
   const [selectedBaby, setSelectedBaby] = useState(null);
   const [toasts, setToasts] = useState([]);
-  const [modalShow, setModalShow] = useState(false);
-  const router = useRouter();
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [titleError, setTitleError] = useState("");
+  const [detailsError, setDetailsError] = useState("");
+  const [dateError, setDateError] = useState("");
+  const [milestones, setMilestones] = useState([]);
+  const [isListening, setIsListening] = useState(false);
+  const [currentInputField, setCurrentInputField] = useState(null);
+  const [currentDate, setCurrentDate] = useState(new Date());
+
+  // modal for displaying milestone details
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [selectedMilestone, setSelectedMilestone] = useState(null);
+
+  const locales = {
+    "en-US": require("date-fns/locale/en-US"),
+  };
+
+  const localizer = dateFnsLocalizer({
+    format,
+    parse,
+    startOfWeek,
+    getDay,
+    locales,
+  });
 
   const handleOpenAddMilestoneModal = (baby_id) => {
     setNewModalError("");
@@ -313,13 +111,83 @@ function Milestones() {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   };
 
+  const validateInputs = () => {
+    let isValid = true;
+
+    // Reset error states
+    setTitleError("");
+    setDetailsError("");
+    setDateError("");
+
+    // Check for empty title
+    if (!title.trim()) {
+      setTitleError(t("Title is required"));
+      isValid = false;
+    }
+
+    // Check for empty details
+    if (!details.trim()) {
+      setDetailsError(t("Details are required"));
+      isValid = false;
+    }
+
+    // Validate title length (max 255 characters)
+    if (title.length > 255) {
+      setTitleError(t("Title must be less than 255 characters."));
+      isValid = false;
+    }
+
+    // Validate details length (max 255 characters)
+    if (details.length > 255) {
+      setDetailsError(t("Details must be less than 255 characters."));
+      isValid = false;
+    }
+
+    // Validate date
+    if (!selectedDate) {
+      setDateError(t("Please select a date."));
+      isValid = false;
+    } else {
+      const selectedDateTime = new Date(selectedDate);
+
+      // Check if date is valid
+      if (isNaN(selectedDateTime.getTime())) {
+        setDateError(t("Invalid date format."));
+        isValid = false;
+      }
+
+      // Check if date is too far in the future (max 5 years)
+      const fiveYearsFromNow = new Date();
+      fiveYearsFromNow.setFullYear(fiveYearsFromNow.getFullYear() + 5);
+      if (selectedDateTime > fiveYearsFromNow) {
+        setDateError(t("Date cannot be more than 5 years in the future."));
+        isValid = false;
+      }
+
+      // Check if date is too far in the past (max 50 years)
+      const fiftyYearsAgo = new Date();
+      fiftyYearsAgo.setFullYear(fiftyYearsAgo.getFullYear() - 50);
+      if (selectedDateTime < fiftyYearsAgo) {
+        setDateError(t("Date cannot be more than 50 years in the past."));
+        isValid = false;
+      }
+    }
+
+    return isValid;
+  };
+
+  // Add a new milestone
   const handleSaveNewMilestone = async () => {
     setNewModalError("");
 
+    // Check validation before proceeding
+    if (!validateInputs()) {
+      return;
+    }
+
     try {
-      // Add new feed to database
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${selectedBaby}/addMilestone`,
+        `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${selectedBaby}/milestones`,
         {
           method: "POST",
           headers: {
@@ -329,7 +197,7 @@ function Milestones() {
           body: JSON.stringify({
             title,
             details,
-            date: new Date().toISOString().split("T")[0],
+            date: format(selectedDate, "yyyy-MM-dd"),
           }),
         },
       );
@@ -337,15 +205,90 @@ function Milestones() {
       const data = await res.json();
 
       if (data.status === "ok") {
-        setModalShow(false);
-        showToast("Milstone added to server!");
-        router.reload();
+        setAddMilestoneModalShow(false);
+        showToast("Milestone added successfully!");
+        fetchMilestones(); // Refresh the calendar instead of reloading the page
+        setTitle("");
+        setDetails("");
+        setSelectedDate(null);
       } else {
-        showToast("Failed to add milestone to server.", "danger");
+        showToast("Failed to add milestone", "error");
       }
     } catch (error) {
       console.error("Error:", error);
-      showToast("Error adding milestone to server.", "danger");
+      showToast("Error adding milestone", "error");
+    }
+  };
+
+  // Get all milestones for all babies
+  const fetchMilestones = async () => {
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/v1/milestones`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
+      const data = await res.json();
+      if (data.status === "ok") {
+        // Convert the milestones data to the format expected by react-big-calendar
+        const formattedMilestones = data.data.map((milestone) => ({
+          title: `${milestone.first_name} ${milestone.last_name}: ${milestone.title}`,
+          start: new Date(milestone.date),
+          end: new Date(milestone.date),
+          details: milestone.details,
+        }));
+        setMilestones(formattedMilestones);
+      }
+    } catch (error) {
+      console.error("Error fetching milestones:", error);
+      showToast("Error fetching milestones", "error");
+    }
+  };
+
+  useEffect(() => {
+    fetchMilestones();
+  }, []);
+
+  const handleEventClick = (event) => {
+    setSelectedMilestone(event);
+    setShowDetailsModal(true);
+  };
+
+  const handleVoiceInput = async (fieldName) => {
+    if (!isListening) {
+      try {
+        setCurrentInputField(fieldName);
+        setIsListening(true);
+
+        const recognition = new (window.SpeechRecognition ||
+          window.webkitSpeechRecognition)();
+        recognition.lang = "en-US";
+
+        recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          if (fieldName === "title") {
+            setTitle((prev) => prev + " " + transcript);
+          } else if (fieldName === "details") {
+            setDetails((prev) => prev + " " + transcript);
+          }
+        };
+
+        recognition.onend = () => {
+          setIsListening(false);
+        };
+
+        recognition.start();
+      } catch (error) {
+        console.error("Voice input error:", error);
+        showToast(t("Voice input is not supported in this browser"), "error");
+        setIsListening(false);
+      }
+    } else {
+      setIsListening(false);
+      setCurrentInputField(null);
     }
   };
 
@@ -354,6 +297,48 @@ function Milestones() {
       <Row>
         <Col>
           <h1>{t("Milestones")}</h1>
+          <Col>
+            <div className={styles.calendarWrapper}>
+              <Calendar
+                localizer={localizer}
+                events={milestones}
+                startAccessor="start"
+                endAccessor="end"
+                views={["month"]}
+                tooltipAccessor="details"
+                date={currentDate}
+                onNavigate={(date) => setCurrentDate(date)}
+                defaultView="month"
+                messages={{
+                  today: t("Today"),
+                  previous: t("Back"),
+                  next: t("Next"),
+                  month: t("Month"),
+                }}
+                eventPropGetter={(event) => ({
+                  style: {
+                    backgroundColor: "#007bff",
+                  },
+                })}
+                dayPropGetter={(date) => {
+                  const isToday =
+                    format(date, "yyyy-MM-dd") ===
+                    format(new Date(), "yyyy-MM-dd");
+                  const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+                  return {
+                    style: {
+                      backgroundColor: isToday
+                        ? "#f756566c" // background for today
+                        : isWeekend
+                        ? "#f8f9fa"
+                        : "white",
+                    },
+                  };
+                }}
+                onSelectEvent={handleEventClick}
+              />
+            </div>
+          </Col>
           <BabyCardMilestone addMilestoneBtn={handleOpenAddMilestoneModal} />
         </Col>
       </Row>
@@ -368,34 +353,121 @@ function Milestones() {
         <Modal.Body>
           {newModalError && <Alert variant="danger">{newModalError}</Alert>}
           <Form>
-            <Form.Group controlId="title">
+            <Form.Group className="mb-3" controlId="title">
               <Form.Label>{t("Title")}</Form.Label>
-              <Form.Control
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-              ></Form.Control>
+              <div className="d-flex align-items-center">
+                <Form.Control
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder={t("Enter milestone title")}
+                  isInvalid={!!titleError}
+                />
+                <Button
+                  variant="link"
+                  className="ms-2 p-0"
+                  onClick={() => handleVoiceInput("title")}
+                >
+                  {isListening && currentInputField === "title" ? (
+                    <FaMicrophoneSlash className="text-danger" />
+                  ) : (
+                    <FaMicrophone className="text-primary" />
+                  )}
+                </Button>
+              </div>
+              <Form.Control.Feedback type="invalid">
+                {titleError}
+              </Form.Control.Feedback>
+              <Form.Text className="text-muted">
+                {`${title.length}/255 ${t("characters")}`}
+              </Form.Text>
             </Form.Group>
 
-            <Form.Group controlId="details">
-              <Form.Label>{t("Details")}</Form.Label>
+            <Form.Group className="mb-3" controlId="date">
+              <Form.Label>{t("Date")}</Form.Label>
               <Form.Control
-                type="text"
-                value={details}
-                onChange={(e) => setDetails(e.target.value)}
-              ></Form.Control>
+                type="date"
+                value={selectedDate ? format(selectedDate, "yyyy-MM-dd") : ""}
+                onChange={(e) => {
+                  const date = e.target.value
+                    ? new Date(e.target.value + "T00:00:00")
+                    : null;
+                  setSelectedDate(date);
+                }}
+                isInvalid={!!dateError}
+              />
+              <Form.Control.Feedback type="invalid">
+                {dateError}
+              </Form.Control.Feedback>
+            </Form.Group>
+
+            <Form.Group className="mb-3" controlId="details">
+              <Form.Label>{t("Details")}</Form.Label>
+              <div className="d-flex align-items-start">
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  value={details}
+                  onChange={(e) => setDetails(e.target.value)}
+                  placeholder={t("Enter milestone details")}
+                  isInvalid={!!detailsError}
+                />
+                <Button
+                  variant="link"
+                  className="ms-2 p-0"
+                  onClick={() => handleVoiceInput("details")}
+                >
+                  {isListening && currentInputField === "details" ? (
+                    <FaMicrophoneSlash className="text-danger" />
+                  ) : (
+                    <FaMicrophone className="text-primary" />
+                  )}
+                </Button>
+              </div>
+              <Form.Control.Feedback type="invalid">
+                {detailsError}
+              </Form.Control.Feedback>
+              <Form.Text className="text-muted">
+                {`${details.length}/255 ${t("characters")}`}
+              </Form.Text>
             </Form.Group>
           </Form>
         </Modal.Body>
         <Modal.Footer>
           <Button
-            className={styles.btnCancel}
+            variant="outline-secondary"
             onClick={() => setAddMilestoneModalShow(false)}
           >
             {t("Cancel")}
           </Button>
           <Button className={styles.btnSave} onClick={handleSaveNewMilestone}>
             {t("Save")}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Milestone details Modal */}
+      <Modal show={showDetailsModal} onHide={() => setShowDetailsModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>{t("Milestone Details")}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {selectedMilestone && (
+            <>
+              <h5>{selectedMilestone.title}</h5>
+              <small>{format(selectedMilestone.start, "MMMM d, yyyy")}</small>
+              <br />
+              <br />
+              <p>{selectedMilestone.details}</p>
+            </>
+          )}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="outline-secondary"
+            onClick={() => setShowDetailsModal(false)}
+          >
+            {t("Close")}
           </Button>
         </Modal.Footer>
       </Modal>
