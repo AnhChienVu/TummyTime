@@ -9,6 +9,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import SearchByCategoryBox from "@/components/SearchByCategoryBox/SearchByCategoryBox";
 
 function CheckProduct() {
   const { t } = useTranslation("common");
@@ -92,8 +93,7 @@ function CheckProduct() {
 
   return (
     <div className={styles.container}>
-      <h2>{t("Check Product Safety")}</h2>
-      <h1>{t("Barcode Scanner")}</h1>
+      <h1>Barcode Scanner</h1>
       <div className={styles.barcodeScanner}>
         <button onClick={toggleCamera} className={styles.cameraToggleButton}>
           <FontAwesomeIcon icon={faCamera} />
@@ -129,6 +129,11 @@ function CheckProduct() {
           </button>
         </div>
       </div>
+
+      <br />
+
+      <h1>Search By Category</h1>
+      <SearchByCategoryBox />
 
       {error && (
         <div className={styles.error}>
