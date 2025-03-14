@@ -1,5 +1,5 @@
 // client\pages\baby\[id]\reminders\index.js
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Container, Button, Form, Modal } from "react-bootstrap";
 import { useRouter } from "next/router";
 import { useTranslation } from "next-i18next";
@@ -7,14 +7,10 @@ import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPencilAlt,
-  faTrash,
   faClock,
 } from "@fortawesome/free-solid-svg-icons";
 import styles from "./reminders.module.css";
 
-/**
- * Converts "HH:mm:ss" or "HH:mm" (24-hour format) to "h:mm AM/PM"
- */
 function formatTime12h(timeStr) {
   if (!timeStr) return "";
   const [rawHour, rawMinute] = timeStr.split(":");
@@ -47,7 +43,6 @@ const RemindersPage = () => {
   const [nextReminder, setNextReminderData] = useState(null);
   const [deleteMode, setDeleteMode] = useState(false);
 
-  // Form states
   const [title, setTitle] = useState("");
   const [time, setTime] = useState({ hours: "9", minutes: "00", period: "AM" });
   const [note, setNote] = useState("");
@@ -59,18 +54,15 @@ const RemindersPage = () => {
 
   const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/v1`;
 
-  // Show title required error message
   const showTitleRequired = () => {
     showToast(t("Title field is required"), "error");
   };
 
-  // Fetch reminders on mount (and whenever baby ID changes)
   useEffect(() => {
     if (!id) return;
     fetchReminders();
   }, [id]);
 
-  // Update the "next reminder" banner every minute
   useEffect(() => {
     const intervalId = setInterval(() => {
       if (reminders.length > 0) {
@@ -80,9 +72,6 @@ const RemindersPage = () => {
     return () => clearInterval(intervalId);
   }, [reminders]);
 
-  /**
-   * Fetch reminders from the API
-   */
   const fetchReminders = async () => {
     try {
       setLoading(true);
@@ -119,7 +108,6 @@ const RemindersPage = () => {
       if (responseText.length < 500)
         console.log(`Full response: ${responseText}`);
 
-      // Parse the JSON response
       let responseData;
       try {
         responseData = JSON.parse(responseText);
@@ -132,18 +120,15 @@ const RemindersPage = () => {
         throw new Error("Invalid response format");
       }
 
-      // Handle different response formats
       let remindersArray = [];
 
       if (responseData && typeof responseData === "object") {
-        // Check if it has numeric keys (special format)
         const keys = Object.keys(responseData);
         const numericKeys = keys.filter((k) => !isNaN(parseInt(k)));
 
         if (numericKeys.length > 0) {
           console.log(`Found ${numericKeys.length} numeric keys in response`);
 
-          // Extract reminders from numeric keys, filtering out non-reminder props like "status"
           remindersArray = numericKeys
             .map((key) => responseData[key])
             .filter(
@@ -154,10 +139,8 @@ const RemindersPage = () => {
             `Extracted ${remindersArray.length} reminders from object keys`,
           );
         } else if (responseData.data && Array.isArray(responseData.data)) {
-          // Standard { status, data } format
           remindersArray = responseData.data;
         } else if (Array.isArray(responseData)) {
-          // Direct array response
           remindersArray = responseData;
         }
       }
@@ -168,7 +151,6 @@ const RemindersPage = () => {
         console.log("No reminders found in response");
       }
 
-      // Map the reminders to frontend format with consistent field naming
       const fetchedReminders = remindersArray
         .map((reminder) => {
           if (!reminder) return null;
@@ -213,7 +195,6 @@ const RemindersPage = () => {
     }
   };
 
-  // Find the next upcoming reminder for "today"
   const findNextDueReminder = (remindersList) => {
     if (!remindersList || remindersList.length === 0) {
       setNextReminderData(null);
@@ -233,7 +214,6 @@ const RemindersPage = () => {
       (reminder) => reminder.date && reminder.date.toDateString() === today,
     );
 
-    // Sort today's reminders by time
     const sortedReminders = todaysReminders.sort((a, b) => {
       if (!a.time || !b.time) return 0;
       let timeA = a.time.split(":");
@@ -246,7 +226,6 @@ const RemindersPage = () => {
       return dateA - dateB;
     });
 
-    // Find upcoming reminders (time > now)
     const upcomingReminders = sortedReminders.filter((reminder) => {
       if (!reminder.time) return false;
       let timeParts = reminder.time.split(":");
@@ -260,7 +239,6 @@ const RemindersPage = () => {
       return reminderTime > now;
     });
 
-    // If we have an upcoming reminder, set the next one
     if (upcomingReminders.length > 0) {
       const next = upcomingReminders[0];
       let timeParts = next.time.split(":");
@@ -285,7 +263,6 @@ const RemindersPage = () => {
         timeText = `${diffMins} minute${diffMins > 1 ? "s" : ""}`;
       }
 
-      // Format that time in 12-hour format
       let hours = parseInt(timeParts[0]);
       let minutes = timeParts[1] || "00";
       const ampm = hours >= 12 ? "PM" : "AM";
@@ -319,26 +296,21 @@ const RemindersPage = () => {
   const handleCloseDeleteModal = () => {
     setShowDeleteModal(false);
     setDeleteMode(false);
-    // Clear any selected reminders
     const updatedReminders = reminders.map((r) => ({ ...r, selected: false }));
     setReminders(updatedReminders);
   };
 
   const resetForm = () => {
-    // Reset title and note
     setTitle("");
     setNote("");
 
-    // Set current date
     const now = new Date();
     setReminderDate(now.toISOString().split("T")[0]);
 
-    // Set current time (formatted for 12-hour display)
     let hours = now.getHours();
     const minutes = now.getMinutes().toString().padStart(2, "0");
     const period = hours >= 12 ? "PM" : "AM";
 
-    // Convert 24-hour format to 12-hour format
     if (hours > 12) {
       hours -= 12;
     } else if (hours === 0) {
@@ -351,29 +323,23 @@ const RemindersPage = () => {
       period: period,
     });
 
-    // Reset reminder options
     setNextReminderEnabled(false);
     setReminderIn("1.5 hrs");
   };
 
   const handleShowAddModal = () => {
-    resetForm(); // This will set current date and time
+    resetForm();
     setShowAddModal(true);
   };
 
-  /**
-   * Show edit modal with reminder data
-   */
   const handleShowEditModal = (reminder) => {
     if (!reminder || !reminder.time) {
       console.error("Invalid reminder or missing time:", reminder);
       return;
     }
 
-    // Save the original reminder object for reference
     setSelectedReminder(reminder);
 
-    // Log for debugging
     console.log("Reminder being edited:", reminder);
 
     try {
@@ -421,7 +387,6 @@ const RemindersPage = () => {
   const toggleDeleteMode = () => {
     setDeleteMode(!deleteMode);
     if (deleteMode) {
-      // Exiting delete mode, clear selections
       const updatedReminders = reminders.map((r) => ({
         ...r,
         selected: false,
@@ -439,9 +404,6 @@ const RemindersPage = () => {
     }
   };
 
-  /**
-   * Add a new reminder with snake_case field names to match the database
-   */
   const handleAddReminder = async () => {
     try {
       if (!title.trim()) {
@@ -463,7 +425,6 @@ const RemindersPage = () => {
         return;
       }
 
-      // Format the time in 24-hour format
       if (time.period === "PM" && hours < 12) {
         hours += 12;
       } else if (time.period === "AM" && hours === 12) {
@@ -479,9 +440,8 @@ const RemindersPage = () => {
         return;
       }
 
-      // Match database field names (snake_case)
       const reminderData = {
-        baby_id: parseInt(id), // Ensure it's a number
+        baby_id: parseInt(id),
         title,
         time: formattedTime,
         date: reminderDate,
@@ -525,9 +485,6 @@ const RemindersPage = () => {
     }
   };
 
-  /**
-   * Update a reminder using the proper PUT endpoint
-   */
   const handleUpdateReminder = async () => {
     if (!selectedReminder) {
       console.error("No reminder selected for update");
@@ -554,7 +511,6 @@ const RemindersPage = () => {
         return;
       }
 
-      // Format the time in 24-hour format
       if (time.period === "PM" && hours < 12) {
         hours += 12;
       } else if (time.period === "AM" && hours === 12) {
@@ -570,10 +526,8 @@ const RemindersPage = () => {
         return;
       }
 
-      // Log the current reminder being updated
       console.log("Selected reminder for update:", selectedReminder);
 
-      // Prepare data using snake_case field names to match the server-side model
       const reminderData = {
         title,
         time: formattedTime,
@@ -589,7 +543,6 @@ const RemindersPage = () => {
         reminderData,
       );
 
-      // Use the PUT endpoint for updates
       const updateResponse = await fetch(
         `${API_BASE_URL}/baby/${id}/reminders/${selectedReminder.id}`,
         {
@@ -630,9 +583,6 @@ const RemindersPage = () => {
     }
   };
 
-  /**
-   * Delete selected reminders with improved handling to ensure UI updates correctly
-   */
   const handleDeleteReminders = async () => {
     try {
       const selectedReminderIds = reminders
@@ -647,17 +597,14 @@ const RemindersPage = () => {
         return;
       }
 
-      // Optimistic UI update - store current state in case we need to revert
       const previousReminders = [...reminders];
       const updatedReminders = reminders.filter((r) => !r.selected);
       setReminders(updatedReminders);
 
       console.log(`Deleting reminders: ${selectedReminderIds.join(", ")}`);
 
-      // Close modal early for better user experience
       handleCloseDeleteModal();
 
-      // Use bulk delete with the correct endpoint and body format
       const response = await fetch(`${API_BASE_URL}/baby/${id}/reminders`, {
         method: "DELETE",
         headers: {
@@ -671,27 +618,23 @@ const RemindersPage = () => {
       console.log(`Delete response: ${response.status} - ${responseText}`);
 
       if (!response.ok) {
-        // Revert optimistic update on error
         setReminders(previousReminders);
         throw new Error(`Failed to delete reminders: ${response.status}`);
       }
 
-      // Add a small delay to ensure server has processed the deletion
-      // before fetching the updated reminders list
       setTimeout(async () => {
         try {
           await fetchReminders();
           showToast("Reminder(s) deleted successfully", "success");
         } catch (fetchErr) {
           console.error("Error refreshing reminders after deletion:", fetchErr);
-          // We already have the optimistic UI update, so just show success toast
           showToast("Reminder(s) deleted successfully", "success");
         }
-      }, 500); // 500ms delay gives the server time to process
+      }, 500);
     } catch (err) {
       console.error("Error in handleDeleteReminders:", err);
       showToast(err.message || "Failed to delete reminders", "error");
-      await fetchReminders(); // Try to refresh data on error
+      await fetchReminders();
     }
   };
 
@@ -705,9 +648,6 @@ const RemindersPage = () => {
     setReminders(updatedReminders);
   };
 
-  /**
-   * Toggle a reminder's active state using the PUT endpoint
-   */
   const toggleReminderActive = async (id) => {
     try {
       const reminder = reminders.find((r) => r.id === id);
@@ -721,7 +661,6 @@ const RemindersPage = () => {
         return;
       }
 
-      // Update UI optimistically
       const updatedReminders = reminders.map((r) => {
         if (r.id === id) {
           return { ...r, isActive: !r.isActive };
@@ -735,7 +674,6 @@ const RemindersPage = () => {
         !reminder.isActive,
       );
 
-      // Prepare data for the update using proper field naming
       const updateData = {
         title: reminder.title,
         time: reminder.time,
@@ -749,7 +687,6 @@ const RemindersPage = () => {
         reminder_in: reminder.reminderIn,
       };
 
-      // Use the PUT endpoint to update the active state
       const updateResponse = await fetch(
         `${API_BASE_URL}/baby/${id}/reminders/${id}`,
         {
@@ -772,7 +709,6 @@ const RemindersPage = () => {
       findNextDueReminder(updatedReminders);
     } catch (err) {
       showToast(err.message || "Failed to update reminder", "error");
-      // Revert local state on error
       await fetchReminders();
     }
   };
@@ -782,7 +718,6 @@ const RemindersPage = () => {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // Format the day and check if it's "today"
   const formatDay = (date) => {
     try {
       const d = new Date(date);
@@ -805,7 +740,6 @@ const RemindersPage = () => {
     }
   };
 
-  // Group reminders by date
   const groupedReminders = reminders.reduce((acc, reminder) => {
     if (!reminder || !reminder.date) return acc;
     try {
@@ -820,7 +754,6 @@ const RemindersPage = () => {
     return acc;
   }, {});
 
-  // Loading state
   if (loading) {
     return (
       <Container className={styles.container}>
@@ -831,7 +764,6 @@ const RemindersPage = () => {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <Container className={styles.container}>
@@ -849,7 +781,6 @@ const RemindersPage = () => {
     );
   }
 
-  // No reminders
   if (reminders.length === 0) {
     return (
       <Container className={styles.container}>
@@ -893,7 +824,6 @@ const RemindersPage = () => {
           </div>
         </div>
 
-        {/* Add Reminder Modal */}
         <Modal show={showAddModal} onHide={handleCloseAddModal} centered>
           <Modal.Header closeButton>
             <Modal.Title>{t("Add a reminder")}</Modal.Title>
@@ -1034,10 +964,8 @@ const RemindersPage = () => {
     );
   }
 
-  // Normal state: reminders exist
   return (
     <Container className={styles.container}>
-      {/* Toast Messages */}
       {toastMessage && (
         <div className={styles.toastContainer}>
           <div className={styles.toastMessage}>
@@ -1089,7 +1017,6 @@ const RemindersPage = () => {
         </div>
       </div>
 
-      {/* Next Reminder Banner */}
       {nextReminder && (
         <div className={styles.nextReminderBanner}>
           <div className={styles.reminderCircle}>
@@ -1107,7 +1034,6 @@ const RemindersPage = () => {
         </div>
       )}
 
-      {/* Grouped Reminders by Date */}
       {Object.keys(groupedReminders).map((dateStr) => {
         const { date, dateText, isToday } = formatDay(dateStr);
         const dateReminders = groupedReminders[dateStr];
@@ -1155,7 +1081,6 @@ const RemindersPage = () => {
                         {reminder.title}
                       </div>
                     </td>
-                    {/* Display time in 12-hour format */}
                     <td>{formatTime12h(reminder.time)}</td>
                     <td>{reminder.note}</td>
                     <td className={styles.actionCell}>
@@ -1181,7 +1106,6 @@ const RemindersPage = () => {
         );
       })}
 
-      {/* Add Reminder Modal */}
       <Modal show={showAddModal} onHide={handleCloseAddModal} centered>
         <Modal.Header closeButton>
           <Modal.Title>{t("Add a reminder")}</Modal.Title>
@@ -1319,7 +1243,6 @@ const RemindersPage = () => {
         </Modal.Footer>
       </Modal>
 
-      {/* Edit Reminder Modal */}
       <Modal show={showEditModal} onHide={handleCloseEditModal} centered>
         <Modal.Header closeButton>
           <Modal.Title>{t("Edit Reminder")}</Modal.Title>
@@ -1455,7 +1378,6 @@ const RemindersPage = () => {
         </Modal.Footer>
       </Modal>
 
-      {/* Delete Confirmation Modal */}
       <Modal show={showDeleteModal} onHide={handleCloseDeleteModal} centered>
         <Modal.Header closeButton>
           <Modal.Title>{t("Delete Reminder")}</Modal.Title>
