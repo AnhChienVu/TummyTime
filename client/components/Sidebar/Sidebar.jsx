@@ -102,6 +102,14 @@ function Sidebar() {
         </Nav.Link>
         <Nav.Link
           as={Link}
+          href="/medicalProfessional"
+          locale={locale}
+          className={styles.navlink}
+        >
+          {t("Medical Professional")}
+        </Nav.Link>
+        <Nav.Link
+          as={Link}
           href="/checkProduct"
           locale={locale}
           className={styles.navlink}

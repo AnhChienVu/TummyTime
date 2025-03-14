@@ -1,0 +1,177 @@
+import React, { useState, useEffect } from "react";
+import styles from "./medicalProfessional.module.css";
+import Image from "next/image";
+import BabyListModal from "@/components/BabyListModal/BabyListModal";
+
+function MedicalProfessional() {
+  const [medicalProfessional, setMedicalProfessional] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [babies, setBabies] = useState([]);
+  const [assignedBabies, setAssignedBabies] = useState({});
+
+  useEffect(() => {
+    const fetchMedicalProfessional = async () => {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/v1/medical-professional`,
+      );
+      const data = await res.json();
+      if (data.status === "ok") {
+        setMedicalProfessional(data.medicalProfessional);
+      }
+    };
+
+    const fetchBabies = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/v1/babies`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
+        );
+        const data = await res.json();
+        if (res.ok) {
+          // Direct access to the babies array
+          setBabies(data.babies);
+        } else {
+          console.error("Failed to fetch baby profiles:", data);
+        }
+      } catch (error) {
+        console.error("Error fetching baby profiles:", error);
+      }
+    };
+
+    fetchMedicalProfessional();
+    fetchBabies();
+  }, []);
+
+  useEffect(() => {
+    const fetchAssignedBabies = async (doctor_id) => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/v1/medical-professional/${doctor_id}/babies`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
+        );
+        const data = await res.json();
+        if (data.status === "ok") {
+          setAssignedBabies((prev) => ({
+            ...prev,
+            [doctor_id]: data.babies,
+          }));
+        } else {
+          console.log("Failed to fetch assigned babies:", data);
+        }
+      } catch (error) {
+        console.error("Error fetching assigned babies:", error);
+      }
+    };
+    medicalProfessional.forEach((doctor) => {
+      fetchAssignedBabies(doctor.user_id);
+    });
+  }, [medicalProfessional]);
+
+  const handleConnectClick = (doctor) => {
+    setSelectedDoctor(doctor);
+    setShowModal(true);
+  };
+
+  const handleSelectBaby = async (baby) => {
+    setShowModal(false);
+    console.log(selectedDoctor);
+    // Send baby info to the doctor
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/v1/medical-professional/${selectedDoctor.user_id}/connect`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          baby_id: baby.baby_id,
+          doctor_id: selectedDoctor.user_id,
+        }),
+      },
+    );
+
+    const data = await res.json();
+    if (data.status === "ok") {
+      alert("Baby assigned to doctor successfully");
+    } else {
+      alert("Failed to assign baby to doctor");
+    }
+  };
+
+  return (
+    <div className={styles.container}>
+      {medicalProfessional && (
+        <div>
+          {medicalProfessional.map((medicalProfessional) => (
+            <div
+              className={styles.profileCard}
+              key={medicalProfessional.user_id}
+            >
+              <div className={styles.profileHeader}>
+                <Image
+                  className={styles.profileImage}
+                  src={"/doctor.jpg"}
+                  width={200}
+                  height={200}
+                  alt="profile"
+                />
+                <h2>
+                  Dr. {medicalProfessional.first_name}{" "}
+                  {medicalProfessional.last_name}
+                </h2>
+                <p className={styles.specialization}>
+                  {medicalProfessional.role}
+                </p>
+              </div>
+              <div className={styles.profileContact}>
+                <p className={styles.email}>{medicalProfessional.email}</p>
+              </div>
+              <div className={styles.profileActions}>
+                <button
+                  className={styles.button}
+                  onClick={() => handleConnectClick(medicalProfessional)}
+                >
+                  Connect
+                </button>
+              </div>
+              <div className={styles.babyList}>
+                <h3>Assigned Babies</h3>
+
+                {assignedBabies[medicalProfessional.user_id] &&
+                  assignedBabies[medicalProfessional.user_id].map((baby) => (
+                    <div key={baby.baby_id} className={styles.assignedBabies}>
+                      <p className={styles.babyName}>
+                        Baby: {baby.first_name} {baby.last_name}
+                      </p>
+                      <button className={styles.button}>
+                        Health Documents
+                      </button>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <BabyListModal
+        show={showModal}
+        handleClose={() => setShowModal(false)}
+        babies={babies}
+        onSelectBaby={handleSelectBaby}
+      />
+    </div>
+  );
+}
+
+export default MedicalProfessional;
