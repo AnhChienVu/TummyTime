@@ -15,6 +15,12 @@ const { createStoolEntry } = require("./baby/stool/postStool");
 const { updateStoolEntry } = require("./baby/stool/putStool");
 const { deleteStoolEntry } = require("./baby/stool/deleteStool");
 
+// Import all of reminders API endpoints
+const { getReminders } = require('./baby/reminders/getReminders');
+const { createReminder } = require('./baby/reminders/postReminder');
+const { updateReminder } = require('./baby/reminders/putReminder');
+const { deleteReminders } = require('./baby/reminders/deleteReminders')
+
 router.post("/login", require("./login"));
 
 router.post("/signup", require("./signup"));
@@ -251,6 +257,21 @@ router.get(
   "/doctor/:doctorId/healthRecords",
   require("./healthRecord/getAllHealthRecords").getAllHealthRecords
 );
+
+// ************ /reminders routes ************
+// GET /baby/:babyId/reminders - Get all reminders for a baby
+router.get('/baby/:babyId/reminders', authenticate(), getReminders);
+
+// POST /baby/:babyId/reminders - Create a new reminder
+router.post('/baby/:babyId/reminders', authenticate(), createReminder);
+
+// PUT /baby/:babyId/reminders/:reminderId - Update an existing reminder
+router.put('/baby/:babyId/reminders/:reminderId', authenticate(), updateReminder);
+
+// DELETE /baby/:babyId/reminders - Unified deletion endpoint (single or bulk)
+router.delete('/baby/:babyId/reminders', authenticate(), deleteReminders);
+
+
 
 // Testing the authentication middleware
 // router.get('/test', authenticate(), require('./test'));
