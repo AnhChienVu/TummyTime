@@ -1,5 +1,5 @@
 // pages/milestones/index.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Button,
   Modal,
@@ -9,7 +9,7 @@ import {
   Col,
   Alert,
 } from "react-bootstrap";
-import { format, set } from "date-fns";
+import { format } from "date-fns";
 import { FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
 import styles from "./milestones.module.css";
 import BabyCardMilestone from "@/components/BabyCardMilestone/BabyCardMilestone";
@@ -19,6 +19,8 @@ import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import { Calendar, dateFnsLocalizer } from "react-big-calendar";
 import { parse, startOfWeek, getDay } from "date-fns";
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import useSpeechToText from "@/hooks/useSpeechToText";
+import IncompatibleBrowserModal from "@/components/IncompatibleBrowserModal";
 
 function Milestones() {
   const { t } = useTranslation("common");
@@ -33,9 +35,9 @@ function Milestones() {
   const [detailsError, setDetailsError] = useState("");
   const [dateError, setDateError] = useState("");
   const [milestones, setMilestones] = useState([]);
-  const [isListening, setIsListening] = useState(false);
   const [currentInputField, setCurrentInputField] = useState(null);
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [showIncompatibleModal, setShowIncompatibleModal] = useState(false);
 
   // modal for displaying milestone details
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -94,18 +96,17 @@ function Milestones() {
     </div>
   );
 
-  let toastIdCounter = 1;
-  const createToastId = () => {
-    return toastIdCounter++;
-  };
-
-  const showToast = (message, variant = "success") => {
+  const showToast = useCallback((message, variant = "success") => {
+    let toastIdCounter = 1;
+    const createToastId = () => {
+      return toastIdCounter++;
+    };
     const id = createToastId();
     setToasts((prev) => [...prev, { id, message, variant }]);
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 5000);
-  };
+  }, []);
 
   const removeToast = (id) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
@@ -257,43 +258,58 @@ function Milestones() {
     setShowDetailsModal(true);
   };
 
+  const {
+    isListening,
+    startListening,
+    stopListening,
+    transcript,
+    resetTranscript,
+    error,
+  } = useSpeechToText();
+
   const handleVoiceInput = async (fieldName) => {
     if (!isListening) {
-      try {
-        setCurrentInputField(fieldName);
-        setIsListening(true);
-
-        const recognition = new (window.SpeechRecognition ||
-          window.webkitSpeechRecognition)();
-        recognition.lang = "en-US";
-
-        recognition.onresult = (event) => {
-          const transcript = event.results[0][0].transcript;
-          if (fieldName === "title") {
-            setTitle((prev) => prev + " " + transcript);
-          } else if (fieldName === "details") {
-            setDetails((prev) => prev + " " + transcript);
-          }
-        };
-
-        recognition.onend = () => {
-          setIsListening(false);
-        };
-
-        recognition.start();
-      } catch (error) {
-        console.error("Voice input error:", error);
-        showToast(t("Voice input is not supported in this browser"), "error");
-        setIsListening(false);
+      if (error?.includes("not supported")) {
+        setShowIncompatibleModal(true);
+        return;
       }
+      setCurrentInputField(fieldName);
+      resetTranscript(); // Clear previous transcript
+      // Clear the existing field content when starting new voice input
+      if (fieldName === "title") {
+        setTitle("");
+      } else if (fieldName === "details") {
+        setDetails("");
+      }
+      startListening();
     } else {
-      setIsListening(false);
+      stopListening();
       setCurrentInputField(null);
     }
   };
 
+  // Handle transcript updates
+  useEffect(() => {
+    if (transcript && currentInputField) {
+      if (currentInputField === "title") {
+        setTitle(transcript.trim()); // Replace the existing title
+      } else if (currentInputField === "details") {
+        setDetails(transcript.trim()); // Replace the existing details
+      }
+    }
+  }, [transcript, currentInputField]);
+
+  useEffect(() => {
+    if (error && !error.includes("not supported")) {
+      showToast(t("Voice input error occurred"), "error");
+    }
+  }, [error, t, showToast]);
+
   return (
     <Container className={styles.container} fluid>
+      {/* Add ToastContainer at the top level */}
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
+
       <Row>
         <Col>
           <h1>{t("Milestones")}</h1>
@@ -343,9 +359,12 @@ function Milestones() {
         </Col>
       </Row>
 
+      {/* add milestone modal */}
       <Modal
         show={addMilestoneModalShow}
         onHide={() => setAddMilestoneModalShow(false)}
+        className={`${showIncompatibleModal ? styles.modalBlur : ""}`}
+        dialogClassName={styles.modalContainer}
       >
         <Modal.Header closeButton>
           <Modal.Title>{t("Add a milestone")}</Modal.Title>
@@ -471,6 +490,11 @@ function Milestones() {
           </Button>
         </Modal.Footer>
       </Modal>
+
+      <IncompatibleBrowserModal
+        show={showIncompatibleModal}
+        onHide={() => setShowIncompatibleModal(false)}
+      />
     </Container>
   );
 }
