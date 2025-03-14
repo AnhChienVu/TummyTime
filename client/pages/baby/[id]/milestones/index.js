@@ -1,11 +1,26 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import styles from "./milestones.module.css";
-import { FaBaby, FaEdit, FaTrash } from "react-icons/fa";
+import {
+  FaBaby,
+  FaEdit,
+  FaTrash,
+  FaMicrophone,
+  FaMicrophoneSlash,
+} from "react-icons/fa";
 import { Modal, Form, Button, Alert, Row, Col } from "react-bootstrap";
 import { AiOutlineInfoCircle } from "react-icons/ai";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
 
 function MilestoneEachBaby() {
   const { t } = useTranslation("common");
@@ -16,17 +31,25 @@ function MilestoneEachBaby() {
   const [title, setTitle] = useState("");
   const [details, setDetails] = useState("");
   const [toasts, setToasts] = useState([]);
+  const [date, setDate] = useState("");
+  const [deleteModalShow, setDeleteModalShow] = useState(false);
+  const [milestoneToDelete, setMilestoneToDelete] = useState(null);
+  const [isListening, setIsListening] = useState(false);
+  const [currentInputField, setCurrentInputField] = useState(null);
 
   const router = useRouter();
   const baby_id = router.query.id;
-  console.log(baby_id);
+
+  const handleBackClick = () => {
+    router.push("/milestones");
+  };
 
   useEffect(() => {
     if (baby_id) {
       async function fetchMilestones() {
         try {
           const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${baby_id}/getMilestones`,
+            `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${baby_id}/milestones`,
             {
               headers: {
                 Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -35,13 +58,12 @@ function MilestoneEachBaby() {
           );
           const data = await res.json();
 
-          if (res.ok) {
-            //  Convert the response to an array of milestones
-            const milestonesArray = Object.keys(data)
-              .filter((key) => key !== "status")
-              .map((key) => data[key]);
-            setMilestones(milestonesArray);
-            console.log("Fetched milestone data:", milestonesArray);
+          if (res.ok && data.status === "ok") {
+            // Sort milestones by date (most recent first) before setting state
+            const sortedMilestones = data.data.sort(
+              (a, b) => new Date(b.date) - new Date(a.date),
+            );
+            setMilestones(sortedMilestones);
           } else {
             console.error("Failed to fetch milestones:", data);
           }
@@ -58,6 +80,8 @@ function MilestoneEachBaby() {
     setSelectedMilestone(milestone);
     setTitle(milestone.title);
     setDetails(milestone.details);
+    // Format the date for the input field (YYYY-MM-DD)
+    setDate(new Date(milestone.date).toISOString().split("T")[0]);
     setModalShow(true);
   };
 
@@ -109,16 +133,63 @@ function MilestoneEachBaby() {
     }, 5000);
   };
 
+  const validateForm = () => {
+    if (!title.trim()) {
+      setModalError(t("Title is required"));
+      return false;
+    }
+    if (!details.trim()) {
+      setModalError(t("Details are required"));
+      return false;
+    }
+    if (!date) {
+      setModalError(t("Date is required"));
+      return false;
+    }
+
+    // Validate date format and range
+    const selectedDate = new Date(date);
+
+    // Check if date is valid
+    if (isNaN(selectedDate.getTime())) {
+      setModalError(t("Invalid date format."));
+      return false;
+    }
+
+    // Check if date is too far in the future (max 5 years)
+    const fiveYearsFromNow = new Date();
+    fiveYearsFromNow.setFullYear(fiveYearsFromNow.getFullYear() + 5);
+    if (selectedDate > fiveYearsFromNow) {
+      setModalError(t("Date cannot be more than 5 years in the future."));
+      return false;
+    }
+
+    // Check if date is too far in the past (max 50 years)
+    const fiftyYearsAgo = new Date();
+    fiftyYearsAgo.setFullYear(fiftyYearsAgo.getFullYear() - 50);
+    if (selectedDate < fiftyYearsAgo) {
+      setModalError(t("Date cannot be more than 50 years in the past."));
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSaveMilestone = async () => {
     setModalError("");
+
+    // Validate form before submitting
+    if (!validateForm()) {
+      return;
+    }
+
     const milestone_id = selectedMilestone
       ? selectedMilestone.milestone_id
       : null;
 
     try {
-      // Update milestone in the database
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${selectedMilestone.baby_id}/updateMilestone/${milestone_id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${selectedMilestone.baby_id}/milestones/${milestone_id}`,
         {
           method: "PUT",
           headers: {
@@ -128,7 +199,7 @@ function MilestoneEachBaby() {
           body: JSON.stringify({
             title,
             details,
-            date: new Date().toISOString().split("T")[0],
+            date: date,
           }),
         },
       );
@@ -140,18 +211,19 @@ function MilestoneEachBaby() {
         router.reload();
       }
     } catch (error) {
-      console.log(error);
       showToast("Error saving milestone to server.", "danger");
     }
   };
 
-  // DELETE meal
-  const handleDeleteMilestone = async (milstone) => {
-    const milestone_id = milstone.milestone_id;
+  const handleDeleteClick = (milestone) => {
+    setMilestoneToDelete(milestone);
+    setDeleteModalShow(true);
+  };
+
+  const handleDeleteConfirm = async () => {
     try {
-      // Delete milestone in the database
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${milstone.baby_id}/deleteMilestone/${milestone_id}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${milestoneToDelete.baby_id}/milestones/${milestoneToDelete.milestone_id}`,
         {
           method: "DELETE",
           headers: {
@@ -163,93 +235,223 @@ function MilestoneEachBaby() {
 
       const data = await res.json();
       if (data.status === "ok") {
-        setModalShow(false);
+        setDeleteModalShow(false);
+        setMilestones(
+          milestones.filter(
+            (m) => m.milestone_id !== milestoneToDelete.milestone_id,
+          ),
+        );
         showToast("Milestone deleted!");
-        router.reload();
       }
     } catch (error) {
-      console.log(error);
       showToast("Error deleting milestone.", "danger");
+    }
+    setMilestoneToDelete(null);
+  };
+
+  const handleVoiceInput = async (fieldName) => {
+    if (!isListening) {
+      try {
+        setCurrentInputField(fieldName);
+        setIsListening(true);
+
+        const recognition = new (window.SpeechRecognition ||
+          window.webkitSpeechRecognition)();
+        recognition.lang = "en-US";
+
+        recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          if (fieldName === "title") {
+            setTitle((prev) => prev + " " + transcript);
+          } else if (fieldName === "details") {
+            setDetails((prev) => prev + " " + transcript);
+          }
+        };
+
+        recognition.onend = () => {
+          setIsListening(false);
+        };
+
+        recognition.start();
+      } catch (error) {
+        console.error("Voice input error:", error);
+        showToast(t("Voice input is not supported in this browser"), "error");
+        setIsListening(false);
+      }
+    } else {
+      setIsListening(false);
+      setCurrentInputField(null);
     }
   };
 
   return (
-    <div>
-      {milestones.map((milestone, idx) => {
-        return (
-          <div key={idx} className={styles.container}>
-            <table className={styles.mealsTable}>
-              <thead>
-                <tr>
-                  <th>{t("Title")}</th>
-                  <th>{t("Details")}</th>
-                  <th>{t("Date")}</th>
-                  <th style={{ width: "60px" }}></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr key={idx}>
-                  <td>{milestone.title}</td>
-                  <td>{milestone.details}</td>
-                  <td>{milestone.date}</td>
-                  <td className={styles.actionCell}>
-                    <button
-                      className={styles.editBtn}
-                      onClick={() => handleOpenModal(milestone)}
-                    >
-                      <FaEdit />
-                    </button>
-                    <button
-                      className={styles.deleteBtn}
-                      onClick={() => handleDeleteMilestone(milestone)}
-                    >
-                      <FaTrash />
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        );
-      })}
+    <div className={styles.container}>
+      <ToastContainer toasts={toasts} removeToast={removeToast} />
+      <div className={styles.backButtonContainer}>
+        <div className={styles.backButton} onClick={handleBackClick}>
+          <span>← {t("Back to Overview")}</span>
+        </div>
+      </div>
 
+      <table className={styles.mealsTable}>
+        <thead>
+          <tr>
+            <th>{t("Title")}</th>
+            <th>{t("Details")}</th>
+            <th>{t("Date")}</th>
+            <th style={{ width: "60px" }}></th>
+          </tr>
+        </thead>
+        <tbody>
+          {milestones && milestones.length > 0 ? (
+            milestones.map((milestone) => (
+              <tr key={milestone.milestone_id}>
+                <td>{milestone.title}</td>
+                <td>{milestone.details}</td>
+                <td>{formatDate(milestone.date)}</td>
+                <td className={styles.actionCell}>
+                  <button
+                    className={styles.editBtn}
+                    onClick={() => handleOpenModal(milestone)}
+                  >
+                    <FaEdit />
+                  </button>
+                  <button
+                    className={styles.deleteBtn}
+                    onClick={() => handleDeleteClick(milestone)}
+                  >
+                    <FaTrash />
+                  </button>
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="4" style={{ textAlign: "center" }}>
+                No milestones found
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+
+      {/* Modal for editing milestone */}
       <Modal show={modalShow} onHide={() => setModalShow(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>
-            {selectedMilestone ? t("Edit Milestone") : t("Add Milestone")}
-          </Modal.Title>
+          <Modal.Title>{t("Edit Milestone")}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {modalError && <Alert variant="danger">{modalError}</Alert>}
-          <Form>
-            <Form.Group controlId="title">
-              <Form.Label>{t("Title")}</Form.Label>
-              <Form.Control
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-              ></Form.Control>
+          {modalError && (
+            <Alert variant="danger" className="mb-3">
+              {modalError}
+            </Alert>
+          )}
+          <Form noValidate>
+            <Form.Group className="mb-3">
+              <Form.Label>
+                {t("Title")} <span className="text-danger">*</span>
+              </Form.Label>
+              <div className="d-flex align-items-center">
+                <Form.Control
+                  type="text"
+                  value={title}
+                  onChange={(e) => {
+                    setTitle(e.target.value);
+                    setModalError("");
+                  }}
+                  isInvalid={modalError && !title.trim()}
+                />
+                <Button
+                  variant="link"
+                  className="ms-2 p-0"
+                  onClick={() => handleVoiceInput("title")}
+                >
+                  {isListening && currentInputField === "title" ? (
+                    <FaMicrophoneSlash className="text-danger" />
+                  ) : (
+                    <FaMicrophone className="text-primary" />
+                  )}
+                </Button>
+              </div>
             </Form.Group>
-
-            <Form.Group controlId="detail">
-              <Form.Label>{t("Details")}</Form.Label>
+            <Form.Group className="mb-3">
+              <Form.Label>
+                {t("Details")} <span className="text-danger">*</span>
+              </Form.Label>
+              <div className="d-flex align-items-start">
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  value={details}
+                  onChange={(e) => {
+                    setDetails(e.target.value);
+                    setModalError("");
+                  }}
+                  isInvalid={modalError && !details.trim()}
+                />
+                <Button
+                  variant="link"
+                  className="ms-2 p-0"
+                  onClick={() => handleVoiceInput("details")}
+                >
+                  {isListening && currentInputField === "details" ? (
+                    <FaMicrophoneSlash className="text-danger" />
+                  ) : (
+                    <FaMicrophone className="text-primary" />
+                  )}
+                </Button>
+              </div>
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>
+                {t("Date")} <span className="text-danger">*</span>
+              </Form.Label>
               <Form.Control
-                type="text"
-                value={details}
-                onChange={(e) => setDetails(e.target.value)}
-              ></Form.Control>
+                type="date"
+                value={date}
+                onChange={(e) => {
+                  setDate(e.target.value);
+                  setModalError("");
+                }}
+                isInvalid={modalError && !date}
+                max={
+                  new Date(new Date().setFullYear(new Date().getFullYear() + 5))
+                    .toISOString()
+                    .split("T")[0]
+                } // allow up to 5 years in the future
+              />
             </Form.Group>
           </Form>
         </Modal.Body>
         <Modal.Footer>
           <Button
-            className={styles.btnCancel}
+            variant="outline-secondary"
             onClick={() => setModalShow(false)}
           >
             {t("Cancel")}
           </Button>
-          <Button className={styles.btnSave} onClick={handleSaveMilestone}>
-            {t("Save")}
+          <Button variant="primary" onClick={handleSaveMilestone}>
+            {t("Save Changes")}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      <Modal show={deleteModalShow} onHide={() => setDeleteModalShow(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>{t("Confirm Deletion")}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {t("Are you sure you want to delete this milestone?")}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="outline-secondary"
+            onClick={() => setDeleteModalShow(false)}
+          >
+            {t("Cancel")}
+          </Button>
+          <Button variant="danger" onClick={handleDeleteConfirm}>
+            {t("Delete")}
           </Button>
         </Modal.Footer>
       </Modal>

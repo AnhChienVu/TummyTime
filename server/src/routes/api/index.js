@@ -94,25 +94,31 @@ router.delete(
 
 // ************ /milestones routes ************
 router.get(
-  '/baby/:baby_id/getMilestones/',
+  '/milestones',
+  authenticate(),
+  require('./milestones/getAllMilestones')
+);
+
+router.get(
+  '/baby/:baby_id/milestones',
   authenticate(),
   require('./milestones/getMilestones').getMilestoneByBabyId
 );
 
 router.post(
-  '/baby/:baby_id/addMilestone/',
+  '/baby/:baby_id/milestones',
   authenticate(),
   require('./milestones/postMilestone').createMilestone
 );
 
 router.put(
-  '/baby/:baby_id/updateMilestone/:milestone_id',
+  '/baby/:baby_id/milestones/:milestone_id',
   authenticate(),
   require('./milestones/putMilestone').updateMilestoneById
 );
 
 router.delete(
-  '/baby/:baby_id/deleteMilestone/:milestone_id',
+  '/baby/:baby_id/milestones/:milestone_id',
   authenticate(),
   require('./milestones/deleteMilestone').deleteMilestoneById
 );
@@ -130,7 +136,6 @@ router.get(
   require('./baby/babyProfile/getAllBabyProfiles')
 );
 
-// GET one baby profile
 router.get(
   '/baby/:baby_id',
   authenticate(),
@@ -241,26 +246,16 @@ router.post('/baby/:babyId/stool', authenticate(), createStoolEntry);
 router.put('/baby/:babyId/stool/:stoolId', authenticate(), updateStoolEntry);
 router.delete('/baby/:babyId/stool/:stoolId', authenticate(), deleteStoolEntry);
 
-// ************ /devices routes ************
-router.get('/devices', require('./devices/devices').findDevices);
-
-// ************ /medicalProfessional routes ************
+// ************ Check Products ************
 router.get(
-  '/medical-professional',
-  require('./medicalProfessional/getAllMedicalProfessional')
-    .getAllMedicalProfessional
+  '/products/checkProduct',
+  require('./products/checkProduct').checkProduct
 );
 
-router.post(
-  '/medical-professional/:doctor_id/connect',
-  require('./medicalProfessional/connectMedicalProfessional')
-    .connectMedicalProfessional
-);
-
+// ************ /healthRecord routes ************
 router.get(
-  '/medical-professional/:doctor_id/babies',
-  require('./medicalProfessional/getAssignedBabiesByDoctorId')
-    .getAssignedBabiesByDoctorId
+  '/doctor/:doctorId/healthRecords',
+  require('./healthRecord/getAllHealthRecords').getAllHealthRecords
 );
 
 // Testing the authentication middleware
