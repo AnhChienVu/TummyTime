@@ -94,9 +94,6 @@ router.delete(
 
 // ************ /milestones routes ************
 router.get(
-  '/milestones',
-  authenticate(),
-  require('./milestones/getAllMilestones')
   "/milestones",
   authenticate(),
   require("./milestones/getAllMilestones")
@@ -109,21 +106,18 @@ router.get(
 );
 
 router.post(
-  '/baby/:baby_id/milestones',
   "/baby/:baby_id/milestones",
   authenticate(),
   require('./milestones/postMilestone').createMilestone
 );
 
 router.put(
-  '/baby/:baby_id/milestones/:milestone_id',
   "/baby/:baby_id/milestones/:milestone_id",
   authenticate(),
   require('./milestones/putMilestone').updateMilestoneById
 );
 
 router.delete(
-  '/baby/:baby_id/milestones/:milestone_id',
   "/baby/:baby_id/milestones/:milestone_id",
   authenticate(),
   require('./milestones/deleteMilestone').deleteMilestoneById
@@ -282,8 +276,6 @@ router.get(
 
 // ************ /healthRecord routes ************
 router.get(
-  '/doctor/:doctorId/healthRecords',
-  require('./healthRecord/getAllHealthRecords').getAllHealthRecords
   "/doctor/:doctorId/healthRecords",
   require("./healthRecord/getAllHealthRecords").getAllHealthRecords
 );
