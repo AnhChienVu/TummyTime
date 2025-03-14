@@ -7,6 +7,7 @@ import {
   faCameraSlash,
   faCamera,
 } from "@fortawesome/free-solid-svg-icons";
+import SearchByCategoryBox from "@/components/SearchByCategoryBox/SearchByCategoryBox";
 
 function CheckProduct() {
   const [cameraActive, setCameraActive] = useState(false);
@@ -89,7 +90,6 @@ function CheckProduct() {
 
   return (
     <div className={styles.container}>
-      <h2>Check Product Safety</h2>
       <h1>Barcode Scanner</h1>
       <div className={styles.barcodeScanner}>
         <button onClick={toggleCamera} className={styles.cameraToggleButton}>
@@ -126,6 +126,11 @@ function CheckProduct() {
           </button>
         </div>
       </div>
+
+      <br />
+
+      <h1>Search By Category</h1>
+      <SearchByCategoryBox />
 
       {error && (
         <div className={styles.error}>
