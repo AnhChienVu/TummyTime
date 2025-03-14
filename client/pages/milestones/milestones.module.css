@@ -56,19 +56,39 @@
 }
 
 .calendarWrapper :global(.rbc-toolbar) {
-  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  flex-direction: row-reverse;  /* Reverses the order of elements */
+}
+
+.calendarWrapper :global(.rbc-toolbar-label) {
+  margin-right: auto;  /* Pushes the label to the left */
+  font-weight: bold;
+  font-size: 1.2em;
+}
+
+.calendarWrapper :global(.rbc-btn-group) {
+  margin-left: 10px;  /* Adds some spacing between button groups */
 }
 
 .calendarWrapper :global(.rbc-toolbar button) {
-  color: #666;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
+  color: #373a3c;
+  cursor: pointer;
   padding: 6px 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: white;
+}
+
+.calendarWrapper :global(.rbc-toolbar button:hover) {
+  background-color: #e6e6e6;
 }
 
 .calendarWrapper :global(.rbc-toolbar button.rbc-active) {
   background-color: #007bff;
-  color: white;
+  color: #fff;
   border-color: #007bff;
 }
 
