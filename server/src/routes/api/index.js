@@ -97,6 +97,9 @@ router.get(
   '/milestones',
   authenticate(),
   require('./milestones/getAllMilestones')
+  "/milestones",
+  authenticate(),
+  require("./milestones/getAllMilestones")
 );
 
 router.get(
@@ -107,18 +110,21 @@ router.get(
 
 router.post(
   '/baby/:baby_id/milestones',
+  "/baby/:baby_id/milestones",
   authenticate(),
   require('./milestones/postMilestone').createMilestone
 );
 
 router.put(
   '/baby/:baby_id/milestones/:milestone_id',
+  "/baby/:baby_id/milestones/:milestone_id",
   authenticate(),
   require('./milestones/putMilestone').updateMilestoneById
 );
 
 router.delete(
   '/baby/:baby_id/milestones/:milestone_id',
+  "/baby/:baby_id/milestones/:milestone_id",
   authenticate(),
   require('./milestones/deleteMilestone').deleteMilestoneById
 );
@@ -246,6 +252,28 @@ router.post('/baby/:babyId/stool', authenticate(), createStoolEntry);
 router.put('/baby/:babyId/stool/:stoolId', authenticate(), updateStoolEntry);
 router.delete('/baby/:babyId/stool/:stoolId', authenticate(), deleteStoolEntry);
 
+// ************ /devices routes ************
+router.get('/devices', require('./devices/devices').findDevices);
+
+// ************ /medicalProfessional routes ************
+router.get(
+  '/medical-professional',
+  require('./medicalProfessional/getAllMedicalProfessional')
+    .getAllMedicalProfessional
+);
+
+router.post(
+  '/medical-professional/:doctor_id/connect',
+  require('./medicalProfessional/connectMedicalProfessional')
+    .connectMedicalProfessional
+);
+
+router.get(
+  '/medical-professional/:doctor_id/babies',
+  require('./medicalProfessional/getAssignedBabiesByDoctorId')
+    .getAssignedBabiesByDoctorId
+);
+
 // ************ Check Products ************
 router.get(
   '/products/checkProduct',
@@ -256,6 +284,8 @@ router.get(
 router.get(
   '/doctor/:doctorId/healthRecords',
   require('./healthRecord/getAllHealthRecords').getAllHealthRecords
+  "/doctor/:doctorId/healthRecords",
+  require("./healthRecord/getAllHealthRecords").getAllHealthRecords
 );
 
 // Testing the authentication middleware
