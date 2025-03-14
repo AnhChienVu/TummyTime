@@ -93,7 +93,7 @@ function CheckProduct() {
 
   return (
     <div className={styles.container}>
-      <h1>Barcode Scanner</h1>
+      <h1>{t("Barcode Scanner")}</h1>
       <div className={styles.barcodeScanner}>
         <button onClick={toggleCamera} className={styles.cameraToggleButton}>
           <FontAwesomeIcon icon={faCamera} />
@@ -132,7 +132,7 @@ function CheckProduct() {
 
       <br />
 
-      <h1>Search By Category</h1>
+      <h1>{t("Search By Category")}</h1>
       <SearchByCategoryBox />
 
       {error && (
