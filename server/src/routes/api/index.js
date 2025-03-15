@@ -100,7 +100,7 @@ router.get(
 );
 
 router.get(
-  "/baby/:baby_id/milestones",
+  '/baby/:baby_id/milestones',
   authenticate(),
   require('./milestones/getMilestones').getMilestoneByBabyId
 );
@@ -245,6 +245,28 @@ router.get('/baby/:babyId/stool', authenticate(), getStoolEntries);
 router.post('/baby/:babyId/stool', authenticate(), createStoolEntry);
 router.put('/baby/:babyId/stool/:stoolId', authenticate(), updateStoolEntry);
 router.delete('/baby/:babyId/stool/:stoolId', authenticate(), deleteStoolEntry);
+
+// ************ /devices routes ************
+router.get('/devices', require('./devices/devices').findDevices);
+
+// ************ /medicalProfessional routes ************
+router.get(
+  '/medical-professional',
+  require('./medicalProfessional/getAllMedicalProfessional')
+    .getAllMedicalProfessional
+);
+
+router.post(
+  '/medical-professional/:doctor_id/connect',
+  require('./medicalProfessional/connectMedicalProfessional')
+    .connectMedicalProfessional
+);
+
+router.get(
+  '/medical-professional/:doctor_id/babies',
+  require('./medicalProfessional/getAssignedBabiesByDoctorId')
+    .getAssignedBabiesByDoctorId
+);
 
 // ************ Check Products ************
 router.get(
