@@ -401,3 +401,10 @@
     color: #0056b3;
     text-decoration: underline;
 }
+
+/* Modal blur effect when incompatible browser modal is shown */
+.modalBlur {
+  filter: blur(3px);
+  pointer-events: none;
+  user-select: none;
+}
