@@ -8,6 +8,10 @@ function useSpeechToText(options) {
   const recognitionRef = useRef(null);
   const [showIncompatibleModal, setShowIncompatibleModal] = useState(false);
 
+  const browserSupportsSpeechRecognition =
+    typeof window !== "undefined" &&
+    Boolean(window.SpeechRecognition || window.webkitSpeechRecognition);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -141,6 +145,7 @@ function useSpeechToText(options) {
     resetTranscript,
     showIncompatibleModal,
     setShowIncompatibleModal,
+    browserSupportsSpeechRecognition,
   };
 }
 
