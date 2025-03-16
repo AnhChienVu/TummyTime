@@ -165,7 +165,7 @@ const ExportDataPage = () => {
           style={{ display: "block" }}
           tabIndex="-1"
         >
-          <div className="modal-dialog">
+          <div className="modal-dialog" style={{ zIndex: 1050 }}>
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">Export Successful</h5>
@@ -188,7 +188,10 @@ const ExportDataPage = () => {
               </div>
             </div>
           </div>
-          <div className="modal-backdrop fade show"></div>
+          <div
+            className="modal-backdrop fade show"
+            style={{ zIndex: 1040 }}
+          ></div>
         </div>
       )}
     </div>
