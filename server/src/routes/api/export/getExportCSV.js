@@ -14,6 +14,7 @@ const { getUserId } = require('../../../utils/userIdHelper');
 // GET /export/csv
 // req.headers.authorization: is JWT token
 // req.query.startDate + endDate: are date range
+// req.query include options for each category (babyInfo, growth,...)
 module.exports = async (req, res) => {
   try {
     // Step1: Verify the user token- get related baby_id
