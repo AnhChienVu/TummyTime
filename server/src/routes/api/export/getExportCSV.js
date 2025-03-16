@@ -201,9 +201,9 @@ module.exports = async (req, res) => {
     const fileName = fileNameParts.join("_") + ".csv";
 
     // Insert export record into exporteddocument table
-    const exportDate = new Date().toISOString().split("T")[0];
+    const exportDate = new Date().toISOString(); 
     const insertResult = await pool.query(
-      "INSERT INTO exporteddocument (file_name, file_format, date) VALUES ($1, $2, $3) RETURNING *",
+      "INSERT INTO exporteddocument (file_name, file_format, created_at) VALUES ($1, $2, $3) RETURNING *",
       [fileName, "CSV", exportDate]
     );
     logger.info(`Export record created: ${JSON.stringify(insertResult.rows[0])}`);

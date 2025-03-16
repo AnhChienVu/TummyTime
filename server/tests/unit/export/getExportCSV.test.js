@@ -95,7 +95,7 @@ describe("getExportCSV endpoint", () => {
           document_id: 1,
           file_name: "ExportedBabyData_Info_Growth_Milestones_Feeding_Stool_from2023-01-01_to2023-01-31.csv",
           file_format: "CSV",
-          date: "2023-01-31",
+          created_at: "2023-01-31",
         },
       ],
     });
