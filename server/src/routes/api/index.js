@@ -253,7 +253,7 @@ router.put('/baby/:babyId/stool/:stoolId', authenticate(), updateStoolEntry);
 router.delete('/baby/:babyId/stool/:stoolId', authenticate(), deleteStoolEntry);
 
 // ************ /devices routes ************
-router.get('/devices', require('./devices/devices').findDevices);
+// router.get('/devices', require('./devices/devices').findDevices);
 
 // ************ /medicalProfessional routes ************
 router.get(
