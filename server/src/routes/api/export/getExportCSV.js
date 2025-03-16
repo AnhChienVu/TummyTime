@@ -182,9 +182,28 @@ module.exports = async (req, res) => {
       csvContent += "\n\n";
     }
 
-    // Set headers to trigger CSV download
+    // Build file name based on included sections and date range
+    let fileNameParts = ["ExportedBabyData"];
+    if (includeBabyInfo) fileNameParts.push("Info");
+    if (includeGrowthRecords) fileNameParts.push("Growth");
+    if (includeMilestones) fileNameParts.push("Milestones");
+    if (includeFeedingSchedule) fileNameParts.push("Feeding");
+    if (includeStoolRecords) fileNameParts.push("Stool");
+    fileNameParts.push(`from${startDate}`);
+    fileNameParts.push(`to${endDate}`);
+    const fileName = fileNameParts.join("_") + ".csv";
+
+    // Insert export record into exporteddocument table
+    const exportDate = new Date().toISOString().split("T")[0];
+    const insertResult = await pool.query(
+      "INSERT INTO exporteddocument (file_name, file_format, date) VALUES ($1, $2, $3) RETURNING *",
+      [fileName, "CSV", exportDate]
+    );
+    logger.info(`Export record created: ${JSON.stringify(insertResult.rows[0])}`);
+
+    // Set headers to trigger CSV download with the dynamic file name.
     res.setHeader("Content-Type", "text/csv");
-    res.setHeader("Content-Disposition", "attachment; filename=ExportedBabyData.csv");
+    res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);
     res.send(csvContent);
   } catch (err) {
     logger.error(err, "ERROR in getExportCSV(), Error exporting data: ");
