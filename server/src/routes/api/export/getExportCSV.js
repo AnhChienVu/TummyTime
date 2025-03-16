@@ -46,7 +46,12 @@ module.exports = async (req, res) => {
         `SELECT to_char(created_at, 'YYYY-MM-DD') as created_at FROM users WHERE user_id = $1`,
         [parseInt(user_id, 10)]
       );
-      startDate = userResult.rows.length > 0 ? userResult.rows[0].created_at : throw new Error("User created_at date not found");
+
+      if (userResult.rows.length === 0) {
+        throw new Error("User not found");
+      } else {
+        startDate = userResult.rows[0].created_at;
+      }
     }
 
     if (!endDate) {
