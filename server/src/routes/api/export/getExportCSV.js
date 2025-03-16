@@ -34,7 +34,7 @@ module.exports = async (req, res) => {
     logger.debug(user_id, `User ID is: `);
 
     // Extract DATE RANGE and selected categories
-    const { startDate, endDate, babyInfo, growthRecords, milestones, feedingSchedule, stoolRecords } = req.query;
+    let { startDate, endDate, babyInfo, growthRecords, milestones, feedingSchedule, stoolRecords } = req.query;
 
 
     // if no date range:
@@ -118,6 +118,7 @@ module.exports = async (req, res) => {
           "SELECT * FROM growth WHERE baby_id = $1 AND date BETWEEN $2 AND $3 ORDER BY date ASC",
           [baby.baby_id, startDate, endDate]
         );
+
         csvContent += "Growth Records\n";
         csvContent += "Growth ID,Date,Weight,Height,Notes\n";
         if (growthResult.rows.length > 0) {
