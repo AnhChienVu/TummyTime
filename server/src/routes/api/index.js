@@ -258,6 +258,9 @@ router.get(
   require("./healthRecord/getAllHealthRecords").getAllHealthRecords
 );
 
+// ************ /export routes ************
+router.get('/export/csv', require('./export/getExportCSV'));
+
 // Testing the authentication middleware
 // router.get('/test', authenticate(), require('./test'));
 module.exports = router;
