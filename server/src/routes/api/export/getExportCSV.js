@@ -170,8 +170,8 @@ module.exports = async (req, res) => {
       // --- Stool Records Section ---
       if (includeStoolRecords) {
         const stoolResult = await pool.query(
-          "SELECT * FROM stool_entries WHERE baby_id = $1 ORDER BY timestamp DESC",
-          [baby.baby_id]
+          "SELECT * FROM stool_entries WHERE baby_id = $1 AND date(timestamp) BETWEEN $2 AND $3 ORDER BY timestamp DESC",
+          [baby.baby_id, startDate, endDate]
         );
         csvContent += "Stool Records\n";
         csvContent += "Stool ID,Timestamp,Color,Consistency,Notes\n";
