@@ -16,9 +16,10 @@ const ExportDataPage = () => {
   const [endDate, setEndDate] = useState(new Date());
   const [error, setError] = useState("");
   const [downloadLink, setDownloadLink] = useState("");
+  const [downloadFileName, setDownloadFileName] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
 
-  // Fetch user profile on mount to set default start date
+  // Fetch user info to set default start date
   useEffect(() => {
     async function fetchProfile() {
       try {
@@ -29,7 +30,6 @@ const ExportDataPage = () => {
         });
         const data = await res.json();
         if (res.ok && data && data.created_at) {
-          // Set the start date based on the user's created_at date
           setStartDate(new Date(data.created_at));
         } else {
           console.error("Failed to fetch profile:", data);
@@ -88,6 +88,14 @@ const ExportDataPage = () => {
         return;
       }
 
+      // Parse the filename from the header "exportfilename"
+      const disposition = response.headers.get("exportfilename");
+      let filename = "download.csv";
+      if (disposition) {
+        filename = disposition;
+      }
+      setDownloadFileName(filename);
+
       // Convert the response to a blob and generate a download URL.
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -103,6 +111,7 @@ const ExportDataPage = () => {
     setModalVisible(false);
     window.URL.revokeObjectURL(downloadLink);
     setDownloadLink("");
+    setDownloadFileName("");
   };
 
   return (
@@ -177,7 +186,7 @@ const ExportDataPage = () => {
               </div>
               <div className="modal-body">
                 <p>Your CSV export is ready.</p>
-                <a href={downloadLink} download>
+                <a href={downloadLink} download={downloadFileName}>
                   Download CSV
                 </a>
               </div>

@@ -109,7 +109,7 @@ module.exports = async (req, res) => {
       if (includeBabyInfo) {
         csvContent += "Baby Information\n";
         csvContent += "ID,First Name,Last Name,DOB,Gender,Weight,Created At\n";
-        csvContent += `${baby.baby_id},${baby.first_name},${baby.last_name},${baby.birthdate|| "N/A"},${baby.gender},${baby.weight},${baby.created_at}\n\n`;
+        csvContent += `${baby.baby_id},${baby.first_name},${baby.last_name},${baby.birthdate || "N/A"},${baby.gender},${baby.weight},${baby.created_at}\n\n`;
       }
 
       // --- Growth Records Section ---
@@ -208,9 +208,15 @@ module.exports = async (req, res) => {
     );
     logger.info(`Export record created: ${JSON.stringify(insertResult.rows[0])}`);
 
-    // Set headers to trigger CSV download with the dynamic file name.
+    // Set headers to expose our custom headers (without using middleware).
+    res.setHeader("Access-Control-Expose-Headers", "Content-Disposition, exportfilename");
+    
+
+    // Set headers to trigger CSV download with the dynamic file name
     res.setHeader("Content-Type", "text/csv");
     res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);
+    // add a header for filename
+    res.setHeader("exportfilename", fileName);
     res.send(csvContent);
   } catch (err) {
     logger.error(err, "ERROR in getExportCSV(), Error exporting data: ");
