@@ -4,11 +4,6 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 
-// GETTING RELATED DATA FROM DATABASE
-// Step1: VERIFY THE USER + FIND RELATED BABY_ID
-// Step2: FOR EACH BABY_ID, GET THE RELATED DATA WITHIN DATE RANGE [START DATE, END DATE]: BABY_INFO, GROWTH_RECORDS, MILESTONES, FEEDING_SCHEDULE
-// Step3: EXPORT THE DATA AS CSV
-
 const ExportDataPage = () => {
   const [selectedOptions, setSelectedOptions] = useState({
     babyInfo: true,
@@ -19,15 +14,31 @@ const ExportDataPage = () => {
   });
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
-  const [exportLink, setExportLink] = useState("");
   const [error, setError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
+  const [downloadLink, setDownloadLink] = useState("");
+  const [modalVisible, setModalVisible] = useState(false);
 
-  // Simulate fetching the earliest baby profile creation date from the server.
+  // Fetch user profile on mount to set default start date
   useEffect(() => {
-    // Replace this with an API call if needed.
-    const earliestDate = new Date("2020-01-01");
-    setStartDate(earliestDate);
+    async function fetchProfile() {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/user`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        const data = await res.json();
+        if (res.ok && data && data.created_at) {
+          // Set the start date based on the user's created_at date
+          setStartDate(new Date(data.created_at));
+        } else {
+          console.error("Failed to fetch profile:", data);
+        }
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      }
+    }
+    fetchProfile();
   }, []);
 
   const handleCheckboxChange = (e) => {
@@ -35,55 +46,63 @@ const ExportDataPage = () => {
     setSelectedOptions((prev) => ({ ...prev, [name]: checked }));
   };
 
-  // Dummy function to simulate storing export record in the "exporteddocument" table.
-  const storeExportRecord = async (fileName, fileFormat, date) => {
-    // In a real application, you would call your backend API here.
-    // For simulation, we return a promise that resolves with a generated document id.
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({ document_id: Math.floor(Math.random() * 1000) });
-      }, 500);
-    });
-  };
-
   const validateData = () => {
     if (startDate > endDate) {
       setError("Start date cannot be after end date.");
       return false;
     }
-    // Additional data validation logic can be added here.
     return true;
   };
 
   const handleExport = async () => {
     setError("");
-    setSuccessMessage("");
-
     if (!validateData()) return;
 
-    // Simulate CSV export logic.
-    // In a real application, you would generate a CSV with separate Excel tabs for each baby.
-    const fileName = `BabyData_Export_${
-      new Date().toISOString().split("T")[0]
-    }.csv`;
-    const fileFormat = "CSV";
+    // Build query parameters for the backend export call.
+    const queryParams = new URLSearchParams({
+      startDate: startDate.toISOString().split("T")[0],
+      endDate: endDate.toISOString().split("T")[0],
+      babyInfo: selectedOptions.babyInfo,
+      growthRecords: selectedOptions.growthRecords,
+      milestones: selectedOptions.milestones,
+      feedingSchedule: selectedOptions.feedingSchedule,
+      stoolRecords: selectedOptions.stoolRecords,
+    });
 
     try {
-      // Simulate storing the export record in the "exporteddocument" table.
-      const result = await storeExportRecord(
-        fileName,
-        fileFormat,
-        new Date().toISOString().split("T")[0],
+      const response = await fetch(
+        `${
+          process.env.NEXT_PUBLIC_API_URL
+        }/v1/export/csv?${queryParams.toString()}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
       );
-      // Simulate a download link for the generated CSV.
-      const simulatedDownloadLink = `http://example.com/download/${fileName}`;
-      setExportLink(simulatedDownloadLink);
-      setSuccessMessage(
-        `Export successful! Document ID: ${result.document_id}. Click the link below to download your CSV file.`,
-      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        setError(errorData.message || "Export failed");
+        return;
+      }
+
+      // Convert the response to a blob and generate a download URL.
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      setDownloadLink(url);
+      setModalVisible(true);
     } catch (error) {
-      setError("There was an error saving the export record.");
+      console.error("Export error:", error);
+      setError("There was an error exporting the data.");
     }
+  };
+
+  const closeModal = () => {
+    setModalVisible(false);
+    window.URL.revokeObjectURL(downloadLink);
+    setDownloadLink("");
   };
 
   return (
@@ -91,72 +110,25 @@ const ExportDataPage = () => {
       <h2>Export Baby Health Data</h2>
       <div className="card p-4 mt-4">
         <h4>Select Data to Export</h4>
-        <div className="form-check">
-          <input
-            className="form-check-input"
-            type="checkbox"
-            id="babyInfo"
-            name="babyInfo"
-            checked={selectedOptions.babyInfo}
-            onChange={handleCheckboxChange}
-          />
-          <label className="form-check-label" htmlFor="babyInfo">
-            Baby Information
-          </label>
-        </div>
-        <div className="form-check">
-          <input
-            className="form-check-input"
-            type="checkbox"
-            id="growthRecords"
-            name="growthRecords"
-            checked={selectedOptions.growthRecords}
-            onChange={handleCheckboxChange}
-          />
-          <label className="form-check-label" htmlFor="growthRecords">
-            Growth Records
-          </label>
-        </div>
-        <div className="form-check">
-          <input
-            className="form-check-input"
-            type="checkbox"
-            id="milestones"
-            name="milestones"
-            checked={selectedOptions.milestones}
-            onChange={handleCheckboxChange}
-          />
-          <label className="form-check-label" htmlFor="milestones">
-            Milestones Information
-          </label>
-        </div>
-        <div className="form-check">
-          <input
-            className="form-check-input"
-            type="checkbox"
-            id="feedingSchedule"
-            name="feedingSchedule"
-            checked={selectedOptions.feedingSchedule}
-            onChange={handleCheckboxChange}
-          />
-          <label className="form-check-label" htmlFor="feedingSchedule">
-            Feeding Schedule
-          </label>
-        </div>
-
-        <div className="form-check">
-          <input
-            className="form-check-input"
-            type="checkbox"
-            id="stoolRecords"
-            name="stoolRecords"
-            checked={selectedOptions.stoolRecords}
-            onChange={handleCheckboxChange}
-          />
-          <label className="form-check-label" htmlFor="stoolRecords">
-            Stool Records
-          </label>
-        </div>
+        {Object.keys(selectedOptions).map((option) => (
+          <div className="form-check" key={option}>
+            <input
+              className="form-check-input"
+              type="checkbox"
+              id={option}
+              name={option}
+              checked={selectedOptions[option]}
+              onChange={handleCheckboxChange}
+            />
+            <label className="form-check-label" htmlFor={option}>
+              {option === "babyInfo" && "Baby Information"}
+              {option === "growthRecords" && "Growth Records"}
+              {option === "milestones" && "Milestones Information"}
+              {option === "feedingSchedule" && "Feeding Schedule"}
+              {option === "stoolRecords" && "Stool Records"}
+            </label>
+          </div>
+        ))}
         <hr />
         <h4>Enter Dates</h4>
         <div className="row">
@@ -181,18 +153,44 @@ const ExportDataPage = () => {
           </div>
         </div>
         {error && <div className="alert alert-danger mt-3">{error}</div>}
-        {successMessage && (
-          <div className="alert alert-success mt-3">
-            {successMessage}{" "}
-            <a href={exportLink} target="_blank" rel="noopener noreferrer">
-              Download CSV
-            </a>
-          </div>
-        )}
         <button className="btn btn-primary mt-3" onClick={handleExport}>
           Export Data
         </button>
       </div>
+
+      {/* Modal to show download link */}
+      {modalVisible && (
+        <div
+          className="modal fade show"
+          style={{ display: "block" }}
+          tabIndex="-1"
+        >
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Export Successful</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={closeModal}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <p>Your CSV export is ready.</p>
+                <a href={downloadLink} download>
+                  Download CSV
+                </a>
+              </div>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={closeModal}>
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+          <div className="modal-backdrop fade show"></div>
+        </div>
+      )}
     </div>
   );
 };
