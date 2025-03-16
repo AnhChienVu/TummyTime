@@ -1,8 +1,13 @@
 // client/pages/[export]/index.js
 import React, { useState, useEffect } from "react";
-// import DatePicker from "react-datepicker";
-// import "react-datepicker/dist/react-datepicker.css";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import "bootstrap/dist/css/bootstrap.min.css";
+
+// GETTING RELATED DATA FROM DATABASE
+// Step1: VERIFY THE USER + FIND RELATED BABY_ID
+// Step2: FOR EACH BABY_ID, GET THE RELATED DATA WITHIN DATE RANGE [START DATE, END DATE]: BABY_INFO, GROWTH_RECORDS, MILESTONES, FEEDING_SCHEDULE
+// Step3: EXPORT THE DATA AS CSV
 
 const ExportDataPage = () => {
   const [selectedOptions, setSelectedOptions] = useState({
@@ -108,7 +113,7 @@ const ExportDataPage = () => {
             onChange={handleCheckboxChange}
           />
           <label className="form-check-label" htmlFor="growthRecords">
-            Growth Records
+            Growth Records (with real baby name)
           </label>
         </div>
         <div className="form-check">
@@ -121,7 +126,7 @@ const ExportDataPage = () => {
             onChange={handleCheckboxChange}
           />
           <label className="form-check-label" htmlFor="milestones">
-            Milestones Information
+            Milestones Information (with real baby name)
           </label>
         </div>
         <div className="form-check">
@@ -134,7 +139,7 @@ const ExportDataPage = () => {
             onChange={handleCheckboxChange}
           />
           <label className="form-check-label" htmlFor="feedingSchedule">
-            Feeding Schedule
+            Feeding Schedule (with real baby name)
           </label>
         </div>
         <hr />
@@ -142,22 +147,22 @@ const ExportDataPage = () => {
         <div className="row">
           <div className="col-md-6">
             <label>Start Date</label>
-            {/* <DatePicker
+            <DatePicker
               selected={startDate}
               onChange={(date) => setStartDate(date)}
               className="form-control"
               dateFormat="yyyy-MM-dd"
-            /> */}
+            />
           </div>
           <div className="col-md-6">
             <label>End Date</label>
-            {/* <DatePicker
+            <DatePicker
               selected={endDate}
               onChange={(date) => setEndDate(date)}
               className="form-control"
               dateFormat="yyyy-MM-dd"
               maxDate={new Date()}
-            /> */}
+            />
           </div>
         </div>
         {error && <div className="alert alert-danger mt-3">{error}</div>}
