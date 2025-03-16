@@ -15,6 +15,7 @@ const ExportDataPage = () => {
     growthRecords: true,
     milestones: true,
     feedingSchedule: true,
+    stoolRecords: true,
   });
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
@@ -113,7 +114,7 @@ const ExportDataPage = () => {
             onChange={handleCheckboxChange}
           />
           <label className="form-check-label" htmlFor="growthRecords">
-            Growth Records (with real baby name)
+            Growth Records
           </label>
         </div>
         <div className="form-check">
@@ -126,7 +127,7 @@ const ExportDataPage = () => {
             onChange={handleCheckboxChange}
           />
           <label className="form-check-label" htmlFor="milestones">
-            Milestones Information (with real baby name)
+            Milestones Information
           </label>
         </div>
         <div className="form-check">
@@ -139,7 +140,21 @@ const ExportDataPage = () => {
             onChange={handleCheckboxChange}
           />
           <label className="form-check-label" htmlFor="feedingSchedule">
-            Feeding Schedule (with real baby name)
+            Feeding Schedule
+          </label>
+        </div>
+
+        <div className="form-check">
+          <input
+            className="form-check-input"
+            type="checkbox"
+            id="stoolRecords"
+            name="stoolRecords"
+            checked={selectedOptions.stoolRecords}
+            onChange={handleCheckboxChange}
+          />
+          <label className="form-check-label" htmlFor="stoolRecords">
+            Stool Records
           </label>
         </div>
         <hr />

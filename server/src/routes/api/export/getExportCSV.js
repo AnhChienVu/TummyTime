@@ -3,8 +3,7 @@
 
 // GETTING RELATED DATA FROM DATABASE
 // Step1: VERIFY THE USER + FIND RELATED BABY_ID
-// Step2: FOR EACH BABY_ID, GET THE RELATED DATA: BABY_INFO, GROWTH_RECORDS, MILESTONES, FEEDING_SCHEDULE
-//    - BABY_INFO: baby_name, baby_dob
+// Step2: FOR EACH BABY_ID, GET THE RELATED DATA: BABY_INFO, GROWTH_RECORDS, MILESTONES, FEEDING_SCHEDULE, STOOL_RECORDS
 // Step3: EXPORT THE DATA AS CSV
 
 const logger = require('../../../utils/logger');
@@ -33,25 +32,45 @@ module.exports = async (req, res) => {
     } // 401 UNAUTHORIZED
     logger.debug(user_id, `User ID is: `);
 
-    // Extract DATE RANGE
-    const { startDate: startDateParam, endDate: endDateParam } = req.query;
+    // Extract DATE RANGE and selected categories
+    const { startDate, endDate, babyInfo, growthRecords, milestones, feedingSchedule, stoolRecords } = req.query;
+
 
     // if no date range:
     // startDate = date of useraccount creation (in format: YYYY-MM-DD)
     // endDate = today
-    if (!startDateParam) {
-      startDateParam = await pool.query(
-        `SELECT created_at FROM users WHERE user_id = $1`,
+    // If startDate not provided, set it to the user's creation date (formatted as YYYY-MM-DD)
+    if (!startDate) {
+      const userResult = await pool.query(
+        `SELECT to_char(created_at, 'YYYY-MM-DD') as created_at FROM users WHERE user_id = $1`,
         [parseInt(user_id, 10)]
       );
+      startDate = userResult.rows.length > 0 ? userResult.rows[0].created_at : throw new Error("User created_at date not found");
     }
 
-    if (!endDateParam) {
-      endDateParam = new Date().toISOString().split("T")[0];
+    if (!endDate) {
+      endDate = new Date().toISOString().split("T")[0];
     }
-    logger.debug(startDateParam, `Start Date: `);
-    logger.debug(endDateParam, `End Date: `);
+    logger.debug(startDate, `Start Date: `);
+    logger.debug(endDate, `End Date: `);
 
+    babyInfo = babyInfo === undefined ? "true" : babyInfo;
+    growthRecords = growthRecords === undefined ? "true" : growthRecords;
+    milestones = milestones === undefined ? "true" : milestones;
+    feedingSchedule = feedingSchedule === undefined ? "true" : feedingSchedule;
+    stoolRecords = stoolRecords === undefined ? "true" : stoolRecords;
+
+    const includeBabyInfo = babyInfo === "true";
+    const includeGrowthRecords = growthRecords === "true";
+    const includeMilestones = milestones === "true";
+    const includeFeedingSchedule = feedingSchedule === "true";
+    const includeStoolRecords = stoolRecords === "true";
+  
+    logger.debug(includeBabyInfo, `Include Baby Info: `);
+    logger.debug(includeGrowthRecords, `Include Growth Records: `);
+    logger.debug(includeMilestones, `Include Milestones: `);
+    logger.debug(includeFeedingSchedule, `Include Feeding Schedule: `);
+    logger.debug(includeStoolRecords, `Include Stool Records: `);
 
     // Query to fetch baby profiles for this user
     const babyProfilesResult = await pool.query(
@@ -71,78 +90,104 @@ module.exports = async (req, res) => {
     logger.debug(babies, `Baby profiles: `);
 
 
-    // Step2: For each baby, query related data and append CSV sections : baby_info, growth_records, milestones, feeding_schedule
+    // Step2: For each baby, query related data and append CSV sections : baby_info, growth_records, milestones, feeding_schedule, stool_records
+    
+    // Build CSV content
     let csvContent = "";
+
     for (let baby of babies) {
-      // --- Baby Information Section ---
-      csvContent += `Baby: ${baby.first_name} ${baby.last_name}, DOB: ${baby.baby_dob || "N/A"}\n`;
-      csvContent += "Baby Information\n";
-      csvContent += "ID,First Name,Last Name,DOB,Gender,Weight,Created At\n";
-      csvContent += `${baby.baby_id},${baby.first_name},${baby.last_name},${baby.baby_dob || "N/A"},${baby.gender},${baby.weight},${baby.created_at}\n\n`;
+      // Baby header
+      csvContent += `Baby: ${baby.first_name} ${baby.last_name}, DOB: ${baby.birthdate || "N/A"}\n`;
+
+      // --- Baby Information ---
+      if (includeBabyInfo) {
+        csvContent += "Baby Information\n";
+        csvContent += "ID,First Name,Last Name,DOB,Gender,Weight,Created At\n";
+        csvContent += `${baby.baby_id},${baby.first_name},${baby.last_name},${baby.birthdate|| "N/A"},${baby.gender},${baby.weight},${baby.created_at}\n\n`;
+      }
 
       // --- Growth Records Section ---
-      const growthResult = await pool.query(
-        "SELECT * FROM growth WHERE baby_id = $1 AND date BETWEEN $2 AND $3 ORDER BY date ASC",
-        [baby.baby_id, startDateParam, endDateParam]
-      );
-      logger.debug(growthResult, `Growth records of baby ${baby.baby_id}: `);
-
-      csvContent += "Growth Records\n";
-      csvContent += "Growth ID,Date,Weight,Height,Notes\n";
-      if (growthResult.rows.length > 0) {
-        growthResult.rows.forEach(record => {
-          csvContent += `${record.growth_id},${record.date},${record.weight},${record.height},${record.notes || ""}\n`;
-        });
-      } else {
-        csvContent += "No growth records found\n";
+      if (includeGrowthRecords) {
+        const growthResult = await pool.query(
+          "SELECT * FROM growth WHERE baby_id = $1 AND date BETWEEN $2 AND $3 ORDER BY date ASC",
+          [baby.baby_id, startDate, endDate]
+        );
+        csvContent += "Growth Records\n";
+        csvContent += "Growth ID,Date,Weight,Height,Notes\n";
+        if (growthResult.rows.length > 0) {
+          growthResult.rows.forEach(record => {
+            csvContent += `${record.growth_id},${record.date},${record.weight},${record.height},${record.notes || ""}\n`;
+          });
+        } else {
+          csvContent += "No growth records found\n";
+        }
+        csvContent += "\n";
       }
-      csvContent += "\n";
-
 
       // --- Milestones Section ---
-      const milestonesResult = await pool.query(
-        "SELECT * FROM milestones WHERE baby_id = $1 AND date BETWEEN $2 AND $3 ORDER BY date ASC",
-        [baby.baby_id, startDateParam, endDateParam]
-      );
-      logger.debug(milestonesResult, `Milestones of baby ${baby.baby_id}: `);
-
-      csvContent += "Milestones\n";
-      csvContent += "Milestone ID,Date,Title,Details\n";
-      if (milestonesResult.rows.length > 0) {
-        milestonesResult.rows.forEach(milestone => {
-          csvContent += `${milestone.milestone_id},${milestone.date},${milestone.title},${milestone.details || ""}\n`;
-        });
-      } else {
-        csvContent += "No milestones found\n";
+      if (includeMilestones) {
+        const milestonesResult = await pool.query(
+          "SELECT * FROM milestones WHERE baby_id = $1 AND date BETWEEN $2 AND $3 ORDER BY date ASC",
+          [baby.baby_id, startDate, endDate]
+        );
+        csvContent += "Milestones\n";
+        csvContent += "Milestone ID,Date,Title,Details\n";
+        if (milestonesResult.rows.length > 0) {
+          milestonesResult.rows.forEach(milestone => {
+            csvContent += `${milestone.milestone_id},${milestone.date},${milestone.title},${milestone.details || ""}\n`;
+          });
+        } else {
+          csvContent += "No milestones found\n";
+        }
+        csvContent += "\n";
       }
-      csvContent += "\n";
-
 
       // --- Feeding Schedule Section ---
-      const feedingResult = await pool.query(
-        "SELECT * FROM feedingschedule WHERE baby_id = $1 AND date BETWEEN $2 AND $3 ORDER BY date ASC, time ASC",
-        [baby.baby_id, startDateParam, endDateParam]
-      );
-      logger.debug(feedingResult, `Feeding schedule of baby ${baby.baby_id}: `);
-
-      csvContent += "Feeding Schedule\n";
-      csvContent += "Schedule ID,Date,Time,Meal,Amount,Type,Issues,Notes\n";
-      if (feedingResult.rows.length > 0) {
-        feedingResult.rows.forEach(feed => {
-          csvContent += `${feed.feeding_schedule_id},${feed.date},${feed.time},${feed.meal},${feed.amount},${feed.type},${feed.issues || ""},${feed.notes || ""}\n`;
-        });
-      } else {
-        csvContent += "No feeding schedule records found\n";
+      if (includeFeedingSchedule) {
+        const feedingResult = await pool.query(
+          "SELECT * FROM feedingschedule WHERE baby_id = $1 AND date BETWEEN $2 AND $3 ORDER BY date ASC, time ASC",
+          [baby.baby_id, startDate, endDate]
+        );
+        csvContent += "Feeding Schedule\n";
+        csvContent += "Schedule ID,Date,Time,Meal,Amount,Type,Issues,Notes\n";
+        if (feedingResult.rows.length > 0) {
+          feedingResult.rows.forEach(feed => {
+            csvContent += `${feed.feeding_schedule_id},${feed.date},${feed.time},${feed.meal},${feed.amount},${feed.type},${feed.issues || ""},${feed.notes || ""}\n`;
+          });
+        } else {
+          csvContent += "No feeding schedule records found\n";
+        }
+        csvContent += "\n";
       }
+
+      // --- Stool Records Section ---
+      if (includeStoolRecords) {
+        const stoolResult = await pool.query(
+          "SELECT * FROM stool_entries WHERE baby_id = $1 ORDER BY timestamp DESC",
+          [baby.baby_id]
+        );
+        csvContent += "Stool Records\n";
+        csvContent += "Stool ID,Timestamp,Color,Consistency,Notes\n";
+        if (stoolResult.rows.length > 0) {
+          stoolResult.rows.forEach(entry => {
+            csvContent += `${entry.stool_id},${entry.timestamp},${entry.color},${entry.consistency},${entry.notes || ""}\n`;
+          });
+        } else {
+          csvContent += "No stool records found\n";
+        }
+        csvContent += "\n";
+      }
+
+      // Separate each baby
       csvContent += "\n\n";
     }
 
-    // Set headers for CSV download
+    // Set headers to trigger CSV download
     res.setHeader("Content-Type", "text/csv");
     res.setHeader("Content-Disposition", "attachment; filename=ExportedBabyData.csv");
     res.send(csvContent);
   } catch (err) {
-    logger.error(err, `ERROR in getExportCSV(), Error exporting data: `);
+    logger.error(err, "ERROR in getExportCSV(), Error exporting data: ");
     return res.status(500).json(createErrorResponse(500, "Internal server error"));
   }
 };
