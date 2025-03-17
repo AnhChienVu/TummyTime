@@ -1,9 +1,9 @@
 // client/components/[TipsNotificationPopup.js]
 
 // Display a random tip notification:
-//  - DAILY: Every 5min ONLY ONCE or when user logged in
-//  - WEEKLY: Every 7 days ONLY ONCE or when user logged in
-//  - whenever reload /tips page
+//  - DAILY: ON INTERVAL counting since user logged in (REGULARLY SINCE LOGGED IN)
+//  - WEEKLY: ONLY ONCE when user logged in (ONCE SINCE LOGGED IN)
+//  - EVERY TIME RELOAD /tips page
 //  - will DISAPPEAR after ~10 seconds
 import React, { useState, useEffect } from "react";
 import { Alert, Button } from "react-bootstrap";
@@ -89,7 +89,7 @@ const TipsNotificationPopup = () => {
   if (show) {
     setTimeout(() => {
       setShow(false);
-    }, 12000);
+    }, 11000);
   }
 
   if (!tip || !show) return null; // Do not render if no tip or not shown
