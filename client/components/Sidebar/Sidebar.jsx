@@ -124,6 +124,14 @@ function Sidebar() {
         >
           {t("Check Product")}
         </Nav.Link>
+        <Nav.Link
+          as={Link}
+          href="/careServices"
+          locale={locale}
+          className={styles.navlink}
+        >
+          {t("Childcare Services")}
+        </Nav.Link>
       </Nav>
     </Col>
   );
