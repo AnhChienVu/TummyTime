@@ -21,6 +21,11 @@ const { createReminder } = require('./baby/reminders/postReminder');
 const { updateReminder } = require('./baby/reminders/putReminder');
 const { deleteReminders } = require('./baby/reminders/deleteReminders')
 
+// Import careServices get APIs
+const { getCareServices } = require("./careServices/care-scrape/getBabysitters");
+const { getNannies } = require("./careServices/care-scrape/getNannies");
+
+
 router.post("/login", require("./login"));
 
 router.post('/signup', require('./signup'));
@@ -299,7 +304,9 @@ router.put('/baby/:babyId/reminders/:reminderId', authenticate(), updateReminder
 // DELETE /baby/:babyId/reminders - Unified deletion endpoint (single or bulk)
 router.delete('/baby/:babyId/reminders', authenticate(), deleteReminders);
 
-
+// ************ /careServices routes ************
+router.get('/careServices/babysitters', authenticate(), getCareServices);
+router.get('/careServices/nannies', authenticate(), getNannies);
 
 // Testing the authentication middleware
 // router.get('/test', authenticate(), require('./test'));
