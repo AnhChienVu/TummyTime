@@ -116,6 +116,7 @@ function Sidebar() {
         >
           {t("Export")}
         </Nav.Link>
+        
         <Nav.Link
           as={Link}
           href="/medicalProfessional"
