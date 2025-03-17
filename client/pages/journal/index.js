@@ -8,7 +8,6 @@ import {
   Row,
   Col,
   Card,
-  Image,
   Modal,
 } from "react-bootstrap";
 import styles from "./journal.module.css";
@@ -21,6 +20,21 @@ import {
   faMicrophoneSlash,
 } from "@fortawesome/free-solid-svg-icons";
 import IncompatibleBrowserModal from "@/components/IncompatibleBrowserModal";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Link from "@tiptap/extension-link";
+import Image from "@tiptap/extension-image";
+import Underline from "@tiptap/extension-underline";
+
+const ViewOnlyEditor = ({ content }) => {
+  const editor = useEditor({
+    extensions: [StarterKit, Link, Image, Underline],
+    content: content,
+    editable: false,
+  });
+
+  return <EditorContent editor={editor} />;
+};
 
 export default function Journal() {
   const { t } = useTranslation("common");
@@ -169,9 +183,8 @@ export default function Journal() {
   // Submit journal entry
   const onSubmit = async (data) => {
     try {
-      if (data.text.trim() === "") return;
+      if (text.trim() === "") return;
 
-      // Use the current state values instead of form data
       const formData = new FormData();
       formData.append("title", titleText);
       formData.append("text", text);
@@ -351,6 +364,21 @@ export default function Journal() {
     );
   });
 
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Link.configure({
+        openOnClick: false,
+      }),
+      Image,
+      Underline,
+    ],
+    content: text,
+    onUpdate: ({ editor }) => {
+      setText(editor.getHTML());
+    },
+  });
+
   return (
     <>
       <Container className={styles.container} fluid>
@@ -393,24 +421,72 @@ export default function Journal() {
             </Row>
             <Row className="mb-3">
               <Col>
-                <Form.Control
-                  as="textarea"
-                  rows={3}
-                  placeholder={t("Write your thoughts here...")}
-                  required
-                  {...register("text", { value: text })}
-                  className="form-control"
-                  disabled={isListening}
-                  value={
-                    isListening && selectedInput === "text"
-                      ? text + (transcript || "")
-                      : text
-                  }
-                  onChange={(e) => {
-                    setText(e.target.value);
-                    register("text").onChange(e);
-                  }}
-                />
+                <div className={styles.editor}>
+                  <div className={styles.toolbar}>
+                    <button
+                      onClick={() => editor.chain().focus().toggleBold().run()}
+                      className={
+                        editor?.isActive("bold") ? styles.isActive : ""
+                      }
+                    >
+                      Bold
+                    </button>
+                    <button
+                      onClick={() =>
+                        editor.chain().focus().toggleItalic().run()
+                      }
+                      className={
+                        editor?.isActive("italic") ? styles.isActive : ""
+                      }
+                    >
+                      Italic
+                    </button>
+                    <button
+                      onClick={() =>
+                        editor.chain().focus().toggleUnderline().run()
+                      }
+                      className={
+                        editor?.isActive("underline") ? styles.isActive : ""
+                      }
+                    >
+                      Underline
+                    </button>
+                    <button
+                      onClick={() =>
+                        editor.chain().focus().toggleBulletList().run()
+                      }
+                      className={
+                        editor?.isActive("bulletList") ? styles.isActive : ""
+                      }
+                    >
+                      Bullet List
+                    </button>
+                    <button
+                      onClick={() =>
+                        editor.chain().focus().toggleOrderedList().run()
+                      }
+                      className={
+                        editor?.isActive("orderedList") ? styles.isActive : ""
+                      }
+                    >
+                      Ordered List
+                    </button>
+                    <button
+                      onClick={() => {
+                        const url = window.prompt("Enter the URL:");
+                        if (url) {
+                          editor.chain().focus().setLink({ href: url }).run();
+                        }
+                      }}
+                      className={
+                        editor?.isActive("link") ? styles.isActive : ""
+                      }
+                    >
+                      Link
+                    </button>
+                  </div>
+                  <EditorContent editor={editor} />
+                </div>
               </Col>
             </Row>
             <Row className={styles.postRow}>
@@ -505,7 +581,7 @@ export default function Journal() {
                         textOverflow: "ellipsis",
                       }}
                     >
-                      {entry.text}
+                      <ViewOnlyEditor content={entry.text} />
                     </Card.Text>
                     {entry.image && (
                       <Image
@@ -651,7 +727,9 @@ export default function Journal() {
               </div>
             </div>
           ) : (
-            <p className={styles.modalText}>{selectedEntry?.text}</p>
+            <div className={styles.modalText}>
+              <ViewOnlyEditor content={selectedEntry?.text} />
+            </div>
           )}
           {/* {selectedEntry?.image && (
             <Image
