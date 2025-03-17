@@ -286,6 +286,9 @@ router.get(
   require("./healthRecord/getAllHealthRecords").getAllHealthRecords
 );
 
+// ************ /export routes ************
+router.get('/export/csv', require('./export/getExportCSV'));
+
 // ************ /reminders routes ************
 // GET /baby/:babyId/reminders - Get all reminders for a baby
 router.get('/baby/:babyId/reminders', authenticate(), getReminders);
@@ -298,8 +301,6 @@ router.put('/baby/:babyId/reminders/:reminderId', authenticate(), updateReminder
 
 // DELETE /baby/:babyId/reminders - Unified deletion endpoint (single or bulk)
 router.delete('/baby/:babyId/reminders', authenticate(), deleteReminders);
-
-
 
 // Testing the authentication middleware
 // router.get('/test', authenticate(), require('./test'));
