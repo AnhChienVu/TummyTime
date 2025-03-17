@@ -1,4 +1,10 @@
 // client/components/[TipsNotificationPopup.js]
+
+// Display a random tip notification:
+//  - DAILY: Every 5min ONLY ONCE or when user logged in
+//  - WEEKLY: Every 7 days ONLY ONCE or when user logged in
+//  - whenever reload /tips page
+//  - will DISAPPEAR after ~10 seconds
 import React, { useState, useEffect } from "react";
 import { Alert, Button } from "react-bootstrap";
 
@@ -8,7 +14,7 @@ const TipsNotificationPopup = () => {
 
   useEffect(() => {
     // Determine whether the user is logged in.
-    const token = localStorage.getItem("token");
+    // const token = localStorage.getItem("token");
     let apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/tips/notification`;
     // //   Check if Logged-in
     // if (token) {
@@ -19,32 +25,74 @@ const TipsNotificationPopup = () => {
     //     apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/tips/notification?default=true`;
     // }
 
-    const fetchTip = () => {
-      fetch(apiUrl)
-        .then((res) => res.json())
-        .then((data) => {
-          // Assume the API returns { data: [ tip1, tip2, ... ] }
-          if (data.data && data.data.length > 0) {
-            // CHOOSE A RANDOM TIP
-            const randomIndex = Math.floor(Math.random() * data.data.length);
-            setTip(data.data[randomIndex]);
-            setShow(true);
-          }
-        })
-        .catch((error) =>
-          console.error("Error fetching tip notification:", error),
-        );
+    // MOCK RESPONSE
+    const mockData = {
+      data: [
+        {
+          id: 1,
+          tip_text: "Baby from 0-3 months should sleep 14-17 hours a day.",
+        },
+        {
+          id: 2,
+          tip_text: "Your baby should sleep on their back.",
+        },
+        {
+          id: 3,
+          tip_text: "It is recommended to have a consistent bedtime routine.",
+        },
+        {
+          id: 4,
+          tip_text:
+            "Try to put your baby to sleep when they are drowsy but still awake.",
+        },
+        {
+          id: 5,
+          tip_text: "Create a safe sleep environment for your baby.",
+        },
+        {
+          id: 6,
+          tip_text: "Avoid overheating your baby.",
+        },
+      ],
+    };
+
+    const fetchTip = async () => {
+      try {
+        // const response = await fetch(apiUrl);
+        // const data = await response.json();
+
+        const data = mockData;
+
+        // Assume the API returns { data: [ tip1, tip2, ... ] }
+        if (data.data && data.data.length > 0) {
+          // CHOOSE A RANDOM TIP
+          const randomIndex = Math.floor(Math.random() * data.data.length);
+          setTip(data.data[randomIndex]);
+          setShow(true);
+        }
+      } catch (error) {
+        console.error("Error fetching tip notification:", error);
+      }
     };
 
     // Initial fetch
     fetchTip();
 
-    // Refresh tip every 60 seconds (user will see a new tip)
+    // REFRESH TIP (user will see a new tip)
+    // - DAILY: Every 5min ONLY ONCE or when user logged in
+    // - WEEKLY: Every 7 days ONLY ONCE or when user logged in
     const intervalId = setInterval(fetchTip, 60000);
     return () => clearInterval(intervalId);
   }, []);
 
-  if (!tip || !show) return null;
+  // HIDE TIP after 10 seconds
+  if (show) {
+    setTimeout(() => {
+      setShow(false);
+    }, 12000);
+  }
+
+  if (!tip || !show) return null; // Do not render if no tip or not shown
 
   return (
     <Alert

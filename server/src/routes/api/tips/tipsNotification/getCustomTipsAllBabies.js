@@ -10,14 +10,14 @@
 // 3- for each baby, SAVE THE GENDER AND calculate "Baby Age (in months)" based on birthdate to today
 
 // 4- FILTER THE CuratedTips TABLE TO GET THE RELATED TIPS
-// 5- SEND: TIPS notification SETTINGS + customiZED TIPS FOR RELATED BABIES
+// 5- SEND: TIPS NOTIFICATION SETTINGS + CUSTOM TIPS FOR RELATED BABIES
 
-const logger = require('../../../utils/logger');
-const { createSuccessResponse, createErrorResponse } = require('../../../utils/response');
-const pool = require('../../../../database/db');
-const { getUserId } = require('../../utils/auth'); // Your function to extract user_id from token
+const logger = require('../../../../utils/logger');
+const { createSuccessResponse, createErrorResponse } = require('../../../../utils/response');
+const pool = require('../../../../../database/db');
+const { getUserId } = require('../../../../utils/userIdHelper');
 
-// Helper function to calculate age in months from a birthdate
+// Helper to calculate age in months from a birthdate to today
 function calculateAgeInMonths(birthdate) {
   const birth = new Date(birthdate);
   const now = new Date();
@@ -28,19 +28,20 @@ function calculateAgeInMonths(birthdate) {
 
 module.exports = async (req, res) => {
     try {
-        // Step 1a: Verify the user token and get user_id.
+        // Step 1a: Verify the user token and get user_id
         const authHeader = req.headers.authorization;
         if (!authHeader) {
             return res
                 .status(401)
                 .json(createErrorResponse(401, "No authorization token provided"));
         }
+
         const user_id = await getUserId(authHeader);
         if (!user_id) {
             return res.status(401).json(createErrorResponse(401, "Invalid user ID"));
         }
      
-        // Step 1b: Fetch baby profiles for this user.
+        // Step 1b: Fetch baby profiles for this user
         const babyProfilesResult = await pool.query(
             `SELECT b.*
             FROM baby b
@@ -58,7 +59,7 @@ module.exports = async (req, res) => {
         }
 
         // ----TABLE TipsNotificationSettings----
-        // Step 2: Check for existing TipsNotificationSettings record.
+        // Step 2: Check for existing TipsNotificationSettings record
         let settingsResult = await pool.query(
             `SELECT * FROM TipsNotificationSettings WHERE user_id = $1`,
             [user_id]
@@ -78,13 +79,13 @@ module.exports = async (req, res) => {
         }
 
         // ----TABLE CuratedTips----
-        // Step 3 & 4: For each baby, calculate age (in months) and filter CuratedTips.
+        // Step 3 & 4: For each baby, calculate age (in months) and filter CuratedTips
         let babiesTips = [];
         for (const baby of babies) {
-            const ageInMonths = calculateAgeInMonths(baby.birthdate); // Assumes baby.birthdate exists.
+            const ageInMonths = calculateAgeInMonths(baby.birthdate); // Assumes baby.birthdate exists
             const babyGender = baby.gender; // Assumes baby.gender is "Boy" or "Girl"
       
-            // Filter CuratedTips based on baby's age and gender.
+            // Filter CuratedTips based on baby's age and gender
             const tipsResult = await pool.query(
                 `SELECT * FROM CuratedTips
          WHERE $1 BETWEEN min_age AND max_age
@@ -95,14 +96,14 @@ module.exports = async (req, res) => {
             const babyTips = tipsResult.rows;
             babiesTips.push({
                 baby_id: baby.baby_id,
-                name: baby.name, // Assumes baby.name exists.
+                name: baby.name, // Assumes baby.name exists
                 ageInMonths,
                 gender: babyGender,
                 tips: babyTips
             });
         }
 
-        // Step 5: Send the notification settings and customized tips.
+        // Step 5: Send the notification settings and customized tips
         return res.status(200).json({
             notificationSettings,
             babiesTips
