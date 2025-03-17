@@ -1,6 +1,17 @@
 // server/src/routes/api/tips/[tipsNotification]/getCustomTipsAllBabies.js
 // Route for GET /tips/notification  -Get tips related to babies
 
+// GET TIPS NOTIFICATION SETTINGS + CUSTOM TIPS FOR RELATED BABIES
+// 1- GET USER_ID, AND BABY_PROFILES OF THAT USER
+// 2- CHECK NOTIFICATION SETTINGS SAVED IN TipsNotificationSettings TABLE
+// 	+ IF there is NO tipsnotificationsettings RECORD, CREATE A NEW RECORD FOR tipsnotificationsettings with dedault settings of DAILY + OPTED-IN
+// 	+ If there is already  tipsnotificationsettings RECORD, get and load
+
+// 3- for each baby, SAVE THE GENDER AND calculate "Baby Age (in months)" based on birthdate to today
+
+// 4- FILTER THE CuratedTips TABLE TO GET THE RELATED TIPS
+// 5- SEND: TIPS notification SETTINGS + customiZED TIPS FOR RELATED BABIES
+
 const logger = require('../../../utils/logger');
 const { createSuccessResponse, createErrorResponse } = require('../../../utils/response');
 const pool = require('../../../../database/db');
@@ -31,13 +42,14 @@ module.exports = async (req, res) => {
      
         // Step 1b: Fetch baby profiles for this user.
         const babyProfilesResult = await pool.query(
-            `SELECT b.* FROM baby b
-       JOIN user_baby ub ON b.baby_id = ub.baby_id
-       JOIN users u ON u.user_id = ub.user_id
-       WHERE u.user_id = $1
-       ORDER BY b.baby_id ASC`,
+            `SELECT b.*
+            FROM baby b
+            JOIN user_baby ub ON b.baby_id = ub.baby_id
+            JOIN users u ON u.user_id = ub.user_id
+            WHERE u.user_id = $1
+            ORDER BY b.baby_id ASC`,
             [parseInt(user_id, 10)]
-        );
+        );  // get all babies for this user
         const babies = babyProfilesResult.rows;
         if (babies.length === 0) {
             return res
@@ -56,8 +68,8 @@ module.exports = async (req, res) => {
             // Create a new record with default settings: Daily and opt_in true.
             const insertResult = await pool.query(
                 `INSERT INTO TipsNotificationSettings (user_id, notification_frequency, opt_in)
-         VALUES ($1, 'Daily', true)
-         RETURNING *`,
+                VALUES ($1, 'Daily', true)
+                RETURNING *`,
                 [user_id]
             );
             notificationSettings = insertResult.rows[0];
