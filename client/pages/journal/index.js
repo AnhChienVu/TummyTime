@@ -21,6 +21,7 @@ import {
   faMicrophoneSlash,
 } from "@fortawesome/free-solid-svg-icons";
 import IncompatibleBrowserModal from "@/components/IncompatibleBrowserModal";
+import TextToSpeech from "@/components/TextToSpeech/TextToSpeech";
 
 export default function Journal() {
   const { t } = useTranslation("common");
@@ -411,6 +412,7 @@ export default function Journal() {
                     register("text").onChange(e);
                   }}
                 />
+                <TextToSpeech text={text} />
               </Col>
             </Row>
             <Row className={styles.postRow}>
@@ -481,86 +483,89 @@ export default function Journal() {
                   : t("No journal entries found.")}
               </p>
             ) : (
-              filteredEntries.map((entry) => (
-                <Card
-                  key={entry.entry_id}
-                  className={`${styles.entryCard} shadow-sm`}
-                  onClick={() => {
-                    setShowModal(true);
-                    fetchEntryDetails(entry.entry_id);
-                  }}
-                  style={{ cursor: "pointer" }}
-                >
-                  <Card.Body>
-                    <Card.Title className={styles.entryCardTitle}>
-                      {entry.title}
-                    </Card.Title>
-                    <Card.Text
-                      className={styles.entryCardText}
-                      style={{
-                        display: "-webkit-box",
-                        WebkitLineClamp: 3,
-                        WebkitBoxOrient: "vertical",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}
-                    >
-                      {entry.text}
-                    </Card.Text>
-                    {entry.image && (
-                      <Image
-                        src={entry.image}
-                        alt="journal entry"
-                        className={styles.tableImg}
-                      />
-                    )}
-                    <Card.Footer className={styles.entryCardFooter}>
-                      <div>
-                        {new Date(entry.date).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })}{" "}
-                        {new Date(entry.date).toLocaleTimeString("en-US", {
-                          hour: "numeric",
-                          minute: "numeric",
-                          hour12: true,
-                        })}
-                        {entry.updated_at &&
-                          (() => {
-                            // Round to seconds for comparison
-                            const updatedTime = Math.floor(
-                              new Date(entry.updated_at).getTime() / 1000,
-                            );
-                            const createdTime = Math.floor(
-                              new Date(entry.date).getTime() / 1000,
-                            );
+              filteredEntries.map((entry, idx) => (
+                <div key={idx} className={styles.entryCardContainer}>
+                  <Card
+                    key={entry.entry_id}
+                    className={`${styles.entryCard} shadow-sm`}
+                    onClick={() => {
+                      setShowModal(true);
+                      fetchEntryDetails(entry.entry_id);
+                    }}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <Card.Body>
+                      <Card.Title className={styles.entryCardTitle}>
+                        {entry.title}
+                      </Card.Title>
+                      <Card.Text
+                        className={styles.entryCardText}
+                        style={{
+                          display: "-webkit-box",
+                          WebkitLineClamp: 3,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {entry.text}
+                      </Card.Text>
 
-                            return (
-                              updatedTime > createdTime && (
-                                <span className="ms-2">
-                                  <i style={{ color: "#666666" }}>
-                                    &bull; &nbsp;{t("Last edited:")}{" "}
-                                    {new Date(entry.updated_at).toLocaleString(
-                                      "en-US",
-                                      {
+                      {entry.image && (
+                        <Image
+                          src={entry.image}
+                          alt="journal entry"
+                          className={styles.tableImg}
+                        />
+                      )}
+                      <Card.Footer className={styles.entryCardFooter}>
+                        <div>
+                          {new Date(entry.date).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })}{" "}
+                          {new Date(entry.date).toLocaleTimeString("en-US", {
+                            hour: "numeric",
+                            minute: "numeric",
+                            hour12: true,
+                          })}
+                          {entry.updated_at &&
+                            (() => {
+                              // Round to seconds for comparison
+                              const updatedTime = Math.floor(
+                                new Date(entry.updated_at).getTime() / 1000,
+                              );
+                              const createdTime = Math.floor(
+                                new Date(entry.date).getTime() / 1000,
+                              );
+
+                              return (
+                                updatedTime > createdTime && (
+                                  <span className="ms-2">
+                                    <i style={{ color: "#666666" }}>
+                                      &bull; &nbsp;{t("Last edited:")}{" "}
+                                      {new Date(
+                                        entry.updated_at,
+                                      ).toLocaleString("en-US", {
                                         year: "numeric",
                                         month: "short",
                                         day: "numeric",
                                         hour: "numeric",
                                         minute: "numeric",
                                         hour12: true,
-                                      },
-                                    )}
-                                  </i>
-                                </span>
-                              )
-                            );
-                          })()}
-                      </div>
-                    </Card.Footer>
-                  </Card.Body>
-                </Card>
+                                      })}
+                                    </i>
+                                  </span>
+                                )
+                              );
+                            })()}
+                        </div>
+                      </Card.Footer>
+                    </Card.Body>
+                  </Card>
+                  <TextToSpeech text={entry.text} />
+                </div>
               ))
             )}
           </div>
