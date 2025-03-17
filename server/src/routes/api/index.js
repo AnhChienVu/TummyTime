@@ -245,6 +245,7 @@ router.post(
 
 // ************ /tips routes ************
 router.get('/tips', require('./tips/getAllTips'));
+router.get('/tips/notification', require('./tips/tipsNotification/getCustomTipsAllBabies'));
 
 // ************ Stool routes ************
 router.get('/baby/:babyId/stool', authenticate(), getStoolEntries);
