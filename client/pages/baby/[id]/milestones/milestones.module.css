@@ -4,10 +4,10 @@
     margin-right: auto;
     padding: 20px;
     position: relative;
-  }
-  
-  /* Toast messages at top-center */
-  .toastContainer {
+}
+
+/* Toast messages at top-center */
+.toastContainer {
     position: fixed;
     top: 20px;
     left: 50%;
@@ -17,8 +17,9 @@
     flex-direction: column;
     gap: 8px;
     width: auto;
-  }
-  .toastMessage {
+}
+
+.toastMessage {
     display: flex;
     align-items: center;
     background-color: #fff;
@@ -30,8 +31,9 @@
     box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
     max-width: 400px;
     margin: 0 auto;
-  }
-  .toastIconCircle {
+}
+
+.toastIconCircle {
     width: 24px;
     height: 24px;
     background-color: #b3e6b3;
@@ -40,41 +42,46 @@
     align-items: center;
     justify-content: center;
     margin-right: 8px;
-  }
-  .toastIconCircle.error {
+}
+
+.toastIconCircle.error {
     background-color: #f8d7da;
-  }
-  .toastIconCircle.warning {
+}
+
+.toastIconCircle.warning {
     background-color: #fff3cd;
-  }
-  .toastClose {
+}
+
+.toastClose {
     margin-left: auto;
     background: none;
     border: none;
     font-size: 16px;
     cursor: pointer;
     color: #666;
-  }
-  
-  /* Container for the main content */
-  .container .headerRow {
+}
+
+/* Container for the main content */
+.container .headerRow {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 24px;
-  }
-  .title {
+}
+
+.title {
     font-size: 24px;
     font-weight: bold;
     margin: 0;
-  }
-  .headerActions {
+}
+
+.headerActions {
     display: flex;
     gap: 8px;
-  }
-  
-  /* “No feeds yet” / “Feed is due in 2 hours” box */
-  .feedDueBox {
+}
+
+/* “No feeds yet” / “Feed is due in 2 hours” box */
+.feedDueBox {
     display: flex;
     align-items: center;
     background-color: #fff;
@@ -82,8 +89,9 @@
     border-radius: 8px;
     padding: 16px;
     margin-bottom: 16px;
-  }
-  .feedDueIcon {
+}
+
+.feedDueIcon {
     width: 40px;
     height: 40px;
     background-color: #f5eefc;
@@ -92,37 +100,42 @@
     justify-content: center;
     border-radius: 8px;
     margin-right: 16px;
-  }
-  .feedDueMain {
+}
+
+.feedDueMain {
     font-weight: 600;
     margin: 0 0 4px;
     color: #000;
-  }
-  .feedDueSub {
+}
+
+.feedDueSub {
     margin: 0;
     font-size: 14px;
     color: #777;
-  }
-  
-  /* Cards for daily data */
-  .dayCard {
+}
+
+/* Cards for daily data */
+.dayCard {
     border: 1px solid #ddd;
     border-radius: 8px;
     margin-bottom: 24px;
     background-color: #fff;
-  }
-  .dayHeader {
+}
+
+.dayHeader {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 16px;
     border-bottom: 1px solid #eee;
-  }
-  .dayInfo {
+}
+
+.dayInfo {
     display: flex;
     align-items: center;
-  }
-  .dateCircle {
+}
+
+.dateCircle {
     width: 34px;
     height: 34px;
     background-color: #674ea7;
@@ -134,52 +147,60 @@
     font-weight: 600;
     margin-right: 12px;
     font-size: 16px;
-  }
-  .dateNumber {
+}
+
+.dateNumber {
     font-weight: 600;
     font-size: 16px;
     color: #674ea7;
     margin-right: 12px;
-  }
-  .dateText {
+}
+
+.dateText {
     font-weight: 600;
     font-size: 16px;
-  }
-  .dayHeaderRight {
+}
+
+.dayHeaderRight {
     text-align: right;
-  }
-  .todayMeals {
+}
+
+.todayMeals {
     font-weight: 500;
     color: #888;
-  }
-  
-  /* Table for meals */
-  .mealsTable {
+}
+
+/* Table for meals */
+.mealsTable {
     width: 100%;
     border-collapse: collapse;
     margin: 0;
     margin-top: 60px; /* Add space below the back button */
-  }
-  .mealsTable thead th {
+}
+
+.mealsTable thead th {
     text-align: left;
     font-weight: 600;
     color: #555;
     padding: 12px 16px;
     border-bottom: 1px solid #eee;
     font-size: 14px;
-  }
-  .mealsTable tbody td {
+}
+
+.mealsTable tbody td {
     padding: 12px 16px;
     border-bottom: 1px solid #f5f5f5;
     vertical-align: middle;
     font-size: 14px;
     color: #333;
-  }
-  .actionCell {
+}
+
+.actionCell {
     text-align: right;
     width: 60px;
-  }
-  .editBtn {
+}
+
+.editBtn {
     background: none;
     border: none;
     cursor: pointer;
@@ -187,11 +208,13 @@
     font-size: 16px;
     padding: 4px;
     transition: color 0.2s;
-  }
-  .editBtn:hover {
+}
+
+.editBtn:hover {
     color: #343a40;
-  }
-  .deleteBtn {
+}
+
+.deleteBtn {
     background: none;
     border: none;
     cursor: pointer;
@@ -200,151 +223,170 @@
     padding: 4px;
     transition: color 0.2s;
     margin-left: 4px;
-  }
-  .deleteBtn:hover {
+}
+
+.deleteBtn:hover {
     color: #b02128;
-  }
-  
-  /* Export modal text */
-  .exportModalSubtext {
+}
+
+/* Export modal text */
+.exportModalSubtext {
     margin-bottom: 16px;
     font-size: 14px;
     color: #6f6f6f;
-  }
-  .exportModalLabel {
+}
+
+.exportModalLabel {
     font-weight: 600;
     color: #333;
-  }
-  .exportDateRow {
+}
+
+.exportDateRow {
     display: flex;
     gap: 8px;
-  }
-  .dateInput {
+}
+
+.dateInput {
     flex: 1;
     min-width: 0;
-  }
-  .exportError {
+}
+
+.exportError {
     margin-top: 8px;
     color: red;
     font-weight: 500;
-  }
-  
-  /* Time row for hour/minute/am/pm */
-  .timeRow {
+}
+
+/* Time row for hour/minute/am/pm */
+.timeRow {
     display: flex;
     align-items: center;
     gap: 8px;
-  }
-  .timeSegment {
+}
+
+.timeSegment {
     display: flex;
     align-items: center;
     border: 1px solid #ddd;
     border-radius: 8px;
     background-color: #fff;
     padding: 4px 8px;
-  }
-  .timeBox {
+}
+
+.timeBox {
     width: 40px;
     border: none;
     text-align: center;
     font-size: 14px;
     outline: none;
     -moz-appearance: textfield;
-  }
-  .timeBox::-webkit-inner-spin-button,
-  .timeBox::-webkit-outer-spin-button {
+}
+
+.timeBox::-webkit-inner-spin-button,
+.timeBox::-webkit-outer-spin-button {
     -webkit-appearance: none;
     margin: 0;
-  }
-  .colon {
+}
+
+.colon {
     font-weight: bold;
     margin: 0 4px;
     color: #444;
-  }
-  .amPmSegment {
+}
+
+.amPmSegment {
     display: inline-flex;
     border: 1px solid #ddd;
     border-radius: 8px;
     overflow: hidden;
-  }
-  .amPmBtn {
+}
+
+.amPmBtn {
     background-color: #fff;
     border: none;
     color: #6c757d;
     padding: 6px 12px;
     font-size: 14px;
     cursor: pointer;
-  }
-  .amPmBtn:hover {
+}
+
+.amPmBtn:hover {
     background-color: #f2f2f2;
-  }
-  .amPmBtnActive {
+}
+
+.amPmBtnActive {
     background-color: #b28ced;
     color: black;
     border: none;
     padding: 6px 12px;
     font-size: 14px;
     cursor: pointer;
-  }
-  
-  /* Next feed reminder info text */
-  .reminderInfo {
+}
+
+/* Next feed reminder info text */
+.reminderInfo {
     font-size: 14px;
     color: #6f6f6f;
     margin: 8px 0;
-  }
-  .form-switch .form-check-input:checked {
+}
+
+.form-switch .form-check-input:checked {
     background-color: #7f4cc0;
     border-color: #7f4cc0;
-  }
-  .form-switch .form-check-input:focus {
+}
+
+.form-switch .form-check-input:focus {
     box-shadow: 0 0 0 0.2rem rgba(127, 76, 192, 0.25);
-  }
-  .reminderRow {
+}
+
+.reminderRow {
     margin-top: 16px;
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-  }
-  
-  /* When no data is found */
-  .noDataContainer {
+}
+
+/* When no data is found */
+.noDataContainer {
     text-align: center;
     margin-top: 40px;
     color: #777;
     font-size: 16px;
-  }
-  
-  /* Light purple styling for Cancel and Save buttons */
-  .btnCancel {
+}
+
+/* Light purple styling for Cancel and Save buttons */
+.btnCancel {
     background-color: #f2e6ff;
     color: #4a235a;
     border: 1px solid #c59ef8;
     margin-right: 8px;
-  }
-  .btnCancel:hover {
+}
+
+.btnCancel:hover {
     background-color: #e8d9ff;
     color: #30103b;
     border-color: #b28ced;
-  }
-  .btnSave {
+}
+
+.btnSave {
     background-color: #e8d9ff;
     color: #4a235a;
     border: 1px solid #b28ced;
-  }
-  .btnSave:hover {
+}
+
+.btnSave:hover {
     background-color: #dfc9ff;
     color: #30103b;
-  }
+}
 
-  .backButtonContainer {
+.backButtonContainer {
     position: absolute;
     top: 20px;
     left: 20px;
     margin-bottom: 30px;
-  }
-  
-  .backButton {
+}
+
+.backButton {
     display: inline-flex;
     align-items: center;
     gap: 8px;
@@ -353,9 +395,16 @@
     cursor: pointer;
     font-size: 14px;
     transition: color 0.2s ease;
-  }
-  
-  .backButton:hover {
+}
+
+.backButton:hover {
     color: #0056b3;
     text-decoration: underline;
-  }
+}
+
+/* Modal blur effect when incompatible browser modal is shown */
+.modalBlur {
+  filter: blur(3px);
+  pointer-events: none;
+  user-select: none;
+}
