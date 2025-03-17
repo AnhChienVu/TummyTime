@@ -9,14 +9,15 @@ const TipsNotificationPopup = () => {
   useEffect(() => {
     // Determine whether the user is logged in.
     const token = localStorage.getItem("token");
-    let apiUrl = "";
-    if (token) {
-      // Logged-in: call API for customized tip notifications
-      apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/tips/notification`;
-    } else {
-      // Not logged in: default to daily tips
-      apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/tips/notification?default=true`;
-    }
+    let apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/tips/notification`;
+    // //   Check if Logged-in
+    // if (token) {
+    //     // Logged-in: call API for customized tip notifications
+    //     apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/tips/notification`;
+    // } else {
+    //     // Not logged in: default to Daily
+    //     apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/tips/notification?default=true`;
+    // }
 
     const fetchTip = () => {
       fetch(apiUrl)
@@ -24,8 +25,9 @@ const TipsNotificationPopup = () => {
         .then((data) => {
           // Assume the API returns { data: [ tip1, tip2, ... ] }
           if (data.data && data.data.length > 0) {
-            // For simplicity, show the first tip
-            setTip(data.data[0]);
+            // CHOOSE A RANDOM TIP
+            const randomIndex = Math.floor(Math.random() * data.data.length);
+            setTip(data.data[randomIndex]);
             setShow(true);
           }
         })
@@ -37,7 +39,7 @@ const TipsNotificationPopup = () => {
     // Initial fetch
     fetchTip();
 
-    // Refresh tip every 60 seconds (or adjust as needed)
+    // Refresh tip every 60 seconds (user will see a new tip)
     const intervalId = setInterval(fetchTip, 60000);
     return () => clearInterval(intervalId);
   }, []);
