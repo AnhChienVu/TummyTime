@@ -1,4 +1,4 @@
-// client/components/[tipsNotificationPopup.js]
+// client/components/[TipsNotificationPopup.js]
 import React, { useState, useEffect } from "react";
 import { Alert, Button } from "react-bootstrap";
 
