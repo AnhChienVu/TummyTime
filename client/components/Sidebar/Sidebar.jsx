@@ -110,6 +110,14 @@ function Sidebar() {
         </Nav.Link>
         <Nav.Link
           as={Link}
+          href="/export"
+          locale={locale}
+          className={styles.navlink}
+        >
+          {t("Export")}
+        </Nav.Link>
+        <Nav.Link
+          as={Link}
           href="/medicalProfessional"
           locale={locale}
           className={styles.navlink}
