@@ -150,17 +150,24 @@ function MedicalProfessional() {
               <div className={styles.babyList}>
                 <h3>{t("Assigned Babies")}</h3>
 
-                {assignedBabies[medicalProfessional.user_id] &&
-                  assignedBabies[medicalProfessional.user_id].map((baby) => (
-                    <div key={baby.baby_id} className={styles.assignedBabies}>
-                      <p className={styles.babyName}>
-                        {t("Baby")}: {baby.first_name} {baby.last_name}
-                      </p>
-                      <button className={styles.button}>
-                        {t("Health Documents")}
-                      </button>
-                    </div>
-                  ))}
+                {assignedBabies[medicalProfessional.user_id] ? (
+                  assignedBabies[medicalProfessional.user_id].length > 0 ? (
+                    assignedBabies[medicalProfessional.user_id].map((baby) => (
+                      <div key={baby.baby_id} className={styles.assignedBabies}>
+                        <p className={styles.babyName}>
+                          {t("Baby")}: {baby.first_name} {baby.last_name}
+                        </p>
+                        <button className={styles.button}>
+                          {t("Health Documents")}
+                        </button>
+                      </div>
+                    ))
+                  ) : (
+                    <p>{t("No assigned babies")}</p>
+                  )
+                ) : (
+                  <p>{t("No assigned babies")}</p>
+                )}
               </div>
             </div>
           ))}

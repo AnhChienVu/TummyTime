@@ -54,36 +54,41 @@ function Feeding() {
   const baby_id = router.query.id;
 
   useEffect(() => {
-    if (baby_id) {
-      async function fetchFeedingSchedule() {
-        try {
-          const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${baby_id}/getFeedingSchedules`,
-            {
-              method: "GET",
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
+    if (router.isReady && baby_id) {
+      console.log("Fetching feeding schedule for baby ID:", baby_id);
+      if (baby_id) {
+        async function fetchFeedingSchedule() {
+          try {
+            const res = await fetch(
+              `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${baby_id}/getFeedingSchedules`,
+              {
+                method: "GET",
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
               },
-            },
-          );
-          const data = await res.json();
-          console.log("Fetched feeding schedule data:", data);
-          if (res.ok) {
-            //  Convert the response to an array of feeding schedules
-            const feedingScheduleArray = Object.keys(data)
-              .filter((key) => key !== "status")
-              .map((key) => data[key]);
-            setFeedingSchedule(feedingScheduleArray);
-          } else {
-            console.error("Failed to fetch feeding schedule:", data);
+            );
+            const data = await res.json();
+            console.log("Fetched feeding schedule data:", data);
+            if (res.ok) {
+              //  Convert the response to an array of feeding schedules
+              const feedingScheduleArray = Object.keys(data)
+                .filter((key) => key !== "status")
+                .map((key) => data[key]);
+              setFeedingSchedule(feedingScheduleArray);
+            } else {
+              console.error("Failed to fetch feeding schedule:", data);
+            }
+          } catch (error) {
+            console.error("Error fetching feeding schedule:", error);
           }
-        } catch (error) {
-          console.error("Error fetching feeding schedule:", error);
         }
+        fetchFeedingSchedule();
+      } else {
+        console.log("No baby ID found.");
       }
-      fetchFeedingSchedule();
     }
-  }, [baby_id]);
+  }, [baby_id, router.isReady]);
 
   let sortedData = [...feedingSchedule].sort((a, b) =>
     compareDesc(parseISO(a.date), parseISO(b.date)),
