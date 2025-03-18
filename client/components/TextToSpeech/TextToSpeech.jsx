@@ -43,6 +43,7 @@ function TextToSpeech({ text }) {
         onClick={handleSpeak}
         disabled={isSpeaking}
         className={styles.button}
+        type="button"
       >
         {isSpeaking ? "Speaking..." : "Speak"}
       </button>
@@ -50,6 +51,7 @@ function TextToSpeech({ text }) {
         onClick={handleStop}
         disabled={!isSpeaking}
         className={styles.button}
+        type="button"
       >
         Stop
       </button>
