@@ -14,7 +14,7 @@ const ExportDataPage = () => {
   });
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
-  const [error, setError] = useState("");
+  const [error, setError] = useState(""); // Error message to display to user
   const [downloadLink, setDownloadLink] = useState("");
   const [downloadFileName, setDownloadFileName] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
@@ -58,7 +58,7 @@ const ExportDataPage = () => {
     setError("");
     if (!validateData()) return;
 
-    // Build query parameters for the backend export call.
+    // Build query parameters for the backend request
     const queryParams = new URLSearchParams({
       startDate: startDate.toISOString().split("T")[0],
       endDate: endDate.toISOString().split("T")[0],
@@ -82,9 +82,20 @@ const ExportDataPage = () => {
         },
       );
 
+      // error	Object { code: 404, message: "No baby profiles found for this user" }
       if (!response.ok) {
+        // Extract error message from response and SHOW ERROR TO USER
         const errorData = await response.json();
-        setError(errorData.message || "Export failed");
+        console.log("Error response:", errorData);
+
+        let errorMessage = "Export failed. Please try again later.";
+        if (errorData.error.message) {
+          errorMessage = "Export failed: " + errorData.error.message;
+        }
+
+        console.error(errorMessage);
+
+        setError(errorMessage);
         return;
       }
 
@@ -96,7 +107,7 @@ const ExportDataPage = () => {
       }
       setDownloadFileName(filename);
 
-      // Convert the response to a blob and generate a download URL.
+      // Convert the response to a blob and generate a download URL
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       setDownloadLink(url);
