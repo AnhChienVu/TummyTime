@@ -2,8 +2,11 @@ import React, { useState, useEffect } from "react";
 import styles from "./medicalProfessional.module.css";
 import Image from "next/image";
 import BabyListModal from "@/components/BabyListModal/BabyListModal";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 function MedicalProfessional() {
+  const { t } = useTranslation("common");
   const [medicalProfessional, setMedicalProfessional] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
@@ -130,7 +133,7 @@ function MedicalProfessional() {
                   {medicalProfessional.last_name}
                 </h2>
                 <p className={styles.specialization}>
-                  {medicalProfessional.role}
+                  {t(medicalProfessional.role)}
                 </p>
               </div>
               <div className={styles.profileContact}>
@@ -141,23 +144,30 @@ function MedicalProfessional() {
                   className={styles.button}
                   onClick={() => handleConnectClick(medicalProfessional)}
                 >
-                  Connect
+                  {t("Connect")}
                 </button>
               </div>
               <div className={styles.babyList}>
-                <h3>Assigned Babies</h3>
+                <h3>{t("Assigned Babies")}</h3>
 
-                {assignedBabies[medicalProfessional.user_id] &&
-                  assignedBabies[medicalProfessional.user_id].map((baby) => (
-                    <div key={baby.baby_id} className={styles.assignedBabies}>
-                      <p className={styles.babyName}>
-                        Baby: {baby.first_name} {baby.last_name}
-                      </p>
-                      <button className={styles.button}>
-                        Health Documents
-                      </button>
-                    </div>
-                  ))}
+                {assignedBabies[medicalProfessional.user_id] ? (
+                  assignedBabies[medicalProfessional.user_id].length > 0 ? (
+                    assignedBabies[medicalProfessional.user_id].map((baby) => (
+                      <div key={baby.baby_id} className={styles.assignedBabies}>
+                        <p className={styles.babyName}>
+                          {t("Baby")}: {baby.first_name} {baby.last_name}
+                        </p>
+                        <button className={styles.button}>
+                          {t("Health Documents")}
+                        </button>
+                      </div>
+                    ))
+                  ) : (
+                    <p>{t("No assigned babies")}</p>
+                  )
+                ) : (
+                  <p>{t("No assigned babies")}</p>
+                )}
               </div>
             </div>
           ))}
@@ -175,3 +185,11 @@ function MedicalProfessional() {
 }
 
 export default MedicalProfessional;
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
+  };
+}

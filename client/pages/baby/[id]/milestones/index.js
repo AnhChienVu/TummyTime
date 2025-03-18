@@ -2,16 +2,17 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import styles from "./milestones.module.css";
 import {
-  FaBaby,
   FaEdit,
   FaTrash,
   FaMicrophone,
   FaMicrophoneSlash,
 } from "react-icons/fa";
-import { Modal, Form, Button, Alert, Row, Col } from "react-bootstrap";
+import { Modal, Form, Button, Alert } from "react-bootstrap";
 import { AiOutlineInfoCircle } from "react-icons/ai";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import useSpeechToText from "@/hooks/useSpeechToText";
+import IncompatibleBrowserModal from "@/components/IncompatibleBrowserModal";
 
 const formatDate = (dateString) => {
   const date = new Date(dateString);
@@ -34,8 +35,17 @@ function MilestoneEachBaby() {
   const [date, setDate] = useState("");
   const [deleteModalShow, setDeleteModalShow] = useState(false);
   const [milestoneToDelete, setMilestoneToDelete] = useState(null);
-  const [isListening, setIsListening] = useState(false);
   const [currentInputField, setCurrentInputField] = useState(null);
+  const [showBrowserModal, setShowBrowserModal] = useState(false);
+
+  const {
+    isListening,
+    transcript,
+    startListening,
+    stopListening,
+    resetTranscript,
+    browserSupportsSpeechRecognition,
+  } = useSpeechToText();
 
   const router = useRouter();
   const baby_id = router.query.id;
@@ -45,7 +55,8 @@ function MilestoneEachBaby() {
   };
 
   useEffect(() => {
-    if (baby_id) {
+    if (router.isReady && baby_id) {
+      console.log("Fetching milestones for baby:", baby_id);
       async function fetchMilestones() {
         try {
           const res = await fetch(
@@ -72,8 +83,20 @@ function MilestoneEachBaby() {
         }
       }
       fetchMilestones();
+    } else {
+      console.log("Baby ID not found in query params.");
     }
   }, [baby_id]);
+
+  useEffect(() => {
+    if (transcript && currentInputField) {
+      if (currentInputField === "title") {
+        setTitle(transcript.trim()); // Replace the existing title
+      } else if (currentInputField === "details") {
+        setDetails(transcript.trim()); // Replace the existing details
+      }
+    }
+  }, [transcript, currentInputField]);
 
   const handleOpenModal = (milestone) => {
     setModalError("");
@@ -249,37 +272,19 @@ function MilestoneEachBaby() {
     setMilestoneToDelete(null);
   };
 
-  const handleVoiceInput = async (fieldName) => {
+  const handleVoiceInput = (fieldName) => {
+    // Only show modal if browser doesn't support speech recognition
+    if (!browserSupportsSpeechRecognition) {
+      setShowBrowserModal(true);
+      return;
+    }
+
     if (!isListening) {
-      try {
-        setCurrentInputField(fieldName);
-        setIsListening(true);
-
-        const recognition = new (window.SpeechRecognition ||
-          window.webkitSpeechRecognition)();
-        recognition.lang = "en-US";
-
-        recognition.onresult = (event) => {
-          const transcript = event.results[0][0].transcript;
-          if (fieldName === "title") {
-            setTitle((prev) => prev + " " + transcript);
-          } else if (fieldName === "details") {
-            setDetails((prev) => prev + " " + transcript);
-          }
-        };
-
-        recognition.onend = () => {
-          setIsListening(false);
-        };
-
-        recognition.start();
-      } catch (error) {
-        console.error("Voice input error:", error);
-        showToast(t("Voice input is not supported in this browser"), "error");
-        setIsListening(false);
-      }
+      setCurrentInputField(fieldName);
+      resetTranscript();
+      startListening();
     } else {
-      setIsListening(false);
+      stopListening();
       setCurrentInputField(null);
     }
   };
@@ -287,6 +292,10 @@ function MilestoneEachBaby() {
   return (
     <div className={styles.container}>
       <ToastContainer toasts={toasts} removeToast={removeToast} />
+      <IncompatibleBrowserModal
+        show={showBrowserModal}
+        onHide={() => setShowBrowserModal(false)}
+      />
       <div className={styles.backButtonContainer}>
         <div className={styles.backButton} onClick={handleBackClick}>
           <span>← {t("Back to Overview")}</span>
@@ -335,8 +344,12 @@ function MilestoneEachBaby() {
         </tbody>
       </table>
 
-      {/* Modal for editing milestone */}
-      <Modal show={modalShow} onHide={() => setModalShow(false)}>
+      {/* edit milestone modal */}
+      <Modal
+        show={modalShow}
+        onHide={() => setModalShow(false)}
+        className={`${showBrowserModal ? styles.modalBlur : ""}`}
+      >
         <Modal.Header closeButton>
           <Modal.Title>{t("Edit Milestone")}</Modal.Title>
         </Modal.Header>

@@ -19,18 +19,18 @@ const { deleteStoolEntry } = require('./baby/stool/deleteStool');
 const { getReminders } = require('./baby/reminders/getReminders');
 const { createReminder } = require('./baby/reminders/postReminder');
 const { updateReminder } = require('./baby/reminders/putReminder');
-const { deleteReminders } = require('./baby/reminders/deleteReminders')
+const { deleteReminders } = require('./baby/reminders/deleteReminders');
+const {
+    getBabysitters,
+    getNannies,
+    refreshCareCache
+  } = require('./careServices');
 
 router.post("/login", require("./login"));
-
 router.post('/signup', require('./signup'));
 
 // ************ /feedingSchedule routes ************
-router.get(
-  '/baby/:id/getFeedingSchedules',
-  authenticate(),
-  require('./baby/getFeedingSchedules')
-);
+router.get('/baby/:id/getFeedingSchedules', authenticate(), require('./baby/getFeedingSchedules'));
 
 router.put(
   '/baby/:id/updateFeedingSchedule/:mealId',
@@ -44,11 +44,7 @@ router.delete(
   require('./baby/deleteFeedingSchedule')
 );
 
-router.post(
-  '/baby/:id/addFeedingSchedule',
-  authenticate(),
-  require('./baby/addFeedingSchedule')
-);
+router.post('/baby/:id/addFeedingSchedule', authenticate(), require('./baby/addFeedingSchedule'));
 
 router.get(
   '/user/:id/getBabyProfiles',
@@ -61,30 +57,14 @@ router.get('/user/me', authenticate(), require('./user/me').getUserDetails);
 
 router.get('/user', authenticate(), require('./user/getUser').getUserById);
 
-router.put(
-  '/user/:id',
-  authenticate(),
-  require('./user/putUser').updateUserById
-);
+router.put('/user/:id', authenticate(), require('./user/putUser').updateUserById);
 
-router.delete(
-  '/user/:id',
-  authenticate(),
-  require('./user/deleteUser').deleteUserById
-);
+router.delete('/user/:id', authenticate(), require('./user/deleteUser').deleteUserById);
 
 // ************ /growth routes ************
-router.get(
-  '/baby/:babyId/growth/',
-  authenticate(),
-  require('./growth/getGrowth').getAllGrowth
-); // Get all Growth records by [:babyId]
+router.get('/baby/:babyId/growth/', authenticate(), require('./growth/getGrowth').getAllGrowth); // Get all Growth records by [:babyId]
 
-router.post(
-  '/baby/:babyId/growth',
-  authenticate(),
-  require('./growth/postGrowth').createGrowth
-);
+router.post('/baby/:babyId/growth', authenticate(), require('./growth/postGrowth').createGrowth);
 
 router.put(
   '/baby/:babyId/growth/:growthId',
@@ -99,11 +79,7 @@ router.delete(
 );
 
 // ************ /milestones routes ************
-router.get(
-  "/milestones",
-  authenticate(),
-  require("./milestones/getAllMilestones")
-);
+router.get('/milestones', authenticate(), require('./milestones/getAllMilestones'));
 
 router.get(
   '/baby/:baby_id/milestones',
@@ -112,139 +88,74 @@ router.get(
 );
 
 router.post(
-  "/baby/:baby_id/milestones",
+  '/baby/:baby_id/milestones',
   authenticate(),
   require('./milestones/postMilestone').createMilestone
 );
 
 router.put(
-  "/baby/:baby_id/milestones/:milestone_id",
+  '/baby/:baby_id/milestones/:milestone_id',
   authenticate(),
   require('./milestones/putMilestone').updateMilestoneById
 );
 
 router.delete(
-  "/baby/:baby_id/milestones/:milestone_id",
+  '/baby/:baby_id/milestones/:milestone_id',
   authenticate(),
   require('./milestones/deleteMilestone').deleteMilestoneById
 );
 
 // ************ /babyProfile routes ************
-router.post(
-  '/baby',
-  authenticate(),
-  require('./baby/babyProfile/addBabyProfile')
-);
+router.post('/baby', authenticate(), require('./baby/babyProfile/addBabyProfile'));
 
-router.get(
-  '/babies',
-  authenticate(),
-  require('./baby/babyProfile/getAllBabyProfiles')
-);
+router.get('/babies', authenticate(), require('./baby/babyProfile/getAllBabyProfiles'));
 
-router.get(
-  '/baby/:baby_id',
-  authenticate(),
-  require('./baby/babyProfile/getBabyProfile')
-);
+router.get('/baby/:baby_id', authenticate(), require('./baby/babyProfile/getBabyProfile'));
 
-router.put(
-  '/baby/:baby_id',
-  authenticate(),
-  require('./baby/babyProfile/putBabyProfile')
-);
+router.put('/baby/:baby_id', authenticate(), require('./baby/babyProfile/putBabyProfile'));
 
-router.delete(
-  '/baby/:baby_id',
-  authenticate(),
-  require('./baby/babyProfile/deleteBabyProfile')
-);
+router.delete('/baby/:baby_id', authenticate(), require('./baby/babyProfile/deleteBabyProfile'));
 
 // ************ /journal routes ************
 router.post('/journal', authenticate(), require('./journal/addJournalEntry'));
 
 router.get('/journal', authenticate(), require('./journal/getJournalEntries'));
 
-router.get(
-  '/journal/:id',
-  authenticate(),
-  require('./journal/getJournalEntry')
-);
+router.get('/journal/:id', authenticate(), require('./journal/getJournalEntry'));
 
-router.put(
-  '/journal/:id',
-  authenticate(),
-  require('./journal/putJournalEntry')
-);
+router.put('/journal/:id', authenticate(), require('./journal/putJournalEntry'));
 
-router.delete(
-  '/journal/:id',
-  authenticate(),
-  require('./journal/deleteJournalEntry')
-);
+router.delete('/journal/:id', authenticate(), require('./journal/deleteJournalEntry'));
 
 // ************ /forum routes ************
-router.post(
-  '/forum/posts/add',
-  authenticate(),
-  require('./forum/posts/addPost')
-);
+router.post('/forum/posts/add', authenticate(), require('./forum/posts/addPost'));
 
-router.get(
-  '/forum/posts/:post_id',
-  authenticate(),
-  require('./forum/posts/getPost')
-);
+router.get('/forum/posts/:post_id', authenticate(), require('./forum/posts/getPost'));
 
 router.get('/forum/posts', authenticate(), require('./forum/posts/getPosts'));
 
-router.put(
-  '/forum/posts/:post_id',
-  authenticate(),
-  require('./forum/posts/putPost')
-);
+router.put('/forum/posts/:post_id', authenticate(), require('./forum/posts/putPost'));
 
-router.delete(
-  '/forum/posts/:post_id',
-  authenticate(),
-  require('./forum/posts/deletePost')
-);
+router.delete('/forum/posts/:post_id', authenticate(), require('./forum/posts/deletePost'));
 
-router.post(
-  '/forum/posts/:post_id/reply',
-  authenticate(),
-  require('./forum/replies/addReply')
-);
+router.post('/forum/posts/:post_id/reply', authenticate(), require('./forum/replies/addReply'));
 
-router.get(
-  '/forum/posts/:post_id/replies',
-  authenticate(),
-  require('./forum/replies/getReplies')
-);
+router.get('/forum/posts/:post_id/replies', authenticate(), require('./forum/replies/getReplies'));
 
-router.put(
-  '/forum/replies/:reply_id',
-  authenticate(),
-  require('./forum/replies/putReply')
-);
+router.put('/forum/replies/:reply_id', authenticate(), require('./forum/replies/putReply'));
 
-router.delete(
-  '/forum/replies/:reply_id',
-  authenticate(),
-  require('./forum/replies/deleteReply')
-);
+router.delete('/forum/replies/:reply_id', authenticate(), require('./forum/replies/deleteReply'));
 
 // ************ /coupons routes ************
 router.get('/coupons', require('./coupons/getAllCoupons'));
 
 // ************ /voiceCommand routes ************
-router.post(
-  '/voiceCommand',
-  require('./voiceCommand/processVoiceCommand').processVoiceCommand
-);
+router.post('/voiceCommand', require('./voiceCommand/processVoiceCommand').processVoiceCommand);
 
 // ************ /tips routes ************
 router.get('/tips', require('./tips/getAllTips'));
+router.get('/tips/notification', require('./tips/tipsNotification/getCustomTipsAllBabies'));
+router.put('/tips/notification', require('./tips/tipsNotification/putTipsNotificationSettings'));
 
 // ************ Stool routes ************
 router.get('/baby/:babyId/stool', authenticate(), getStoolEntries);
@@ -255,32 +166,26 @@ router.delete('/baby/:babyId/stool/:stoolId', authenticate(), deleteStoolEntry);
 // ************ /medicalProfessional routes ************
 router.get(
   '/medical-professional',
-  require('./medicalProfessional/getAllMedicalProfessional')
-    .getAllMedicalProfessional
+  require('./medicalProfessional/getAllMedicalProfessional').getAllMedicalProfessional
 );
 
 router.post(
   '/medical-professional/:doctor_id/connect',
-  require('./medicalProfessional/connectMedicalProfessional')
-    .connectMedicalProfessional
+  require('./medicalProfessional/connectMedicalProfessional').connectMedicalProfessional
 );
 
 router.get(
   '/medical-professional/:doctor_id/babies',
-  require('./medicalProfessional/getAssignedBabiesByDoctorId')
-    .getAssignedBabiesByDoctorId
+  require('./medicalProfessional/getAssignedBabiesByDoctorId').getAssignedBabiesByDoctorId
 );
 
 // ************ Check Products ************
-router.get(
-  '/products/checkProduct',
-  require('./products/checkProduct').checkProduct
-);
+router.get('/products/checkProduct', require('./products/checkProduct').checkProduct);
 
 // ************ /healthRecord routes ************
 router.get(
-  "/doctor/:doctorId/healthRecords",
-  require("./healthRecord/getAllHealthRecords").getAllHealthRecords
+  '/doctor/:doctorId/healthRecords',
+  require('./healthRecord/getAllHealthRecords').getAllHealthRecords
 );
 
 // ************ /export routes ************
@@ -298,6 +203,11 @@ router.put('/baby/:babyId/reminders/:reminderId', authenticate(), updateReminder
 
 // DELETE /baby/:babyId/reminders - Unified deletion endpoint (single or bulk)
 router.delete('/baby/:babyId/reminders', authenticate(), deleteReminders);
+
+// ************ /careServices routes ************
+router.get('/careServices/babysitters', authenticate(), getBabysitters);
+router.get('/careServices/nannies', authenticate(), getNannies);
+router.post('/careServices/refresh-cache', authenticate(), refreshCareCache);
 
 // Testing the authentication middleware
 // router.get('/test', authenticate(), require('./test'));

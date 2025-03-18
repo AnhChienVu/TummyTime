@@ -1,51 +1,54 @@
 import { useState, useRef, useEffect } from "react";
+import IncompatibleBrowserModal from "@/components/IncompatibleBrowserModal";
 
 function useSpeechToText(options) {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [error, setError] = useState(null);
   const recognitionRef = useRef(null);
-  const [showFirefoxModal, setShowFirefoxModal] = useState(false);
+  const [showIncompatibleModal, setShowIncompatibleModal] = useState(false);
+
+  const browserSupportsSpeechRecognition =
+    typeof window !== "undefined" &&
+    Boolean(window.SpeechRecognition || window.webkitSpeechRecognition);
 
   useEffect(() => {
-    // Check if we're in the browser
     if (typeof window === "undefined") return;
 
     try {
-      // Check for browser support
       const SpeechRecognition =
         window.SpeechRecognition || window.webkitSpeechRecognition;
 
-      if (!SpeechRecognition) {
-        setError("Speech recognition not supported");
-        console.error("Speech recognition not supported in this browser");
-        return;
+      if (SpeechRecognition) {
+        recognitionRef.current = new SpeechRecognition();
+        const recognition = recognitionRef.current;
+
+        recognition.interimResults = options?.interimResults ?? true;
+        recognition.lang = options?.lang ?? "en-US";
+        recognition.continuous = options?.continuous ?? false;
+
+        recognition.onresult = (event) => {
+          try {
+            const current = Array.from(event.results)
+              .map((result) => result[0].transcript)
+              .join(" ");
+            setTranscript(current);
+          } catch (err) {
+            console.error("Error processing speech results:", err);
+            setError("Error processing speech results");
+          }
+        };
+
+        recognition.onerror = (event) => {
+          console.error("Speech recognition error:", event.error);
+          setError(event.error);
+          setIsListening(false);
+        };
+
+        recognition.onend = () => {
+          setIsListening(false);
+        };
       }
-
-      // Initialize recognition
-      recognitionRef.current = new SpeechRecognition();
-      const recognition = recognitionRef.current;
-
-      // Configure recognition
-      recognition.interimResults = options?.interimResults ?? true;
-      recognition.lang = options?.lang ?? "en-US";
-      recognition.continuous = options?.continuous ?? true;
-
-      recognition.onresult = (event) => {
-        const current = event.resultIndex;
-        const transcript = event.results[current][0].transcript;
-        setTranscript((prev) => prev + transcript); // Append new transcript to existing one
-      };
-
-      recognition.onerror = (event) => {
-        console.error("Speech recognition error:", event.error);
-        setError(event.error);
-        setIsListening(false);
-      };
-
-      recognition.onend = () => {
-        setIsListening(false);
-      };
     } catch (err) {
       console.error("Error initializing speech recognition:", err);
       setError(err.message);
@@ -53,25 +56,66 @@ function useSpeechToText(options) {
 
     return () => {
       if (recognitionRef.current) {
-        recognitionRef.current.stop();
+        try {
+          recognitionRef.current.stop();
+        } catch (err) {
+          console.error("Error stopping recognition on cleanup:", err);
+        }
       }
     };
-  }, []); // Empty dependency array since we only want to initialize once
+  }, []);
 
   const resetTranscript = () => {
     setTranscript("");
+    setError(null);
   };
 
-  const startListening = () => {
-    if (!recognitionRef.current) {
-      console.error("Speech recognition not initialized");
-      setError("Speech recognition not initialized");
-      return;
-    }
-
+  const startListening = async () => {
     try {
-      resetTranscript(); // Clear transcript before starting new session
-      recognitionRef.current.start();
+      // Check browser compatibility when user tries to start listening
+      const SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
+
+      if (!SpeechRecognition) {
+        setError("Speech recognition not supported");
+        setShowIncompatibleModal(true);
+        return;
+      }
+
+      // Initialize recognition if not already initialized
+      if (!recognitionRef.current) {
+        recognitionRef.current = new SpeechRecognition();
+        const recognition = recognitionRef.current;
+
+        recognition.interimResults = options?.interimResults ?? true;
+        recognition.lang = options?.lang ?? "en-US";
+        recognition.continuous = options?.continuous ?? false;
+
+        recognition.onresult = (event) => {
+          try {
+            const current = Array.from(event.results)
+              .map((result) => result[0].transcript)
+              .join(" ");
+            setTranscript(current);
+          } catch (err) {
+            console.error("Error processing speech results:", err);
+            setError("Error processing speech results");
+          }
+        };
+
+        recognition.onerror = (event) => {
+          console.error("Speech recognition error:", event.error);
+          setError(event.error);
+          setIsListening(false);
+        };
+
+        recognition.onend = () => {
+          setIsListening(false);
+        };
+      }
+
+      resetTranscript();
+      await recognitionRef.current.start();
       setIsListening(true);
       setError(null);
     } catch (err) {
@@ -98,9 +142,10 @@ function useSpeechToText(options) {
     error,
     startListening,
     stopListening,
-    resetTranscript, // Add this to the returned object
-    showFirefoxModal,
-    setShowFirefoxModal,
+    resetTranscript,
+    showIncompatibleModal,
+    setShowIncompatibleModal,
+    browserSupportsSpeechRecognition,
   };
 }
 
