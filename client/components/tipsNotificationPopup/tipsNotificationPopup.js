@@ -6,6 +6,9 @@
 // ==> add a localStorage flag to check most recent notification timestamp
 //  - EVERY TIME RELOAD OR GO TO /tips page
 //  - will DISAPPEAR after ~10 seconds
+
+// EXCEPTION: IF AFTER FILTER, number of tips is <=2 ==> SHOW ALL TIPS (ignore custom tips)
+
 import React, { useState, useEffect } from "react";
 import { Alert, Button } from "react-bootstrap";
 
@@ -34,37 +37,6 @@ const TipsNotificationPopup = () => {
       apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/v1/tips`;
     }
 
-    // // MOCK RESPONSE
-    // const mockData = {
-    //   data: [
-    //     {
-    //       id: 1,
-    //       tip_text: "Baby from 0-3 months should sleep 14-17 hours a day.",
-    //     },
-    //     {
-    //       id: 2,
-    //       tip_text: "Your baby should sleep on their back.",
-    //     },
-    //     {
-    //       id: 3,
-    //       tip_text: "It is recommended to have a consistent bedtime routine.",
-    //     },
-    //     {
-    //       id: 4,
-    //       tip_text:
-    //         "Try to put your baby to sleep when they are drowsy but still awake.",
-    //     },
-    //     {
-    //       id: 5,
-    //       tip_text: "Create a safe sleep environment for your baby.",
-    //     },
-    //     {
-    //       id: 6,
-    //       tip_text: "Avoid overheating your baby.",
-    //     },
-    //   ],
-    // };
-
     // Helper function to fetch and display a tip
     const fetchAndShowTip = async () => {
       try {
@@ -73,13 +45,57 @@ const TipsNotificationPopup = () => {
         });
         const data = await response.json();
 
-        if (data.data && data.data.length > 0) {
+        console.log(data);
+        // {
+        //   "notificationSettings": {
+        //     "setting_id": 1,
+        //     "user_id": 2,
+        //     "notification_frequency": "Daily",
+        //     "opt_in": true,
+        //     "created_at": "2025-03-18T05:10:46.961Z",
+        //     "updated_at": "2025-03-18T05:11:16.750Z"
+        //   },
+        //   "babiesTips": [
+        //     {
+        //       "tip_id": 13,...
+        //       "tip_text": "Talk, sing, and read to your baby frequently to boost language skills."
+        //     }
+        //   ]
+        // }
+
+        let tipArray = [];
+        // If API returns custom tips under babiesTips, use that array
+        if (data.babiesTips && Array.isArray(data.babiesTips)) {
+          tipArray = data.babiesTips;
+        } else if (data.data && Array.isArray(data.data)) {
+          tipArray = data.data;
+        }
+
+        // If after filter, number of custom tips is <=2, fallback to get all tips (ignore custom tips)
+        if (tipArray.length <= 2) {
+          console.log(
+            `There is ONLY ${tipArray.length} custom tips. => SHOW ALL TIPS instead.`,
+          );
+
+          const fallbackResponse = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/v1/tips`,
+            { headers: token ? { Authorization: `Bearer ${token}` } : {} },
+          );
+          const fallbackData = await fallbackResponse.json();
+
+          // set tipArray
+          if (fallbackData.data && Array.isArray(fallbackData.data)) {
+            tipArray = fallbackData.data;
+          }
+        }
+
+        if (tipArray.length > 0) {
           // show a random tip
-          const randomIndex = Math.floor(Math.random() * data.data.length);
-          setTip(data.data[randomIndex]);
+          const randomIndex = Math.floor(Math.random() * tipArray.length);
+          setTip(tipArray[randomIndex]);
           setShow(true);
 
-          // Update tip timestamp in localStorage
+          // Update last tip timestamp in localStorage
           localStorage.setItem("lastTipTimestamp", Date.now().toString());
 
           // Hide tip after 10 seconds
@@ -97,7 +113,7 @@ const TipsNotificationPopup = () => {
       fetchAndShowTip();
     } else {
       if (frequency === "Weekly") {
-        // For Weekly, only show tip if no timestamp is stored (Once since logged in)
+        // For Weekly, show tip only once per login (check localStorage flag)
         if (!localStorage.getItem("lastTipTimestamp")) {
           fetchAndShowTip();
         }
@@ -111,7 +127,6 @@ const TipsNotificationPopup = () => {
         if (now - lastTimestamp >= 3 * 60000) {
           fetchAndShowTip();
         }
-
         const intervalId = setInterval(() => {
           fetchAndShowTip();
         }, 3 * 60000); // Every 3 minutes

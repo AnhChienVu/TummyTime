@@ -10,8 +10,10 @@
 
 // 3- for each baby, SAVE THE GENDER AND calculate "Baby Age (in months)" based on birthdate to today
 // 4- FILTER THE CuratedTips TABLE TO GET THE RELATED TIPS
+// IF AFTER FILTER, number of tips is <=2 ==> SHOW ALL TIPS (ignore custom tips)
 
 // 5- SEND: TIPS NOTIFICATION SETTINGS + CUSTOM TIPS FOR RELATED BABIES
+
 
 const logger = require('../../../../utils/logger');
 const { createSuccessResponse, createErrorResponse } = require('../../../../utils/response');
@@ -91,31 +93,44 @@ module.exports = async (req, res) => {
         // Step 3+4: For each baby, calculate age (in months) and filter CuratedTips
         let babiesTips = [];
         for (const baby of babies) {
+            let ageInMonths = -1;
             if (!baby.birthdate) {
-                let ageInMonths = null;
+                ageInMonths = null;
             } else {
-                let ageInMonths = calculateAgeInMonths(baby.birthdate);
+                ageInMonths = calculateAgeInMonths(baby.birthdate);
             }
 
             const babyGender = baby.gender; // "Boy" or "Girl"
+            logger.info(ageInMonths, `ageInMonths for baby_id ${baby.baby_id}: `);
+            logger.info(babyGender, `babyGender for baby_id ${baby.baby_id}: `);
       
             // Filter CuratedTips based on baby's age and gender
             const tipsResult = await pool.query(
                 `SELECT * FROM CuratedTips
          WHERE $1 BETWEEN min_age AND max_age
-           AND (target_gender = $2 OR target_gender = 'All')
-           AND notification_frequency = $3`,
-                [ageInMonths, babyGender, notificationSettings.notification_frequency]
+           AND (target_gender = $2 OR target_gender = 'All')`,
+                [ageInMonths, babyGender]
             );
 
             // add each tip to the array babiesTips
             const babyTips = tipsResult.rows;
 
             babiesTips = babiesTips.concat(babyTips);
-            logger.info(babyTips, `babyTips for baby_id ${baby.baby_id}`);
+            logger.info(babyTips, `babyTips for baby_id ${baby.baby_id} is ${babyTips.length} tips: `);
         }
 
         logger.info(babiesTips, `babiesTips for user_id ${user_id}: `);
+
+        // IF AFTER FILTER, number of tips is <=2 ==> SHOW ALL TIPS (ignore custom tips)
+        if (babiesTips.length <= 2) {
+            logger.info(`There is ONLY ${babiesTips.length} custom tips. => SHOW ALL TIPS instead.`);
+
+            const allTipsResult = await pool.query(
+                `SELECT * FROM CuratedTips`
+            );
+            babiesTips = allTipsResult.rows;
+            logger.info(babiesTips, `All tips for user_id ${user_id}: `);
+        }
 
         // Step 5: Send the notification settings and related tips
         return res.status(200).json({
