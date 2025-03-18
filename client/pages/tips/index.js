@@ -1,4 +1,6 @@
 // client/pages/[tips]/index.js
+
+// When the user updates Notification settings in the modal, the preference is saved in localStorage (and updated on the backend if logged in)
 import React, { useState, useEffect } from "react";
 import {
   Container,
@@ -78,7 +80,34 @@ const CuratedTipsPage = () => {
 
   const handleSettingsSubmit = (e) => {
     e.preventDefault();
-    //TODO: If logged in, call backend API here to update settings
+    // If logged in, call backend route to update settings
+
+    const token = localStorage.getItem("token");
+
+    if (token) {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/tips/notification`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          notification_frequency: notificationFrequency,
+          opt_in: true,
+        }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          console.log("Updated settings:", data);
+          localStorage.setItem("notificationFrequency", notificationFrequency);
+        })
+        .catch((error) =>
+          console.error("Error updating notification settings:", error),
+        );
+    } else {
+      // If not logged in, save to localStorage
+      localStorage.setItem("notificationFrequency", notificationFrequency);
+    }
 
     setShowSettings(false);
   };
@@ -90,14 +119,13 @@ const CuratedTipsPage = () => {
         <Col>
           <h1 className="mb-4">{t("Curated Tips")}</h1>
         </Col>
-        {/* button for modal Notification Settings */}
+        {/* Button for modal Notification Settings */}
         <Col className="text-end">
           <Button variant="secondary" onClick={handleOpenSettings}>
             {t("Notification Settings")}
           </Button>
         </Col>
       </Row>
-
       {/* Filter Card */}
       <Card className="mb-4">
         <Card.Body>
@@ -116,7 +144,6 @@ const CuratedTipsPage = () => {
                   />
                 </Form.Group>
               </Col>
-
               {/* Gender Select */}
               <Col lg={4} className="mb-1">
                 <Form.Group controlId="genderSelect">
@@ -132,7 +159,6 @@ const CuratedTipsPage = () => {
                   </Form.Control>
                 </Form.Group>
               </Col>
-
               {/* Filter Button */}
               <Col lg={4} className="d-flex align-items-end mt-2">
                 <Button variant="primary" onClick={handleFilter}>
@@ -143,7 +169,6 @@ const CuratedTipsPage = () => {
           </Form>
         </Card.Body>
       </Card>
-
       {/* Accordion to display tips grouped by category */}
       {Object.keys(groupedTips).length === 0 ? (
         <p>{t("No tips available for selected filters.")}</p>
