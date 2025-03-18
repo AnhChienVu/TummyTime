@@ -9,6 +9,8 @@ import {
   Col,
   Card,
   Modal,
+  Toast,
+  ToastContainer,
 } from "react-bootstrap";
 import styles from "./journal.module.css";
 import { useTranslation } from "next-i18next";
@@ -66,6 +68,8 @@ export default function Journal() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTags, setSelectedTags] = useState([]);
   const [filterTags, setFilterTags] = useState([]); // Filter tags for search
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
 
   const {
     isListening,
@@ -223,15 +227,24 @@ export default function Journal() {
         const newEntry = await res.json();
         setEntries([newEntry, ...entries]);
 
-        // Reset both form and state
+        // Reset form and state
         reset();
         setText("");
         setTitleText("");
-        setSelectedTags([]); // Reset tags
+        setSelectedTags([]);
         setFilePreview(null);
+        // Clear the editor content after submission
+        editor?.commands.clearContent();
+
+        // Show success toast
+        setToastMessage(t("Journal entry created successfully"));
+        setShowToast(true);
       }
     } catch (error) {
       console.error("Error submitting journal entry:", error);
+      // Show error toast
+      setToastMessage(t("Error creating journal entry"));
+      setShowToast(true);
     }
   };
 
@@ -623,31 +636,35 @@ export default function Journal() {
                   <EditorContent editor={editor} />
                 </div>
                 {/* Text-to-speech for create mode */}
-                <TextToSpeech text={text} title={titleText} />
               </Col>
             </Row>
             <Row className={styles.postRow}>
-              <Col className="d-flex justify-content-end gap-3">
-                <Button
-                  variant="primary"
-                  type="submit"
-                  className={`${styles.submitButton} btn-sm`}
-                >
-                  {t("Post")}
-                </Button>
-                <button
-                  onClick={(e) => startStopListening(e, "text")}
-                  className={`${styles.microphone} btn-sm`}
-                >
-                  <FontAwesomeIcon
-                    icon={
-                      isListening && selectedInput === "text"
-                        ? faMicrophoneSlash
-                        : faMicrophone
-                    }
-                    size="sm"
-                  />
-                </button>
+              <Col className="d-flex justify-content-between align-items-center gap-2">
+                <div>
+                  <TextToSpeech text={text} title={titleText} />
+                </div>
+                <div className="d-flex gap-2">
+                  <Button
+                    variant="primary"
+                    type="submit"
+                    className={`${styles.submitButton} btn-sm`}
+                  >
+                    {t("Post")}
+                  </Button>
+                  <button
+                    onClick={(e) => startStopListening(e, "text")}
+                    className={`${styles.microphone} btn-sm`}
+                  >
+                    <FontAwesomeIcon
+                      icon={
+                        isListening && selectedInput === "text"
+                          ? faMicrophoneSlash
+                          : faMicrophone
+                      }
+                      size="sm"
+                    />
+                  </button>
+                </div>
               </Col>
             </Row>
           </Form>
@@ -1127,6 +1144,20 @@ export default function Journal() {
         show={showIncompatibleModal}
         onHide={() => setShowIncompatibleModal(false)}
       />
+
+      <ToastContainer position="bottom-end" className="p-3">
+        <Toast
+          show={showToast}
+          onClose={() => setShowToast(false)}
+          delay={3000}
+          autohide
+        >
+          <Toast.Header>
+            <strong className="me-auto">{t("Notification")}</strong>
+          </Toast.Header>
+          <Toast.Body>{toastMessage}</Toast.Body>
+        </Toast>
+      </ToastContainer>
     </>
   );
 }
