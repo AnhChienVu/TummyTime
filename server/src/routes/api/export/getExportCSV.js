@@ -105,7 +105,7 @@ module.exports = async (req, res) => {
     for (let baby of babies) {
       // add [separator] between next baby
       if (csvContent.length > 0) {
-        csvContent += "============================================\n";
+        csvContent += "==========,==============,============,============,====================\n";
       }
 
       // Baby header
@@ -125,7 +125,7 @@ module.exports = async (req, res) => {
           [baby.baby_id, startDate, endDate]
         );
 
-        csvContent += "-------------------------------\n";
+        csvContent += "---------------------------,----------------------\n";
         csvContent += "Growth Records\n";
         csvContent += "Growth ID,Date,Weight,Height,Notes\n";
         if (growthResult.rows.length > 0) {
@@ -145,7 +145,7 @@ module.exports = async (req, res) => {
           [baby.baby_id, startDate, endDate]
         );
 
-        csvContent += "-------------------------------\n";
+        csvContent += "---------------------------,----------------------\n";
         csvContent += "Milestones\n";
         csvContent += "Milestone ID,Date,Title,Details\n";
         if (milestonesResult.rows.length > 0) {
@@ -165,7 +165,7 @@ module.exports = async (req, res) => {
           [baby.baby_id, startDate, endDate]
         );
 
-        csvContent += "-------------------------------\n";
+        csvContent += "---------------------------,----------------------\n";
         csvContent += "Feeding Schedule\n";
         csvContent += "Schedule ID,Date,Time,Meal,Amount,Type,Issues,Notes\n";
         if (feedingResult.rows.length > 0) {
@@ -185,7 +185,7 @@ module.exports = async (req, res) => {
           [baby.baby_id, startDate, endDate]
         );
 
-        csvContent += "-------------------------------\n";
+        csvContent += "---------------------------,----------------------\n";
         csvContent += "Stool Records\n";
         csvContent += "Stool ID,Timestamp,Color,Consistency,Notes\n";
         if (stoolResult.rows.length > 0) {
