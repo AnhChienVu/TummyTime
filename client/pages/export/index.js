@@ -58,7 +58,7 @@ const ExportDataPage = () => {
     setError("");
     if (!validateData()) return;
 
-    // Build query parameters for the backend export call.
+    // Build query parameters for the backend request
     const queryParams = new URLSearchParams({
       startDate: startDate.toISOString().split("T")[0],
       endDate: endDate.toISOString().split("T")[0],
@@ -96,7 +96,7 @@ const ExportDataPage = () => {
       }
       setDownloadFileName(filename);
 
-      // Convert the response to a blob and generate a download URL.
+      // Convert the response to a blob and generate a download URL
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       setDownloadLink(url);

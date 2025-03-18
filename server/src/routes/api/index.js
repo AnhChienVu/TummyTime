@@ -150,6 +150,8 @@ router.post('/voiceCommand', require('./voiceCommand/processVoiceCommand').proce
 
 // ************ /tips routes ************
 router.get('/tips', require('./tips/getAllTips'));
+router.get('/tips/notification', require('./tips/tipsNotification/getCustomTipsAllBabies'));
+router.put('/tips/notification', require('./tips/tipsNotification/putTipsNotificationSettings'));
 
 // ************ Stool routes ************
 router.get('/baby/:babyId/stool', authenticate(), getStoolEntries);
