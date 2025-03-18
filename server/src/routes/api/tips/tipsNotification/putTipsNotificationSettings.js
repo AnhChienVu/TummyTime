@@ -13,102 +13,56 @@ const { getUserId } = require('../../../../utils/userIdHelper');
 // ROUTE: PUT /tips/notification
 module.exports = async (req, res) => {
     try {
-        // Step 1a: Verify the user token and get user_id
+        // Step 1: Verify the user token and get user_id
         const authHeader = req.headers.authorization;
         if (!authHeader) {
             return res
                 .status(401)
                 .json(createErrorResponse(401, "No authorization token provided"));
-        }
+        }   // 401 Unauthorized
 
         const user_id = await getUserId(authHeader);
         if (!user_id) {
             return res.status(401).json(createErrorResponse(401, "Invalid user ID"));
-        }
+        }   // 401 Unauthorized
         logger.debug(user_id, `user_id from token`);
      
-        // Step 1b: Fetch baby profiles for this user
-        const babyProfilesResult = await pool.query(
-            `SELECT b.*
-            FROM baby b
-            JOIN user_baby ub ON b.baby_id = ub.baby_id
-            JOIN users u ON u.user_id = ub.user_id
-            WHERE u.user_id = $1
-            ORDER BY b.baby_id ASC`,
-            [parseInt(user_id, 10)]
-        );  // get all babies for this user
-        const babies = babyProfilesResult.rows;
-        logger.debug(babies, `babies for user_id ${user_id}`);
-
-        if (babies.length === 0) {
+        // Step 2: extract settings from request body 
+        const { notification_frequency, opt_in } = req.body;
+        if (!notification_frequency) {
             return res
-                .status(404)
-                .json(createErrorResponse(404, "No baby profiles found for this user"));
-        }
+                .status(400)
+                .json(createErrorResponse(400, "notification_frequency is required"));
+        }   // 400 Bad Request
+        if (!opt_in) {
+            return res.status(400).json(createErrorResponse(400, "opt_in is required"));
+        }   // 400 Bad Request
+        logger.debug(notification_frequency, `notification_frequency: `);
+        logger.debug(opt_in, `opt_in: `);
 
-        // ----TABLE TipsNotificationSettings----
-        // Step 2: GET saved setting from existing TipsNotificationSettings record
-        let settingsResult = await pool.query(
-            `SELECT * FROM TipsNotificationSettings WHERE user_id = $1`,
-            [user_id]
+        // Step 3: Update the record (or insert if it doesn't exist)
+        const updateResult = await pool.query(
+            `UPDATE TipsNotificationSettings 
+            SET notification_frequency = $1, opt_in = $2, updated_at = CURRENT_TIMESTAMP
+            WHERE user_id = $3
+            RETURNING *`,
+            [notification_frequency, opt_in, user_id]
         );
 
-        let notificationSettings;
-        if (settingsResult.rows.length === 0) {
-            // If no record found, create a new record with default settings: Daily, Opted-in
+        if (updateResult.rows.length === 0) {
+            // if no record found, create a new record with new settings
             const insertResult = await pool.query(
                 `INSERT INTO TipsNotificationSettings (user_id, notification_frequency, opt_in)
-                VALUES ($1, 'Daily', true)
+                VALUES ($1, $2, $3)
                 RETURNING *`,
-                [user_id]
+                [user_id, notification_frequency, opt_in]
             );
-            logger.debug(insertResult.rows[0], `New notification settings created for user_id ${user_id}`);
-
-            notificationSettings = insertResult.rows[0];
-
-        } else {    // If record found, load the settings
-            notificationSettings = settingsResult.rows[0];
+            return res.status(200).json(insertResult.rows[0]);
+        } else {    // if record found, just update
+            return res.status(200).json(updateResult.rows[0]);
         }
-        logger.debug(notificationSettings, `notificationSettings for user_id ${user_id}`);
-
-        // ----TABLE CuratedTips----
-        // Step 3+4: For each baby, calculate age (in months) and filter CuratedTips
-        let babiesTips = [];
-        for (const baby of babies) {
-            if (!baby.birthdate) {
-                let ageInMonths = null;
-            } else {
-                let ageInMonths = calculateAgeInMonths(baby.birthdate);
-            }
-
-            const babyGender = baby.gender; // "Boy" or "Girl"
-      
-            // Filter CuratedTips based on baby's age and gender
-            const tipsResult = await pool.query(
-                `SELECT * FROM CuratedTips
-         WHERE $1 BETWEEN min_age AND max_age
-           AND (target_gender = $2 OR target_gender = 'All')
-           AND notification_frequency = $3`,
-                [ageInMonths, babyGender, notificationSettings.notification_frequency]
-            );
-
-            // add each tip to the array babiesTips
-            const babyTips = tipsResult.rows;
-
-            babiesTips = babiesTips.concat(babyTips);
-            logger.info(babyTips, `babyTips for baby_id ${baby.baby_id}`);
-        }
-
-        logger.info(babiesTips, `babiesTips for user_id ${user_id}: `);
-
-        // Step 5: Send the notification settings and related tips
-        return res.status(200).json({
-            notificationSettings,
-            babiesTips,
-        });
     } catch (err) {
-        logger.error(err, `ERROR in GET /tips/notification, Error fetching related tips: `);
-        return res.status(500).json(createErrorResponse(500, "Internal server error"));
+        logger.error(err, `ERROR in PUT /tips/notification, Error updating TipsNotificationSettings`);
+        return res.status(500).json(createErrorResponse(500, "Server Error"));
     }
 };
-
