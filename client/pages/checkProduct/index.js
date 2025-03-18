@@ -7,9 +7,12 @@ import {
   faCameraSlash,
   faCamera,
 } from "@fortawesome/free-solid-svg-icons";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import SearchByCategoryBox from "@/components/SearchByCategoryBox/SearchByCategoryBox";
 
 function CheckProduct() {
+  const { t } = useTranslation("common");
   const [cameraActive, setCameraActive] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
@@ -90,11 +93,11 @@ function CheckProduct() {
 
   return (
     <div className={styles.container}>
-      <h1>Barcode Scanner</h1>
+      <h1>{t("Barcode Scanner")}</h1>
       <div className={styles.barcodeScanner}>
         <button onClick={toggleCamera} className={styles.cameraToggleButton}>
           <FontAwesomeIcon icon={faCamera} />
-          {cameraActive ? " Turn Off Camera" : " Turn On Camera"}
+          {cameraActive ? t("Turn Off Camera") : t("Turn On Camera")}
         </button>
         {cameraActive && (
           <div className={styles.scannerCamera}>
@@ -112,7 +115,7 @@ function CheckProduct() {
             id="input"
             name="input"
             value={input}
-            placeholder="Enter barcode or product code"
+            placeholder={t("Enter barcode or product code")}
             onChange={handleInputChange}
             className={styles.barcodeInput}
           ></input>
@@ -129,7 +132,7 @@ function CheckProduct() {
 
       <br />
 
-      <h1>Search By Category</h1>
+      <h1>{t("Search By Category")}</h1>
       <SearchByCategoryBox />
 
       {error && (
@@ -140,8 +143,12 @@ function CheckProduct() {
 
       {result && (
         <div>
-          <h4>Search: {result.product}</h4>
-          <h3>Safety Levels: {result.safetyLevel}</h3>
+          <h4>
+            {t("Search")}: {result.product}
+          </h4>
+          <h3>
+            {t("Safety Levels")}: {t(result.safetyLevel)}
+          </h3>
           {result.recalls.map((alert) => (
             <div key={alert.NID} className={styles.alert}>
               <h4>{alert.Title}</h4>
@@ -162,3 +169,10 @@ function CheckProduct() {
 }
 
 export default CheckProduct;
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
+  };
+}

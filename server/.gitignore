@@ -20,3 +20,7 @@ package-lock.json
 
 # Ignore database files
 *.sql
+
+# Ignore other files (system, etc)
+.DS_Store
+__*

@@ -21,6 +21,7 @@ import {
   faMicrophoneSlash,
 } from "@fortawesome/free-solid-svg-icons";
 import IncompatibleBrowserModal from "@/components/IncompatibleBrowserModal";
+import TextToSpeech from "@/components/TextToSpeech/TextToSpeech";
 
 export default function Journal() {
   const { t } = useTranslation("common");
@@ -37,14 +38,15 @@ export default function Journal() {
   const [deleteConfirmed, setDeleteConfirmed] = useState(false);
   const [selectedInput, setSelectedInput] = useState(null);
   const [editSelectedInput, setEditSelectedInput] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const {
     isListening,
     transcript,
     startListening,
     stopListening,
-    showFirefoxModal,
-    setShowFirefoxModal,
+    showIncompatibleModal,
+    setShowIncompatibleModal,
   } = useSpeechToText({
     continuous: true,
     interimResults: true,
@@ -59,15 +61,6 @@ export default function Journal() {
       typeof window !== "undefined" &&
       navigator.userAgent.toLowerCase().indexOf("firefox") > -1;
 
-    // Check for SpeechRecognition support
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    if (!SpeechRecognition && isFirefox) {
-      setShowFirefoxModal(true);
-      return;
-    }
-
     if (isListening) {
       stopVoiceInput();
     } else {
@@ -77,18 +70,22 @@ export default function Journal() {
   };
 
   const stopVoiceInput = () => {
+    // Determine which input field to update
     if (selectedInput === "title") {
       const newTitleValue =
         titleText +
         (transcript.length ? (titleText.length ? " " : "") + transcript : "");
       setTitleText(newTitleValue);
-      // Update react-hook-form. Otherwise, React Hook Form will not detect the change in the input value
       register("title").onChange({ target: { value: newTitleValue } });
+    } else if (selectedInput === "search") {
+      const newSearchValue =
+        searchTerm +
+        (transcript.length ? (searchTerm.length ? " " : "") + transcript : "");
+      setSearchTerm(newSearchValue);
     } else {
       const newTextValue =
         text + (transcript.length ? (text.length ? " " : "") + transcript : "");
       setText(newTextValue);
-      // Update react-hook-form. Otherwise, React Hook Form will not detect the change in the input value
       register("text").onChange({ target: { value: newTextValue } });
     }
     stopListening();
@@ -97,20 +94,6 @@ export default function Journal() {
 
   const startStopListeningEdit = (e, inputType) => {
     e.preventDefault();
-
-    // Check if using Firefox only when button is clicked
-    const isFirefox =
-      typeof window !== "undefined" &&
-      navigator.userAgent.toLowerCase().indexOf("firefox") > -1;
-
-    // Check for SpeechRecognition support
-    const SpeechRecognition =
-      window.SpeechRecognition || window.webkitSpeechRecognition;
-
-    if (!SpeechRecognition && isFirefox) {
-      setShowFirefoxModal(true);
-      return;
-    }
 
     if (isListening) {
       stopVoiceInputEdit();
@@ -360,6 +343,15 @@ export default function Journal() {
   //   }
   // };
 
+  // Filter entries based on search term
+  const filteredEntries = entries.filter((entry) => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      entry.title.toLowerCase().includes(searchLower) ||
+      entry.text.toLowerCase().includes(searchLower)
+    );
+  });
+
   return (
     <>
       <Container className={styles.container} fluid>
@@ -372,7 +364,7 @@ export default function Journal() {
                   type="text"
                   placeholder={t("Title")}
                   required
-                  {...register("title", { value: titleText })} // Add value to register
+                  {...register("title", { value: titleText })}
                   className="form-control"
                   disabled={isListening}
                   value={
@@ -420,6 +412,7 @@ export default function Journal() {
                     register("text").onChange(e);
                   }}
                 />
+                <TextToSpeech text={text} />
               </Col>
             </Row>
             <Row className={styles.postRow}>
@@ -452,133 +445,208 @@ export default function Journal() {
 
           {/* Display saved journal entries */}
           <p className={styles.title}>{t("Journal Entries")}</p>
+          <Form.Group className="mb-3">
+            {/* search bar */}
+            <div className="d-flex">
+              <Form.Control
+                type="text"
+                placeholder={t("Search entries...")}
+                value={
+                  isListening && selectedInput === "search"
+                    ? searchTerm + (transcript || "")
+                    : searchTerm
+                }
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="mb-3"
+                disabled={isListening}
+              />
+              <button
+                onClick={(e) => startStopListening(e, "search")}
+                className={`${styles.microphone} btn-sm ms-2`}
+              >
+                <FontAwesomeIcon
+                  icon={
+                    isListening && selectedInput === "search"
+                      ? faMicrophoneSlash
+                      : faMicrophone
+                  }
+                  size="sm"
+                />
+              </button>
+            </div>
+          </Form.Group>
           <div className={styles.entriesSection}>
-            {entries.length === 0 ? (
+            {filteredEntries.length === 0 ? (
               <p className="text-muted text-center">
-                {t("No journal entries found.")}
+                {searchTerm
+                  ? t("No matching entries found.")
+                  : t("No journal entries found.")}
               </p>
             ) : (
-              entries.map((entry) => (
-                <Card
-                  key={entry.entry_id}
-                  className={`${styles.entryCard} shadow-sm`}
-                  onClick={() => {
-                    setShowModal(true);
-                    fetchEntryDetails(entry.entry_id);
-                  }}
-                  style={{ cursor: "pointer" }}
-                >
-                  <Card.Body>
-                    <Card.Title className={styles.entryCardTitle}>
-                      {entry.title}
-                    </Card.Title>
-                    <Card.Text
-                      className={styles.entryCardText}
-                      style={{
-                        display: "-webkit-box",
-                        WebkitLineClamp: 3,
-                        WebkitBoxOrient: "vertical",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}
-                    >
-                      {entry.text}
-                    </Card.Text>
-                    {entry.image && (
-                      <Image
-                        src={entry.image}
-                        alt="journal entry"
-                        className={styles.tableImg}
-                      />
-                    )}
-                    <Card.Footer className={styles.entryCardFooter}>
-                      <div>
-                        {new Date(entry.date).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })}{" "}
-                        {new Date(entry.date).toLocaleTimeString("en-US", {
-                          hour: "numeric",
-                          minute: "numeric",
-                          hour12: true,
-                        })}
-                        {entry.updated_at &&
-                          (() => {
-                            // Round to seconds for comparison
-                            const updatedTime = Math.floor(
-                              new Date(entry.updated_at).getTime() / 1000,
-                            );
-                            const createdTime = Math.floor(
-                              new Date(entry.date).getTime() / 1000,
-                            );
+              filteredEntries.map((entry, idx) => (
+                <div key={idx} className={styles.entryCardContainer}>
+                  <Card
+                    key={entry.entry_id}
+                    className={`${styles.entryCard} shadow-sm`}
+                    onClick={() => {
+                      setShowModal(true);
+                      fetchEntryDetails(entry.entry_id);
+                    }}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <Card.Body>
+                      <Card.Title className={styles.entryCardTitle}>
+                        {entry.title}
+                      </Card.Title>
+                      <Card.Text
+                        className={styles.entryCardText}
+                        style={{
+                          display: "-webkit-box",
+                          WebkitLineClamp: 3,
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {entry.text}
+                      </Card.Text>
 
-                            return (
-                              updatedTime > createdTime && (
-                                <span className="ms-2">
-                                  <i style={{ color: "#666666" }}>
-                                    &bull; &nbsp;{t("Last edited:")}{" "}
-                                    {new Date(entry.updated_at).toLocaleString(
-                                      "en-US",
-                                      {
+                      {entry.image && (
+                        <Image
+                          src={entry.image}
+                          alt="journal entry"
+                          className={styles.tableImg}
+                        />
+                      )}
+                      <Card.Footer className={styles.entryCardFooter}>
+                        <div>
+                          {new Date(entry.date).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })}{" "}
+                          {new Date(entry.date).toLocaleTimeString("en-US", {
+                            hour: "numeric",
+                            minute: "numeric",
+                            hour12: true,
+                          })}
+                          {entry.updated_at &&
+                            (() => {
+                              // Round to seconds for comparison
+                              const updatedTime = Math.floor(
+                                new Date(entry.updated_at).getTime() / 1000,
+                              );
+                              const createdTime = Math.floor(
+                                new Date(entry.date).getTime() / 1000,
+                              );
+
+                              return (
+                                updatedTime > createdTime && (
+                                  <span className="ms-2">
+                                    <i style={{ color: "#666666" }}>
+                                      &bull; &nbsp;{t("Last edited:")}{" "}
+                                      {new Date(
+                                        entry.updated_at,
+                                      ).toLocaleString("en-US", {
                                         year: "numeric",
                                         month: "short",
                                         day: "numeric",
                                         hour: "numeric",
                                         minute: "numeric",
                                         hour12: true,
-                                      },
-                                    )}
-                                  </i>
-                                </span>
-                              )
-                            );
-                          })()}
-                      </div>
-                    </Card.Footer>
-                  </Card.Body>
-                </Card>
+                                      })}
+                                    </i>
+                                  </span>
+                                )
+                              );
+                            })()}
+                        </div>
+                      </Card.Footer>
+                    </Card.Body>
+                  </Card>
+                  <TextToSpeech text={entry.text} />
+                </div>
               ))
             )}
           </div>
         </div>
+      </Container>
 
-        {/* "Entry details" and "edit entry" modal */}
-        <Modal
-          show={showModal}
-          onHide={() => {
-            setShowModal(false);
-            setIsEditing(false);
-            setEditedEntry(null);
-          }}
-          size="lg"
-        >
-          <Modal.Header closeButton>
-            {isEditing ? (
-              <div className="d-flex w-100 align-items-center">
-                <Form.Control
-                  type="text"
-                  value={
+      {/* "Entry details" and "edit entry" modal */}
+      <Modal
+        show={showModal}
+        onHide={() => {
+          setShowModal(false);
+          setIsEditing(false);
+          setEditedEntry(null);
+        }}
+        size="lg"
+      >
+        <Modal.Header closeButton>
+          {isEditing ? (
+            <div className="d-flex w-100 align-items-center">
+              <Form.Control
+                type="text"
+                value={
+                  isListening && editSelectedInput === "title"
+                    ? editedEntry?.title + (transcript || "")
+                    : editedEntry?.title || ""
+                }
+                required
+                onChange={(e) =>
+                  setEditedEntry({ ...editedEntry, title: e.target.value })
+                }
+                className={`border-0 h4 flex-grow-1 me-2 ${
+                  editedEntry?.title?.trim() === "" ? "is-invalid" : ""
+                }`}
+                disabled={isListening}
+              />
+              <button
+                onClick={(e) => startStopListeningEdit(e, "title")}
+                className={`${styles.microphone} btn-sm`}
+              >
+                <FontAwesomeIcon
+                  icon={
                     isListening && editSelectedInput === "title"
-                      ? editedEntry?.title + (transcript || "")
-                      : editedEntry?.title || ""
+                      ? faMicrophoneSlash
+                      : faMicrophone
                   }
+                  size="sm"
+                />
+              </button>
+            </div>
+          ) : (
+            <Modal.Title>{selectedEntry?.title}</Modal.Title>
+          )}
+        </Modal.Header>
+        <Modal.Body>
+          {isEditing ? (
+            <div>
+              <div className="d-flex">
+                <Form.Control
+                  as="textarea"
+                  rows={5}
                   required
-                  onChange={(e) =>
-                    setEditedEntry({ ...editedEntry, title: e.target.value })
+                  value={
+                    isListening && editSelectedInput === "text"
+                      ? editedEntry?.text + (transcript || "")
+                      : editedEntry?.text || ""
                   }
-                  className={`border-0 h4 flex-grow-1 me-2 ${
-                    editedEntry?.title?.trim() === "" ? "is-invalid" : ""
+                  onChange={(e) =>
+                    setEditedEntry({ ...editedEntry, text: e.target.value })
+                  }
+                  className={`border-0 ${
+                    editedEntry?.text?.trim() === "" ? "is-invalid" : ""
                   }`}
                   disabled={isListening}
                 />
                 <button
-                  onClick={(e) => startStopListeningEdit(e, "title")}
-                  className={`${styles.microphone} btn-sm`}
+                  onClick={(e) => startStopListeningEdit(e, "text")}
+                  className={`${styles.microphone} btn-sm ms-2`}
                 >
                   <FontAwesomeIcon
                     icon={
-                      isListening && editSelectedInput === "title"
+                      isListening && editSelectedInput === "text"
                         ? faMicrophoneSlash
                         : faMicrophone
                     }
@@ -586,200 +654,156 @@ export default function Journal() {
                   />
                 </button>
               </div>
-            ) : (
-              <Modal.Title>{selectedEntry?.title}</Modal.Title>
-            )}
-          </Modal.Header>
-          <Modal.Body>
-            {isEditing ? (
-              <div>
-                <div className="d-flex">
-                  <Form.Control
-                    as="textarea"
-                    rows={5}
-                    required
-                    value={
-                      isListening && editSelectedInput === "text"
-                        ? editedEntry?.text + (transcript || "")
-                        : editedEntry?.text || ""
-                    }
-                    onChange={(e) =>
-                      setEditedEntry({ ...editedEntry, text: e.target.value })
-                    }
-                    className={`border-0 ${
-                      editedEntry?.text?.trim() === "" ? "is-invalid" : ""
-                    }`}
-                    disabled={isListening}
-                  />
-                  <button
-                    onClick={(e) => startStopListeningEdit(e, "text")}
-                    className={`${styles.microphone} btn-sm ms-2`}
-                  >
-                    <FontAwesomeIcon
-                      icon={
-                        isListening && editSelectedInput === "text"
-                          ? faMicrophoneSlash
-                          : faMicrophone
-                      }
-                      size="sm"
-                    />
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <p className={styles.modalText}>{selectedEntry?.text}</p>
-            )}
-            {/* {selectedEntry?.image && (
-              <Image
-                src={selectedEntry.image}
-                alt="journal entry"
-                className={styles.modalImage}
-                fluid
-              />
-            )} */}
-            <div className={styles.modalFooter}>
-              {selectedEntry && (
-                <small className="text-muted">
-                  {new Date(selectedEntry.date).toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "short",
-                    day: "numeric",
-                  })}{" "}
-                  {new Date(selectedEntry.date).toLocaleTimeString("en-US", {
-                    hour: "numeric",
-                    minute: "numeric",
-                    hour12: true,
-                  })}
-                  {selectedEntry.last_edited &&
-                    selectedEntry.last_edited !== selectedEntry.date && (
-                      <span className="ms-2">
-                        <i style={{ color: "#666666" }}>
-                          &bull; &nbsp;{t("Last edited:")}{" "}
-                          {new Date(selectedEntry.last_edited).toLocaleString(
-                            "en-US",
-                            {
-                              year: "numeric",
-                              month: "short",
-                              day: "numeric",
-                              hour: "numeric",
-                              minute: "numeric",
-                              hour12: true,
-                            },
-                          )}
-                        </i>
-                      </span>
-                    )}
-                </small>
-              )}
             </div>
-          </Modal.Body>
-          <Modal.Footer className="d-flex justify-content-between">
-            {isEditing ? (
-              <div className="w-100 d-flex justify-content-end">
+          ) : (
+            <p className={styles.modalText}>{selectedEntry?.text}</p>
+          )}
+          {/* {selectedEntry?.image && (
+            <Image
+              src={selectedEntry.image}
+              alt="journal entry"
+              className={styles.modalImage}
+              fluid
+            />
+          )} */}
+          <div className={styles.modalFooter}>
+            {selectedEntry && (
+              <small className="text-muted">
+                {new Date(selectedEntry.date).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "short",
+                  day: "numeric",
+                })}{" "}
+                {new Date(selectedEntry.date).toLocaleTimeString("en-US", {
+                  hour: "numeric",
+                  minute: "numeric",
+                  hour12: true,
+                })}
+                {selectedEntry.last_edited &&
+                  selectedEntry.last_edited !== selectedEntry.date && (
+                    <span className="ms-2">
+                      <i style={{ color: "#666666" }}>
+                        &bull; &nbsp;{t("Last edited:")}{" "}
+                        {new Date(selectedEntry.last_edited).toLocaleString(
+                          "en-US",
+                          {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                            hour: "numeric",
+                            minute: "numeric",
+                            hour12: true,
+                          },
+                        )}
+                      </i>
+                    </span>
+                  )}
+              </small>
+            )}
+          </div>
+        </Modal.Body>
+        <Modal.Footer className="d-flex justify-content-between">
+          {isEditing ? (
+            <div className="w-100 d-flex justify-content-end">
+              <Button
+                variant="light"
+                onClick={() => {
+                  setIsEditing(false);
+                  setEditedEntry(null);
+                }}
+                className="border border-secondary"
+              >
+                {t("Cancel")}
+              </Button>
+              &nbsp;
+              <Button variant="primary" onClick={handleUpdate} className="me-2">
+                {t("Save Changes")}
+              </Button>
+            </div>
+          ) : (
+            <>
+              <div>
+                <Button
+                  variant="danger"
+                  onClick={() => {
+                    setShowDeleteModal(true);
+                    setDeleteConfirmed(false);
+                  }}
+                >
+                  {t("Delete")}
+                </Button>
+              </div>
+              <div>
                 <Button
                   variant="light"
-                  onClick={() => {
-                    setIsEditing(false);
-                    setEditedEntry(null);
-                  }}
+                  onClick={() => setShowModal(false)}
                   className="border border-secondary"
                 >
-                  {t("Cancel")}
+                  {t("Close")}
                 </Button>
                 &nbsp;
                 <Button
                   variant="primary"
-                  onClick={handleUpdate}
+                  onClick={() => {
+                    setEditedEntry({ ...selectedEntry });
+                    setIsEditing(true);
+                  }}
                   className="me-2"
                 >
-                  {t("Save Changes")}
+                  {t("Edit Entry")}
                 </Button>
               </div>
-            ) : (
-              <>
-                <div>
-                  <Button
-                    variant="danger"
-                    onClick={() => {
-                      setShowDeleteModal(true);
-                      setDeleteConfirmed(false);
-                    }}
-                  >
-                    {t("Delete")}
-                  </Button>
-                </div>
-                <div>
-                  <Button
-                    variant="light"
-                    onClick={() => setShowModal(false)}
-                    className="border border-secondary"
-                  >
-                    {t("Close")}
-                  </Button>
-                  &nbsp;
-                  <Button
-                    variant="primary"
-                    onClick={() => {
-                      setEditedEntry({ ...selectedEntry });
-                      setIsEditing(true);
-                    }}
-                    className="me-2"
-                  >
-                    {t("Edit Entry")}
-                  </Button>
-                </div>
-              </>
-            )}
-          </Modal.Footer>
-        </Modal>
+            </>
+          )}
+        </Modal.Footer>
+      </Modal>
 
-        {/* "Confirm delete" modal */}
-        <Modal
-          show={showDeleteModal}
-          onHide={() => {
-            setShowDeleteModal(false);
-            setDeleteConfirmed(false); // Reset checkbox when modal is closed
-          }}
-          centered
-        >
-          <Modal.Header closeButton>
-            <Modal.Title>{t("Confirm Delete")}</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <p>{t("Are you sure you want to delete this journal entry?")}</p>
-            <Form.Check
-              type="checkbox"
-              id="delete-confirm-checkbox"
-              label={t("I understand that this action cannot be undone")}
-              checked={deleteConfirmed}
-              onChange={(e) => setDeleteConfirmed(e.target.checked)}
-              className="mt-3"
-            />
-          </Modal.Body>
-          <Modal.Footer>
-            <Button
-              variant="secondary"
-              onClick={() => {
-                setShowDeleteModal(false);
-                setDeleteConfirmed(false);
-              }}
-            >
-              {t("Cancel")}
-            </Button>
-            <Button
-              variant="danger"
-              onClick={handleDelete}
-              disabled={!deleteConfirmed}
-            >
-              {t("Delete")}
-            </Button>
-          </Modal.Footer>
-        </Modal>
-      </Container>
+      {/* "Confirm delete" modal */}
+      <Modal
+        show={showDeleteModal}
+        onHide={() => {
+          setShowDeleteModal(false);
+          setDeleteConfirmed(false); // Reset checkbox when modal is closed
+        }}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>{t("Confirm Delete")}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>{t("Are you sure you want to delete this journal entry?")}</p>
+          <Form.Check
+            type="checkbox"
+            id="delete-confirm-checkbox"
+            label={t("I understand that this action cannot be undone")}
+            checked={deleteConfirmed}
+            onChange={(e) => setDeleteConfirmed(e.target.checked)}
+            className="mt-3"
+          />
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setShowDeleteModal(false);
+              setDeleteConfirmed(false);
+            }}
+          >
+            {t("Cancel")}
+          </Button>
+          <Button
+            variant="danger"
+            onClick={handleDelete}
+            disabled={!deleteConfirmed}
+          >
+            {t("Delete")}
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
       <IncompatibleBrowserModal
-        show={showFirefoxModal}
-        onHide={() => setShowFirefoxModal(false)}
+        show={showIncompatibleModal}
+        onHide={() => setShowIncompatibleModal(false)}
       />
     </>
   );

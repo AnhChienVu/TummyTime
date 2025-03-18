@@ -1,20 +1,20 @@
 import React, { useState } from "react";
 import styles from "./SearchByCategoryBox.module.css";
+import { useTranslation } from "next-i18next";
 
 function SearchByCategoryBox() {
+  const { t } = useTranslation("common");
   const [category, setCategory] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [results, setResults] = useState([]);
 
-  const baseUrl = "https://globalrecalls.oecd.org/ws/search.xqy";
-
   const contructQuery = (category, searchTerm) => {
     const categoryCodes = {
       clothing: "67000000",
-      food: "86000000",
-      toys: "49000000",
-      electronics: "54000000",
-      furniture: "71000000",
+      food: "50000000",
+      toys: "86000000",
+      electronics: "78000000",
+      furniture: "75000000",
       personalCare: "53000000",
     };
     const gpcCode = categoryCodes[category];
@@ -35,11 +35,6 @@ function SearchByCategoryBox() {
     const apiUrl = `https://globalrecalls.oecd.org/ws/search.xqy?end=20&lang=en&order=desc&q=${query}&sort=date&start=0&uiLang=en`;
 
     try {
-      // const apiUrl = `https://globalrecalls.oecd.org/ws/search.xqy?q=(${category}:${encodeURIComponent(
-      //   searchTerm,
-      // )})`;
-      // const apiUrl = `${baseUrl}?end=20&lang=en&order=desc&q=(gs1-gpc-segment:${gpcCode})&sort=date&start=0&uiLang=en`;
-
       const response = await fetch(apiUrl);
       const data = await response.json();
       setResults(data.results || []);
@@ -56,23 +51,23 @@ function SearchByCategoryBox() {
           value={category}
           onChange={(e) => setCategory(e.target.value)}
         >
-          <option value="all">All Categories</option>
-          <option value="food">Food</option>
-          <option value="toys">Toys</option>
-          <option value="clothing">Clothing</option>
-          <option value="electronics">Electronics</option>
-          <option value="furniture">Furniture</option>
-          <option value="personalCare">PersonalCare</option>
+          <option value="all">{t("All Categories")}</option>
+          <option value="food">{t("Food")}</option>
+          <option value="toys">{t("Toys")}</option>
+          <option value="clothing">{t("Clothing")}</option>
+          <option value="electronics">{t("Electronics")}</option>
+          <option value="furniture">{t("Furniture")}</option>
+          <option value="personalCare">{t("Personal Care")}</option>
         </select>
         <input
           type="text"
           id={styles.searchInput}
-          placeholder="Enter your search term..."
+          placeholder={t("Enter your search term...")}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
         <button id={styles.searchButton} onClick={handleSearch}>
-          Search
+          {t("Search")}
         </button>
       </div>
 
@@ -81,17 +76,17 @@ function SearchByCategoryBox() {
           results.map((item, index) => (
             <div className={styles.resultItem} key={index}>
               <p>
-                <strong>Product&apos;s name:</strong> {item["product.name"]}
+                <strong>{t("Product's name")}:</strong> {item["product.name"]}
               </p>
               <p>
                 <a href={item.extUrl} className={styles.itemLink}>
-                  External website
+                  {t("External website")}
                 </a>
               </p>
             </div>
           ))
         ) : (
-          <p>No results found</p>
+          <p>{t("No results found")}</p>
         )}
       </div>
     </div>
