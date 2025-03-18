@@ -3,6 +3,11 @@ import { useTranslation } from "next-i18next";
 import { useReminders } from "../../context/ReminderContext";
 import styles from "../../pages/baby/[id]/reminders/reminders.module.css";
 import { constructTimeString } from "../../utils/reminderUtil";
+import { useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faMicrophone, faMicrophoneSlash } from "@fortawesome/free-solid-svg-icons";
+import useSpeechToText from "@/hooks/useSpeechToText";
+import IncompatibleBrowserModal from "@/components/IncompatibleBrowserModal";
 
 const AddReminderModal = () => {
   const { t } = useTranslation("common");
@@ -22,8 +27,54 @@ const AddReminderModal = () => {
     reminderIn,
     setReminderIn,
     handleAddReminder,
-    showTitleRequired
+    showTitleRequired,
+    showToast
   } = useReminders();
+
+  // Speech to text related states and hooks
+  const [currentInputField, setCurrentInputField] = useState(null);
+  const {
+    isListening,
+    transcript,
+    startListening,
+    stopListening,
+    resetTranscript,
+    showIncompatibleModal,
+    setShowIncompatibleModal,
+    browserSupportsSpeechRecognition
+  } = useSpeechToText({
+    continuous: true,
+    interimResults: true,
+    lang: "en-US",
+  });
+
+  // Handle voice input for different fields
+  const handleVoiceInput = (fieldName) => {
+    // Only show modal if browser doesn't support speech recognition
+    if (!browserSupportsSpeechRecognition) {
+      setShowIncompatibleModal(true);
+      return;
+    }
+
+    if (!isListening) {
+      setCurrentInputField(fieldName);
+      resetTranscript();
+      startListening();
+    } else {
+      stopVoiceInput();
+    }
+  };
+
+  const stopVoiceInput = () => {
+    // Add transcript content to the appropriate field
+    if (currentInputField === "title") {
+      setTitle(title + (transcript.length ? (title.length ? " " : "") + transcript : ""));
+    } else if (currentInputField === "note") {
+      setNote(note + (transcript.length ? (note.length ? " " : "") + transcript : ""));
+    }
+    stopListening();
+    setCurrentInputField(null);
+  };
 
   const onSubmit = async () => {
     if (!title.trim()) {
@@ -64,142 +115,175 @@ const AddReminderModal = () => {
   };
 
   return (
-    <Modal show={showAddModal} onHide={handleCloseAddModal} centered>
-      <Modal.Header closeButton>
-        <Modal.Title>{t("Add a reminder")}</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <Form>
-          <Form.Group className="mb-3">
-            <Form.Label>{t("Title")}</Form.Label>
-            <Form.Control
-              type="text"
-              placeholder={t("Title")}
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Label>{t("Date")}</Form.Label>
-            <Form.Control
-              type="date"
-              value={reminderDate}
-              onChange={(e) => setReminderDate(e.target.value)}
-            />
-          </Form.Group>
-
-          <Form.Group className="mb-3">
-            <Form.Label>{t("Time")}</Form.Label>
-            <div className={styles.timeRow}>
-              <div className={styles.timeSegment}>
-                <input
-                  type="number"
-                  className={styles.timeBox}
-                  value={time.hours}
-                  onChange={(e) =>
-                    setTime({ ...time, hours: e.target.value })
-                  }
-                  min="1"
-                  max="12"
+    <>
+      <Modal show={showAddModal} onHide={handleCloseAddModal} centered className={showIncompatibleModal ? styles.modalBlur : ""}>
+        <Modal.Header closeButton>
+          <Modal.Title>{t("Add a reminder")}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>{t("Title")}</Form.Label>
+              <div className="d-flex align-items-center">
+                <Form.Control
+                  type="text"
+                  placeholder={t("Title")}
+                  value={isListening && currentInputField === "title" ? title + " " + transcript : title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  disabled={isListening && currentInputField === "title"}
                 />
-                <span className={styles.colon}>:</span>
-                <input
-                  type="number"
-                  className={styles.timeBox}
-                  value={time.minutes}
-                  onChange={(e) => {
-                    const newMinutes = e.target.value || "00";
-                    setTime({
-                      ...time,
-                      minutes: newMinutes.padStart(2, "0"),
-                    });
-                  }}
-                  min="0"
-                  max="59"
+                <Button
+                  variant="link"
+                  className="ms-2 p-0"
+                  onClick={() => handleVoiceInput("title")}
+                >
+                  <FontAwesomeIcon
+                    icon={isListening && currentInputField === "title" ? faMicrophoneSlash : faMicrophone}
+                    className={isListening && currentInputField === "title" ? "text-danger" : "text-primary"}
+                  />
+                </Button>
+              </div>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>{t("Date")}</Form.Label>
+              <Form.Control
+                type="date"
+                value={reminderDate}
+                onChange={(e) => setReminderDate(e.target.value)}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>{t("Time")}</Form.Label>
+              <div className={styles.timeRow}>
+                <div className={styles.timeSegment}>
+                  <input
+                    type="number"
+                    className={styles.timeBox}
+                    value={time.hours}
+                    onChange={(e) =>
+                      setTime({ ...time, hours: e.target.value })
+                    }
+                    min="1"
+                    max="12"
+                  />
+                  <span className={styles.colon}>:</span>
+                  <input
+                    type="number"
+                    className={styles.timeBox}
+                    value={time.minutes}
+                    onChange={(e) => {
+                      const newMinutes = e.target.value || "00";
+                      setTime({
+                        ...time,
+                        minutes: newMinutes.padStart(2, "0"),
+                      });
+                    }}
+                    min="0"
+                    max="59"
+                  />
+                </div>
+                <div className={styles.amPmSegment}>
+                  <button
+                    type="button"
+                    className={
+                      time.period === "AM"
+                        ? styles.amPmBtnActive
+                        : styles.amPmBtn
+                    }
+                    onClick={() => setTime({ ...time, period: "AM" })}
+                  >
+                    AM
+                  </button>
+                  <button
+                    type="button"
+                    className={
+                      time.period === "PM"
+                        ? styles.amPmBtnActive
+                        : styles.amPmBtn
+                    }
+                    onClick={() => setTime({ ...time, period: "PM" })}
+                  >
+                    PM
+                  </button>
+                </div>
+              </div>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>{t("Note")}</Form.Label>
+              <div className="d-flex align-items-start">
+                <Form.Control
+                  as="textarea"
+                  rows={3}
+                  placeholder={t("Leave a note")}
+                  value={isListening && currentInputField === "note" ? note + " " + transcript : note}
+                  onChange={(e) => setNote(e.target.value)}
+                  disabled={isListening && currentInputField === "note"}
                 />
-              </div>
-              <div className={styles.amPmSegment}>
-                <button
-                  type="button"
-                  className={
-                    time.period === "AM"
-                      ? styles.amPmBtnActive
-                      : styles.amPmBtn
-                  }
-                  onClick={() => setTime({ ...time, period: "AM" })}
+                <Button
+                  variant="link"
+                  className="ms-2 p-0"
+                  onClick={() => handleVoiceInput("note")}
                 >
-                  AM
-                </button>
-                <button
-                  type="button"
-                  className={
-                    time.period === "PM"
-                      ? styles.amPmBtnActive
-                      : styles.amPmBtn
-                  }
-                  onClick={() => setTime({ ...time, period: "PM" })}
-                >
-                  PM
-                </button>
+                  <FontAwesomeIcon
+                    icon={isListening && currentInputField === "note" ? faMicrophoneSlash : faMicrophone}
+                    className={isListening && currentInputField === "note" ? "text-danger" : "text-primary"}
+                  />
+                </Button>
               </div>
+            </Form.Group>
+
+            <div className={styles.reminderRow}>
+              <Form.Check
+                type="switch"
+                id="next-reminder-switch"
+                label={t("Next reminder")}
+                checked={nextReminderEnabled}
+                onChange={() => setNextReminderEnabled(!nextReminderEnabled)}
+              />
+              {nextReminderEnabled && (
+                <div className="mt-2">
+                  <p className={styles.reminderInfo}>{t("Remind me in")}</p>
+                  <Form.Select
+                    value={reminderIn}
+                    onChange={(e) => setReminderIn(e.target.value)}
+                    style={{ width: "120px" }}
+                  >
+                    <option value="1 hr">1 hr</option>
+                    <option value="1.5 hrs">1.5 hrs</option>
+                    <option value="2 hrs">2 hrs</option>
+                    <option value="3 hrs">3 hrs</option>
+                    <option value="4 hrs">4 hrs</option>
+                  </Form.Select>
+                </div>
+              )}
             </div>
-          </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="light"
+            className={styles.btnCancel}
+            onClick={handleCloseAddModal}
+          >
+            {t("Cancel")}
+          </Button>
+          <Button
+            className={title.trim() ? styles.btnSave : styles.btnDisabled}
+            onClick={title.trim() ? onSubmit : showTitleRequired}
+          >
+            {t("Add")}
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
-          <Form.Group className="mb-3">
-            <Form.Label>{t("Note")}</Form.Label>
-            <Form.Control
-              as="textarea"
-              rows={3}
-              placeholder={t("Leave a note")}
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-            />
-          </Form.Group>
-
-          <div className={styles.reminderRow}>
-            <Form.Check
-              type="switch"
-              id="next-reminder-switch"
-              label={t("Next reminder")}
-              checked={nextReminderEnabled}
-              onChange={() => setNextReminderEnabled(!nextReminderEnabled)}
-            />
-            {nextReminderEnabled && (
-              <div className="mt-2">
-                <p className={styles.reminderInfo}>{t("Remind me in")}</p>
-                <Form.Select
-                  value={reminderIn}
-                  onChange={(e) => setReminderIn(e.target.value)}
-                  style={{ width: "120px" }}
-                >
-                  <option value="1 hr">1 hr</option>
-                  <option value="1.5 hrs">1.5 hrs</option>
-                  <option value="2 hrs">2 hrs</option>
-                  <option value="3 hrs">3 hrs</option>
-                  <option value="4 hrs">4 hrs</option>
-                </Form.Select>
-              </div>
-            )}
-          </div>
-        </Form>
-      </Modal.Body>
-      <Modal.Footer>
-        <Button
-          variant="light"
-          className={styles.btnCancel}
-          onClick={handleCloseAddModal}
-        >
-          {t("Cancel")}
-        </Button>
-        <Button
-          className={title.trim() ? styles.btnSave : styles.btnDisabled}
-          onClick={title.trim() ? onSubmit : showTitleRequired}
-        >
-          {t("Add")}
-        </Button>
-      </Modal.Footer>
-    </Modal>
+      <IncompatibleBrowserModal
+        show={showIncompatibleModal}
+        onHide={() => setShowIncompatibleModal(false)}
+      />
+    </>
   );
 };
 
