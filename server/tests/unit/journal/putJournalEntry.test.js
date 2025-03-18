@@ -168,7 +168,7 @@ describe('PUT /v1/journal/:id', () => {
     mockReq.body = {
       title: 'Test Title',
       text: 'Test Content',
-      tags: JSON.stringify(Array(11).fill('tag')), // 11 tags exceeds maximum of 10
+      tags: Array(11).fill('tag'), // 11 tags exceeds maximum of 10
     };
 
     await putJournalEntry(mockReq, mockRes);
@@ -185,7 +185,7 @@ describe('PUT /v1/journal/:id', () => {
     mockReq.body = {
       title: 'Test Title',
       text: 'Test Content',
-      tags: JSON.stringify(['normal', 'a'.repeat(31)]), // Tag exceeds 30 characters
+      tags: ['normal', 'a'.repeat(31)], // Tag exceeds 30 characters
     };
 
     await putJournalEntry(mockReq, mockRes);
@@ -213,7 +213,7 @@ describe('PUT /v1/journal/:id', () => {
     mockReq.body = {
       title: 'test2',
       text: 'hello4',
-      tags: JSON.stringify(['tag1', 'tag2']),
+      tags: ['tag1', 'tag2'],
     };
 
     pool.query.mockResolvedValueOnce({ rows: [{ user_id: 1 }] }).mockResolvedValueOnce({
