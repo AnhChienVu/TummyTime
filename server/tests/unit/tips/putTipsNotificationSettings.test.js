@@ -1,77 +1,85 @@
-// tests/unit/[tips]/getAllTips.test.js
-// Tests the GET /tips route
+// tests/unit/[tips]/putTipsNotificationSettings.test.js
+// Tests the PUT /tips/notification route
 
 const request = require('supertest');
 const express = require('express');
 const pool = require('../../../database/db');
 const { createSuccessResponse, createErrorResponse } = require('../../../src/utils/response');
 
+const putTipsNotificationSettings = require('../../../src/routes/api/tips/tipsNotification/putTipsNotificationSettings');
+const { getUserId } = require('../../../src/utils/userIdHelper');
+
 // app properly handles the route
 const app = express();
 app.use(express.json());
-const getAllTips = require('../../../src/routes/api/tips/getAllTips');
-app.get('/v1/tips', getAllTips); // GET /tips
+app.put('/v1/tips/notification', putTipsNotificationSettings);
 
-// mock the database and response functions
+// mock the functions
 jest.mock('../../../database/db');
 jest.mock('../../../src/utils/response');
+jest.mock('../../../src/utils/userIdHelper');
 
-// Test GET /tips
-describe('GET /tips', () => {
+// Test PUT /tips/notification
+describe('PUT /tips/notification', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  test('should return 200 and an array of curated tips if multiple exist', async () => {
-    const mockTips = [
-      {
-        tip_id: 1,
-        category: 'SLEEP',
-        target_gender: 'All',
-        min_age: 0,
-        max_age: 3,
-        tip_text: 'Establish a consistent sleep routine even in the early weeks.',
-        notification_frequency: 'Weekly',
-        created_at: '2025-02-16T00:00:00Z',
-      },
-    ];
-
-    pool.query.mockResolvedValueOnce({ rows: mockTips });
-
-    // Fix: Mock `createSuccessResponse` to match actual implementation
-    createSuccessResponse.mockReturnValue({ status: 'ok', data: mockTips });
-
-    const res = await request(app).get('/v1/tips');
-
+  test('should return 200 when updating notification settings', async () => {
+    getUserId.mockResolvedValue('123');
+    pool.query.mockResolvedValueOnce({ rows: [{ user_id: '123', notification_frequency: 'Daily', opt_in: true }] });
+    
+    const res = await request(app)
+        .put('/v1/tips/notification')
+        .set('Authorization', 'Bearer mocktoken')
+        .send({ notification_frequency: 'Daily', opt_in: true });
+    
     expect(res.status).toBe(200);
-    expect(pool.query).toHaveBeenCalledWith('SELECT * FROM CuratedTips');
+    expect(res.body).toHaveProperty('user_id', '123');
+});
 
-    // Fix: Expect correct response format
-    expect(res.body).toEqual({
-      status: 'ok',
-      data: mockTips,
-    });
-  });
+test('should return 401 if no authorization token is provided', async () => {
+    const res = await request(app)
+        .put('/v1/tips/notification')
+        .send({ notification_frequency: 'Daily', opt_in: true });
+    
+    expect(res.status).toBe(401);
+    expect(res.body).toEqual("");
+});
 
-  test('should return 404 if no curated tips are found', async () => {
-    pool.query.mockResolvedValueOnce({ rows: [] });
-    createErrorResponse.mockReturnValue({ error: 'Not found curated tips' });
+test('should return 400 if notification_frequency is missing', async () => {
+    getUserId.mockResolvedValue('123');
+    
+    const res = await request(app)
+        .put('/v1/tips/notification')
+        .set('Authorization', 'Bearer mocktoken')
+        .send({ opt_in: true });
+    
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual("");
+});
 
-    const res = await request(app).get('/v1/tips');
+test('should return 400 if opt_in is missing', async () => {
+    getUserId.mockResolvedValue('123');
+    
+    const res = await request(app)
+        .put('/v1/tips/notification')
+        .set('Authorization', 'Bearer mocktoken')
+        .send({ notification_frequency: 'Daily' });
+    
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual("");
+});
 
-    expect(res.status).toBe(404);
-    expect(createErrorResponse).toHaveBeenCalledWith(404, 'Not found curated tips');
-    expect(res.body).toEqual({ error: 'Not found curated tips' });
-  });
-
-  test('should return 500 if there is a database error', async () => {
-    pool.query.mockRejectedValueOnce(new Error('Database error'));
-    createErrorResponse.mockReturnValue({ error: 'Internal server error' });
-
-    const res = await request(app).get('/v1/tips');
-
+test('should return 500 on server error', async () => {
+    getUserId.mockRejectedValue(new Error('Database error'));
+    
+    const res = await request(app)
+        .put('/v1/tips/notification')
+        .set('Authorization', 'Bearer mocktoken')
+        .send({ notification_frequency: 'Daily', opt_in: true });
+    
     expect(res.status).toBe(500);
-    expect(createErrorResponse).toHaveBeenCalledWith(500, 'Internal server error');
-    expect(res.body).toEqual({ error: 'Internal server error' });
-  });
+    expect(res.body).toEqual("");
+});
 });
