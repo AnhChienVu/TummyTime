@@ -1,5 +1,6 @@
 // server/src/routes/api/tips/[tipsNotification]/getCustomTipsAllBabies.js
 // Route for GET /tips/notification  -Get tips related to babies
+// need tables: TipsNotificationSettings, CuratedTips, Baby, UserBaby, Users
 
 // GET TIPS NOTIFICATION SETTINGS + CUSTOM TIPS FOR RELATED BABIES
 // 1- GET USER_ID, AND BABY_PROFILES OF THAT USER
@@ -87,7 +88,7 @@ module.exports = async (req, res) => {
         logger.debug(notificationSettings, `notificationSettings for user_id ${user_id}`);
 
         // ----TABLE CuratedTips----
-        // Step 3 & 4: For each baby, calculate age (in months) and filter CuratedTips
+        // Step 3: For each baby, calculate age (in months) and filter CuratedTips
         let babiesTips = [];
         for (const baby of babies) {
             if (!baby.birthdate) {
@@ -109,13 +110,12 @@ module.exports = async (req, res) => {
 
             // add each tip to the array babiesTips
             const babyTips = tipsResult.rows;
-            // add only the tips to the array babiesTips
+
             babiesTips = babiesTips.concat(babyTips);
-            
             logger.info(babyTips, `babyTips for baby_id ${baby.baby_id}`);
         }
 
-        logger.info(babiesTips, `All related tips for user_id ${user_id}'s babies}`);
+        logger.info(babiesTips, `babiesTips for user_id ${user_id}: `);
 
         // Step 5: Send the notification settings and related tips
         return res.status(200).json({
@@ -123,8 +123,8 @@ module.exports = async (req, res) => {
             babiesTips,
         });
     } catch (err) {
-        console.error(err);
-        return res.status(500).json(createErrorResponse(500, "Server Error"));
+        logger.error(err, `ERROR in GET /tips/notification, Error fetching related tips: `);
+        return res.status(500).json(createErrorResponse(500, "Internal server error"));
     }
 };
 
