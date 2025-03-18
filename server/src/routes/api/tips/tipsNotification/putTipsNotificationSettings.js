@@ -1,32 +1,16 @@
-// server/src/routes/api/tips/[tipsNotification]/getCustomTipsAllBabies.js
-// Route for GET /tips/notification  -Get tips related to babies
-// need tables: TipsNotificationSettings, CuratedTips, Baby, UserBaby, Users
-
-// GET TIPS NOTIFICATION SETTINGS + CUSTOM TIPS FOR RELATED BABIES
-// 1- GET USER_ID, AND BABY_PROFILES OF THAT USER
-// 2- CHECK NOTIFICATION SETTINGS SAVED IN TipsNotificationSettings TABLE
-// 	+ IF there is NO tipsnotificationsettings RECORD, CREATE A NEW RECORD FOR tipsnotificationsettings with dedault settings of DAILY + OPTED-IN
-// 	+ If there is already  tipsnotificationsettings RECORD, get and load
-
-// 3- for each baby, SAVE THE GENDER AND calculate "Baby Age (in months)" based on birthdate to today
-// 4- FILTER THE CuratedTips TABLE TO GET THE RELATED TIPS
-
-// 5- SEND: TIPS NOTIFICATION SETTINGS + CUSTOM TIPS FOR RELATED BABIES
+// src/routes/api/tips/tipsNotification/[putTipsNotificationSettings].js
+// route PUT /tips/notification
+// This updates the tips notification settings (in /tips page) for a user
 
 const logger = require('../../../../utils/logger');
-const { createSuccessResponse, createErrorResponse } = require('../../../../utils/response');
+const {
+  createSuccessResponse,
+  createErrorResponse,
+} = require('../../../../utils/response');
 const pool = require('../../../../../database/db');
 const { getUserId } = require('../../../../utils/userIdHelper');
 
-// Helper to calculate age in months from a birthdate to today
-function calculateAgeInMonths(birthdate) {
-  const birth = new Date(birthdate);
-  const now = new Date();
-  let months = (now.getFullYear() - birth.getFullYear()) * 12 + (now.getMonth() - birth.getMonth());
-  if (now.getDate() < birth.getDate()) months--;
-  return months;
-}
-
+// ROUTE: PUT /tips/notification
 module.exports = async (req, res) => {
     try {
         // Step 1a: Verify the user token and get user_id
@@ -127,3 +111,4 @@ module.exports = async (req, res) => {
         return res.status(500).json(createErrorResponse(500, "Internal server error"));
     }
 };
+
