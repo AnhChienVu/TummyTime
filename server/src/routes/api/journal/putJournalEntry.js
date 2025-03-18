@@ -30,27 +30,24 @@ module.exports = async (req, res) => {
     }
 
     // Add tags validation before the database query
-    let parsedTags = [];
-    if (req.body.tags) {
+    if (tags) {
       try {
-        parsedTags = JSON.parse(req.body.tags);
-
         // Check if tags is an array
-        if (!Array.isArray(parsedTags)) {
+        if (!Array.isArray(tags)) {
           return res.status(400).json({
             error: 'Invalid tags format',
           });
         }
 
         // Check maximum number of tags
-        if (parsedTags.length > 10) {
+        if (tags.length > 10) {
           return res.status(400).json({
             error: 'Maximum 10 tags allowed',
           });
         }
 
         // Check tag length
-        if (parsedTags.some((tag) => typeof tag !== 'string' || tag.length > 30)) {
+        if (tags.some((tag) => typeof tag !== 'string' || tag.length > 30)) {
           return res.status(400).json({
             error: 'Tags must be strings of 30 characters or less',
           });
@@ -89,7 +86,7 @@ module.exports = async (req, res) => {
     // Update the entry including tags
     const updateResult = await pool.query(
       'UPDATE journalentry SET title = $1, text = $2, tags = $3, updated_at = NOW() WHERE entry_id = $4 AND user_id = $5 RETURNING *',
-      [req.body.title, req.body.text, parsedTags, entryId, userId]
+      [req.body.title, req.body.text, tags, entryId, userId]
     );
 
     return res.status(200).json({
