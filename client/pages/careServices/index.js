@@ -12,10 +12,24 @@ const CareServices = () => {
   const [isFiltersVisible, setIsFiltersVisible] = useState(false);
   const [category, setCategory] = useState("babysitters"); // New state for category selection
 
+  // Cache-related state
+  const [cacheInfo, setCacheInfo] = useState({
+    isCached: false,
+    lastUpdated: null,
+    fallback: false,
+    requestedLocation: null,
+    actualLocation: null,
+  });
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
   // Filter states
   const [availabilityFilter, setAvailabilityFilter] = useState("all");
   const [sortBy, setSortBy] = useState("rating");
   const [cityFilter, setCityFilter] = useState("");
+  const [selectedCity, setSelectedCity] = useState("");
+
+  // This tracks the actual location being displayed
+  const [displayedLocation, setDisplayedLocation] = useState("");
 
   // Availability options for filtering
   const availabilityOptions = [
@@ -43,10 +57,37 @@ const CareServices = () => {
     fetchProviders();
   }, [category]); // Refetch when category changes
 
+  // Helper function to check if a provider matches the selected city
+  const providerMatchesCity = (provider, city) => {
+    if (!city) return true; // If no city selected, all providers match
+    if (!provider.location) return false;
+
+    const providerLocation = provider.location.toLowerCase();
+    const selectedLocation = city.toLowerCase();
+
+    // Use a more flexible matching approach
+    return (
+      providerLocation.includes(selectedLocation) ||
+      selectedLocation.includes(providerLocation)
+    );
+  };
+
   // Fetch providers based on selected category
-  const fetchProviders = async () => {
+  const fetchProviders = async (forceRefresh = false, cityToUse = null) => {
     try {
       setLoading(true);
+      if (forceRefresh) {
+        setIsRefreshing(true);
+      }
+
+      // Reset fallback state completely
+      setCacheInfo({
+        isCached: false,
+        lastUpdated: null,
+        fallback: false,
+        requestedLocation: null,
+        actualLocation: null,
+      });
 
       // Choose endpoint based on selected category
       const endpoint =
@@ -54,10 +95,25 @@ const CareServices = () => {
           ? "careServices/babysitters"
           : "careServices/nannies";
 
+      // Prepare query parameters using direct city value if provided
+      let queryParams = new URLSearchParams();
+      const cityToFilter = cityToUse || cityFilter;
+
+      if (cityToFilter) {
+        queryParams.append("location", cityToFilter);
+      }
+
+      // Add force refresh parameter if requested
+      if (forceRefresh) {
+        queryParams.append("forceRefresh", "true");
+      }
+
+      const queryString = queryParams.toString();
+
       // Make API call
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/v1/${endpoint}${
-          cityFilter ? `?location=${encodeURIComponent(cityFilter)}` : ""
+          queryString ? `?${queryString}` : ""
         }`,
         {
           headers: {
@@ -71,21 +127,37 @@ const CareServices = () => {
       }
 
       const data = await res.json();
+      console.log("API Response:", data);
 
       if (data.status === "ok") {
         // Process the data based on category
-        let enhancedProviders = [];
+        let providersArray = [];
 
-        if (category === "babysitters" && data.providers) {
-          enhancedProviders = processProviders(data.providers, "babysitter");
-        } else if (category === "nannies" && data.nannies) {
-          enhancedProviders = processProviders(data.nannies, "nanny");
+        // Get the data object, handling different response structures
+        const responseData = data.data || data;
+
+        // Check if the response has cache information
+        const isCached = !!responseData.cached;
+        const lastUpdated = responseData.lastUpdated || null;
+
+        // Get providers array based on category
+        if (category === "babysitters") {
+          providersArray = responseData.providers || [];
+        } else if (category === "nannies") {
+          providersArray = responseData.nannies || responseData.providers || [];
         }
 
-        setProviders(enhancedProviders);
+        // Process the providers to add necessary fields
+        let enhancedProviders = [];
+        if (providersArray && providersArray.length > 0) {
+          enhancedProviders = processProviders(
+            providersArray,
+            category === "babysitters" ? "babysitter" : "nanny",
+          );
+        }
 
-        // Extract unique cities from provider data
-        const cities = [
+        // Get all unique cities from providers
+        const allCities = [
           ...new Set(
             enhancedProviders
               .map((provider) => provider.location)
@@ -93,7 +165,74 @@ const CareServices = () => {
           ),
         ];
 
-        setAvailableCities(cities);
+        setAvailableCities(allCities);
+
+        // Check if we have providers for the requested city
+        const requestedCityValue = cityToUse || cityFilter;
+        const providersForRequestedCity = enhancedProviders.filter((provider) =>
+          providerMatchesCity(provider, requestedCityValue),
+        );
+
+        // Determine if we need to show a fallback or not
+        const needsFallback =
+          requestedCityValue &&
+          providersForRequestedCity.length === 0 &&
+          enhancedProviders.length > 0;
+
+        // Set appropriate location display information
+        if (needsFallback) {
+          // We're showing fallback data
+          setDisplayedLocation("all available cities");
+          // If it's a fallback, update city state
+          if (cityToUse) {
+            setSelectedCity("");
+            setCityFilter("");
+          }
+
+          setCacheInfo({
+            isCached,
+            lastUpdated,
+            fallback: true,
+            requestedLocation: requestedCityValue,
+            actualLocation: "all available cities",
+          });
+
+          // Save all providers since we're showing everything as fallback
+          setProviders(enhancedProviders);
+        } else if (requestedCityValue) {
+          // We're showing filtered results for the requested city
+          setDisplayedLocation(requestedCityValue);
+          // Update the selected city in the UI
+          if (cityToUse) {
+            setSelectedCity(cityToUse);
+            setCityFilter(cityToUse);
+          }
+
+          setCacheInfo({
+            isCached,
+            lastUpdated,
+            fallback: false,
+            requestedLocation: null,
+            actualLocation: null,
+          });
+
+          // Filter providers to only show those from the selected city
+          setProviders(providersForRequestedCity);
+        } else {
+          // No city requested, show all providers
+          setDisplayedLocation("all available cities");
+
+          setCacheInfo({
+            isCached,
+            lastUpdated,
+            fallback: false,
+            requestedLocation: null,
+            actualLocation: null,
+          });
+
+          // Save all providers
+          setProviders(enhancedProviders);
+        }
       } else {
         setError(`No ${category} found`);
       }
@@ -102,34 +241,58 @@ const CareServices = () => {
       setError(err.message);
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
+  };
+
+  // Handle force refresh button click
+  const handleForceRefresh = () => {
+    fetchProviders(true);
   };
 
   // Process provider data consistently regardless of category
   const processProviders = (rawProviders, providerCategory) => {
-    return rawProviders.map((provider) => ({
-      ...provider,
-      providerType: provider.isPremium ? "business" : "individual",
-      description: provider.bio || "",
-      category: providerCategory,
-      hourlyRate: provider.hourlyRate || 0,
-      distance: provider.distance || 0,
-      verified: Boolean(provider.verification || provider.isVerified || false),
-      licensed: Boolean(provider.isLicensed || false),
-      openings: provider.availability || "Contact for availability",
-      availability: provider.availabilityDays || ["weekdays"],
-      languages: provider.languages || ["English"],
-      certifications: provider.certifications || [],
-      specialties: provider.specialties || [],
-      ageRange: provider.ageRangePreference || "All ages",
-      hours: provider.workingHours || "Contact for details",
-      contactInfo: {
-        email: provider.email || "Contact through platform",
-      },
-    }));
+    return rawProviders.map((provider) => {
+      // First, ensure isPremium is correctly set
+      // For nannies, they should typically be professional/premium
+      const isPremium = provider.isPremium !== undefined
+        ? provider.isPremium
+        : (providerCategory === "nanny" || provider.verification || provider.isLicensed);
+
+      return {
+        ...provider,
+        // Explicitly set isPremium for consistent display
+        isPremium: isPremium,
+        // Set providerType based on the isPremium flag
+        providerType: isPremium ? "business" : "individual",
+        description: provider.bio || "",
+        category: providerCategory,
+        hourlyRate: provider.hourlyRate || 0,
+        distance: provider.distance || 0,
+        verified: Boolean(provider.verification || provider.isVerified || false),
+        licensed: Boolean(provider.isLicensed || false),
+        openings: provider.availability || "Contact for availability",
+        availability: provider.availabilityDays || ["weekdays"],
+        languages: provider.languages || ["English"],
+        certifications: provider.certifications || [],
+        specialties: provider.specialties || [],
+        ageRange: provider.ageRangePreference || "All ages",
+        hours: provider.workingHours || "Contact for details",
+        contactInfo: {
+          email: provider.email || "Contact through platform",
+        },
+      };
+    });
   };
 
-  // Filter providers
+  // Format date for display
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleString();
+  };
+
+  // Filter providers by search term and availability
   const filteredProviders = providers
     .filter((provider) => {
       // Filter by search term
@@ -137,15 +300,6 @@ const CareServices = () => {
         searchTerm &&
         !provider.name?.toLowerCase().includes(searchTerm.toLowerCase()) &&
         !provider.description?.toLowerCase().includes(searchTerm.toLowerCase())
-      ) {
-        return false;
-      }
-
-      // Filter by city
-      if (
-        cityFilter &&
-        (!provider.location ||
-          !provider.location.toLowerCase().includes(cityFilter.toLowerCase()))
       ) {
         return false;
       }
@@ -205,14 +359,22 @@ const CareServices = () => {
   const clearFilters = () => {
     setSearchTerm("");
     setCityFilter("");
+    setSelectedCity("");
     setAvailabilityFilter("all");
     setSortBy("rating");
+    fetchProviders();
   };
 
   // Apply city filter and trigger search
   const applyFilter = (city) => {
-    setCityFilter(city);
-    fetchProviders();
+    // Pass the city directly to fetchProviders to avoid state timing issues
+    fetchProviders(false, city);
+  };
+
+  // Handle "Apply" button click for city filter input
+  const handleApplyFilterClick = () => {
+    // Pass cityFilter directly to avoid state timing issues
+    fetchProviders(false, cityFilter);
   };
 
   // Handle category change
@@ -270,6 +432,36 @@ const CareServices = () => {
           Nannies
         </button>
       </div>
+
+      {/* Cache status indicator */}
+      {!loading && cacheInfo.isCached && (
+        <div className={styles.cacheInfo}>
+          <div className={styles.cacheStatusBadge}>
+            <span role="img" aria-label="Cache">
+              ⚡
+            </span>{" "}
+            Cached Data
+          </div>
+          {cacheInfo.lastUpdated && (
+            <div className={styles.cacheTimestamp}>
+              Last updated: {formatDate(cacheInfo.lastUpdated)}
+            </div>
+          )}
+          {cacheInfo.fallback && cacheInfo.requestedLocation && (
+            <div className={styles.cacheFallback}>
+              No data available for "{cacheInfo.requestedLocation}". Showing
+              results from {cacheInfo.actualLocation} instead.
+            </div>
+          )}
+          <button
+            onClick={handleForceRefresh}
+            disabled={isRefreshing}
+            className={styles.refreshButton}
+          >
+            {isRefreshing ? "Refreshing..." : "Refresh Data"}
+          </button>
+        </div>
+      )}
 
       {/* Search bar with filter button */}
       <div className={styles.searchContainer}>
@@ -351,7 +543,10 @@ const CareServices = () => {
           onChange={handleCityFilterChange}
           className={styles.searchInput}
         />
-        <button onClick={fetchProviders} className={styles.applyFilterButton}>
+        <button
+          onClick={handleApplyFilterClick}
+          className={styles.applyFilterButton}
+        >
           Apply
         </button>
       </div>
@@ -365,7 +560,9 @@ const CareServices = () => {
                 key={city}
                 onClick={() => applyFilter(city)}
                 className={`${styles.cityTag} ${
-                  cityFilter === city ? styles.cityTagActive : ""
+                  selectedCity.toLowerCase() === city.toLowerCase()
+                    ? styles.cityTagActive
+                    : ""
                 }`}
               >
                 {city}
@@ -444,7 +641,11 @@ const CareServices = () => {
                 ? "babysitter"
                 : "nanny"
               : category}
-            {cityFilter && ` in ${cityFilter}`}
+            {selectedCity
+              ? ` in ${selectedCity}`
+              : filteredProviders.length > 0
+              ? " from all available cities"
+              : ""}
           </p>
 
           <div className={styles.providersGrid}>
@@ -472,6 +673,7 @@ const CareServices = () => {
                         }`}
                   </div>
 
+                  {/* Always show Premium badge for Professional providers */}
                   {provider.isPremium && (
                     <div className={styles.premiumBadge}>Premium</div>
                   )}
@@ -485,8 +687,10 @@ const CareServices = () => {
                         {provider.profileImage ? (
                           <img
                             src={provider.profileImage}
-                            alt={`${provider.name}`}
+                            alt={provider.name || "Profile Image"}
                             className={styles.providerImage}
+                            width={80}
+                            height={80}
                           />
                         ) : (
                           <div className={styles.placeholderImage}>
@@ -548,7 +752,7 @@ const CareServices = () => {
                             : "Add to favorites"
                         }
                       >
-                        {favorites.includes(provider.id || index) ? "❤️" : "♡"}
+                        {favorites.includes(provider.id || index) ? "♥" : "♡"}
                       </button>
                     </div>
 
@@ -791,7 +995,10 @@ const CareServices = () => {
               ))
             ) : (
               <div className={styles.noResults}>
-                <p>No {category} found matching your filters.</p>
+                <p>
+                  No {category} found {selectedCity ? `in ${selectedCity}` : ""}
+                  .
+                </p>
                 <button
                   onClick={clearFilters}
                   className={styles.viewProfileButton}
