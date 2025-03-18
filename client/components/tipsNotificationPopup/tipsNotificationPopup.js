@@ -66,7 +66,7 @@ const TipsNotificationPopup = () => {
     // };
 
     // Helper function to fetch and display a tip
-    const fetchTip = async () => {
+    const fetchAndShowTip = async () => {
       try {
         const response = await fetch(apiUrl, {
           headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -74,33 +74,47 @@ const TipsNotificationPopup = () => {
         const data = await response.json();
 
         if (data.data && data.data.length > 0) {
-          // Choose a random tip
+          // show a random tip
           const randomIndex = Math.floor(Math.random() * data.data.length);
           setTip(data.data[randomIndex]);
           setShow(true);
-          // Hide tip after 11 seconds
+
+          // Update tip timestamp in localStorage
+          localStorage.setItem("lastTipTimestamp", Date.now().toString());
+
+          // Hide tip after 10 seconds
           setTimeout(() => {
             setShow(false);
-          }, 11000);
+          }, 10000);
         }
       } catch (error) {
         console.error("Error fetching tip notification:", error);
       }
     };
 
-    // Fetch a tip based on the frequency
     if (isTipsPage) {
-      fetchTip();
+      // On /tips page, always fetch tip immediately
+      fetchAndShowTip();
     } else {
       if (frequency === "Weekly") {
-        // Only show once per login; check sessionStorage flag
-        if (!sessionStorage.getItem("weeklyTipShown")) {
-          fetchTip();
-          sessionStorage.setItem("weeklyTipShown", "true");
+        // For Weekly, only show tip if no timestamp is stored (Once since logged in)
+        if (!localStorage.getItem("lastTipTimestamp")) {
+          fetchAndShowTip();
         }
       } else if (frequency === "Daily") {
-        fetchTip();
-        const intervalId = setInterval(fetchTip, 3 * 60000); // show every 3 minutes
+        // For Daily, check if at least 3 minutes have passed since last tip
+        const lastTimestamp = parseInt(
+          localStorage.getItem("lastTipTimestamp") || "0",
+          10,
+        );
+        const now = Date.now();
+        if (now - lastTimestamp >= 3 * 60000) {
+          fetchAndShowTip();
+        }
+
+        const intervalId = setInterval(() => {
+          fetchAndShowTip();
+        }, 3 * 60000); // Every 3 minutes
         return () => clearInterval(intervalId);
       }
     }
