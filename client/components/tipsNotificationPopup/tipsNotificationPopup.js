@@ -1,96 +1,110 @@
 // client/components/[TipsNotificationPopup.js]
 
 // Display a random tip notification:
-//  - DAILY: ON INTERVAL counting since user logged in (REGULARLY SINCE LOGGED IN)
-//  - WEEKLY: ONLY ONCE when user logged in (ONCE SINCE LOGGED IN)
-//  - EVERY TIME RELOAD /tips page
+//  - DAILY: ON INTERVAL counting EVERY 3MIN since user logged in (REGULARLY SINCE LOGGED IN)
+//  - WEEKLY: ONCE SINCE LOGGED IN (bc JWT token will expire < 1day)
+// ==> add a localStorage flag to check most recent notification timestamp
+//  - EVERY TIME RELOAD OR GO TO /tips page
 //  - will DISAPPEAR after ~10 seconds
 import React, { useState, useEffect } from "react";
 import { Alert, Button } from "react-bootstrap";
 
 const TipsNotificationPopup = () => {
-  const [tip, setTip] = useState(null);
-  const [show, setShow] = useState(true);
+  const [tip, setTip] = useState(null); // Tip content
+  const [show, setShow] = useState(true); // Initially show the tip
 
   useEffect(() => {
-    // Determine whether the user is logged in.
-    // const token = localStorage.getItem("token");
-    let apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/tips/notification`;
-    // //   Check if Logged-in
-    // if (token) {
-    //     // Logged-in: call API for customized tip notifications
-    //     apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/tips/notification`;
-    // } else {
-    //     // Not logged in: default to Daily
-    //     apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/tips/notification?default=true`;
-    // }
+    // save Frequency in localStorage.
+    // - If user is logged in, save the preference on the backend + localStorage
+    const frequency = localStorage.getItem("notificationFrequency") || "Daily";
+    localStorage.setItem("notificationFrequency", frequency);
 
-    // MOCK RESPONSE
-    const mockData = {
-      data: [
-        {
-          id: 1,
-          tip_text: "Baby from 0-3 months should sleep 14-17 hours a day.",
-        },
-        {
-          id: 2,
-          tip_text: "Your baby should sleep on their back.",
-        },
-        {
-          id: 3,
-          tip_text: "It is recommended to have a consistent bedtime routine.",
-        },
-        {
-          id: 4,
-          tip_text:
-            "Try to put your baby to sleep when they are drowsy but still awake.",
-        },
-        {
-          id: 5,
-          tip_text: "Create a safe sleep environment for your baby.",
-        },
-        {
-          id: 6,
-          tip_text: "Avoid overheating your baby.",
-        },
-      ],
-    };
+    // check if the user is on the tips page
+    const currentPath = window.location.pathname;
+    const isTipsPage = currentPath === "/tips";
 
+    // check logged in
+    const token = localStorage.getItem("token");
+    let apiUrl = "";
+    if (token) {
+      // If logged in, get notification settings + custom tips
+      apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/v1/tips/notification`;
+    } else {
+      // If not logged in, get all tips
+      apiUrl = `${process.env.NEXT_PUBLIC_API_URL}/v1/tips`;
+    }
+
+    // // MOCK RESPONSE
+    // const mockData = {
+    //   data: [
+    //     {
+    //       id: 1,
+    //       tip_text: "Baby from 0-3 months should sleep 14-17 hours a day.",
+    //     },
+    //     {
+    //       id: 2,
+    //       tip_text: "Your baby should sleep on their back.",
+    //     },
+    //     {
+    //       id: 3,
+    //       tip_text: "It is recommended to have a consistent bedtime routine.",
+    //     },
+    //     {
+    //       id: 4,
+    //       tip_text:
+    //         "Try to put your baby to sleep when they are drowsy but still awake.",
+    //     },
+    //     {
+    //       id: 5,
+    //       tip_text: "Create a safe sleep environment for your baby.",
+    //     },
+    //     {
+    //       id: 6,
+    //       tip_text: "Avoid overheating your baby.",
+    //     },
+    //   ],
+    // };
+
+    // Helper function to fetch and display a tip
     const fetchTip = async () => {
       try {
-        // const response = await fetch(apiUrl);
-        // const data = await response.json();
+        const response = await fetch(apiUrl, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+        });
+        const data = await response.json();
 
-        const data = mockData;
-
-        // Assume the API returns { data: [ tip1, tip2, ... ] }
         if (data.data && data.data.length > 0) {
-          // CHOOSE A RANDOM TIP
+          // Choose a random tip
           const randomIndex = Math.floor(Math.random() * data.data.length);
           setTip(data.data[randomIndex]);
           setShow(true);
+          // Hide tip after 11 seconds
+          setTimeout(() => {
+            setShow(false);
+          }, 11000);
         }
       } catch (error) {
         console.error("Error fetching tip notification:", error);
       }
     };
 
-    // Initial fetch
-    fetchTip();
-
-    // REFRESH TIP (user will see a new tip)
-    // - DAILY: Every 5min ONLY ONCE or when user logged in
-    // - WEEKLY: Every 7 days ONLY ONCE or when user logged in
-    const intervalId = setInterval(fetchTip, 60000);
-    return () => clearInterval(intervalId);
+    // Fetch a tip based on the frequency
+    if (isTipsPage) {
+      fetchTip();
+    } else {
+      if (frequency === "Weekly") {
+        // Only show once per login; check sessionStorage flag
+        if (!sessionStorage.getItem("weeklyTipShown")) {
+          fetchTip();
+          sessionStorage.setItem("weeklyTipShown", "true");
+        }
+      } else if (frequency === "Daily") {
+        fetchTip();
+        const intervalId = setInterval(fetchTip, 3 * 60000); // show every 3 minutes
+        return () => clearInterval(intervalId);
+      }
+    }
   }, []);
-
-  // HIDE TIP after 10 seconds
-  if (show) {
-    setTimeout(() => {
-      setShow(false);
-    }, 11000);
-  }
 
   if (!tip || !show) return null; // Do not render if no tip or not shown
 
