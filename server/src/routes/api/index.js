@@ -20,9 +20,13 @@ const { getReminders } = require('./baby/reminders/getReminders');
 const { createReminder } = require('./baby/reminders/postReminder');
 const { updateReminder } = require('./baby/reminders/putReminder');
 const { deleteReminders } = require('./baby/reminders/deleteReminders');
+const {
+    getBabysitters,
+    getNannies,
+    refreshCareCache
+  } = require('./careServices');
 
-router.post('/login', require('./login'));
-
+router.post("/login", require("./login"));
 router.post('/signup', require('./signup'));
 
 // ************ /feedingSchedule routes ************
@@ -150,6 +154,8 @@ router.post('/voiceCommand', require('./voiceCommand/processVoiceCommand').proce
 
 // ************ /tips routes ************
 router.get('/tips', require('./tips/getAllTips'));
+router.get('/tips/notification', require('./tips/tipsNotification/getCustomTipsAllBabies'));
+router.put('/tips/notification', require('./tips/tipsNotification/putTipsNotificationSettings'));
 
 // ************ Stool routes ************
 router.get('/baby/:babyId/stool', authenticate(), getStoolEntries);
@@ -197,6 +203,11 @@ router.put('/baby/:babyId/reminders/:reminderId', authenticate(), updateReminder
 
 // DELETE /baby/:babyId/reminders - Unified deletion endpoint (single or bulk)
 router.delete('/baby/:babyId/reminders', authenticate(), deleteReminders);
+
+// ************ /careServices routes ************
+router.get('/careServices/babysitters', authenticate(), getBabysitters);
+router.get('/careServices/nannies', authenticate(), getNannies);
+router.post('/careServices/refresh-cache', authenticate(), refreshCareCache);
 
 // Testing the authentication middleware
 // router.get('/test', authenticate(), require('./test'));

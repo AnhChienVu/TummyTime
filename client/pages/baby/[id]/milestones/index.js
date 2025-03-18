@@ -55,7 +55,8 @@ function MilestoneEachBaby() {
   };
 
   useEffect(() => {
-    if (baby_id) {
+    if (router.isReady && baby_id) {
+      console.log("Fetching milestones for baby:", baby_id);
       async function fetchMilestones() {
         try {
           const res = await fetch(
@@ -82,6 +83,8 @@ function MilestoneEachBaby() {
         }
       }
       fetchMilestones();
+    } else {
+      console.log("Baby ID not found in query params.");
     }
   }, [baby_id]);
 
