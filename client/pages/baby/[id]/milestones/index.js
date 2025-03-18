@@ -203,35 +203,38 @@ function MilestoneEachBaby() {
       return;
     }
 
-    const milestone_id = selectedMilestone
-      ? selectedMilestone.milestone_id
-      : null;
-
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${selectedMilestone.baby_id}/milestones/${milestone_id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify({
-            title,
-            details,
-            date: date,
-          }),
+      const isNewMilestone = !selectedMilestone;
+      const url = isNewMilestone
+        ? `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${baby_id}/milestones`
+        : `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${selectedMilestone.baby_id}/milestones/${selectedMilestone.milestone_id}`;
+
+      const method = isNewMilestone ? "POST" : "PUT";
+
+      const res = await fetch(url, {
+        method: method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-      );
+        body: JSON.stringify({
+          title,
+          details,
+          date: date,
+        }),
+      });
 
       const data = await res.json();
       if (data.status === "ok") {
         setModalShow(false);
-        showToast("Milestone updated!");
+        showToast(isNewMilestone ? "Milestone created!" : "Milestone updated!");
         router.reload();
       }
     } catch (error) {
-      showToast("Error saving milestone to server.", "danger");
+      showToast(
+        `Error ${selectedMilestone ? "saving" : "creating"} milestone.`,
+        "danger",
+      );
     }
   };
 
@@ -332,11 +335,29 @@ function MilestoneEachBaby() {
               </tr>
             ))
           ) : (
-            <tr>
-              <td colSpan="4" style={{ textAlign: "center" }}>
-                No milestones found
-              </td>
-            </tr>
+            <>
+              <tr>
+                <td colSpan="4" style={{ textAlign: "center" }}>
+                  {t("No milestones found")}
+                </td>
+              </tr>
+              <tr>
+                <td colSpan="4" style={{ textAlign: "center" }}>
+                  <Button
+                    variant="primary"
+                    onClick={() => {
+                      setSelectedMilestone(null);
+                      setTitle("");
+                      setDetails("");
+                      setDate("");
+                      setModalShow(true);
+                    }}
+                  >
+                    {t("Create Milestone")}
+                  </Button>
+                </td>
+              </tr>
+            </>
           )}
         </tbody>
       </table>
