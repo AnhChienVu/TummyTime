@@ -22,8 +22,12 @@ const { updateReminder } = require('./baby/reminders/putReminder');
 const { deleteReminders } = require('./baby/reminders/deleteReminders')
 
 // Import careServices get APIs
-const { getCareServices } = require("./careServices/care-scrape/getBabysitters");
-const { getNannies } = require("./careServices/care-scrape/getNannies");
+const {
+    getBabysitters,
+    getNannies,
+    refreshCareCache
+  } = require('./careServices');
+
 
 
 router.post("/login", require("./login"));
@@ -258,7 +262,7 @@ router.put('/baby/:babyId/stool/:stoolId', authenticate(), updateStoolEntry);
 router.delete('/baby/:babyId/stool/:stoolId', authenticate(), deleteStoolEntry);
 
 // ************ /devices routes ************
-router.get('/devices', require('./devices/devices').findDevices);
+// router.get('/devices', require('./devices/devices').findDevices);
 
 // ************ /medicalProfessional routes ************
 router.get(
@@ -305,8 +309,9 @@ router.put('/baby/:babyId/reminders/:reminderId', authenticate(), updateReminder
 router.delete('/baby/:babyId/reminders', authenticate(), deleteReminders);
 
 // ************ /careServices routes ************
-router.get('/careServices/babysitters', authenticate(), getCareServices);
+router.get('/careServices/babysitters', authenticate(), getBabysitters);
 router.get('/careServices/nannies', authenticate(), getNannies);
+router.post('/careServices/refresh-cache', authenticate(), refreshCareCache);
 
 // Testing the authentication middleware
 // router.get('/test', authenticate(), require('./test'));
