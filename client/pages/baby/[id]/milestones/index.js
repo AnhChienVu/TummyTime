@@ -495,47 +495,47 @@ function MilestoneEachBaby() {
 
 export default MilestoneEachBaby;
 
-export async function getStaticPaths() {
-  // Fetch the token from localStorage on the client side
-  if (typeof window !== "undefined") {
-    const token = localStorage.getItem("token");
+// export async function getStaticPaths() {
+//   // Fetch the token from localStorage on the client side
+//   if (typeof window !== "undefined") {
+//     const token = localStorage.getItem("token");
 
-    if (!token) {
-      return {
-        paths: [],
-        fallback: false,
-      };
-    }
+//     if (!token) {
+//       return {
+//         paths: [],
+//         fallback: false,
+//       };
+//     }
 
-    // Fetch the list of baby IDs from your custom API route
-    const res = await fetch(`/api/getBabyProfiles?token=${token}`);
-    const data = await res.json();
+//     // Fetch the list of baby IDs from your custom API route
+//     const res = await fetch(`/api/getBabyProfiles?token=${token}`);
+//     const data = await res.json();
 
-    if (data.status !== "ok") {
-      return {
-        paths: [],
-        fallback: false,
-      };
-    }
+//     if (data.status !== "ok") {
+//       return {
+//         paths: [],
+//         fallback: false,
+//       };
+//     }
 
-    // Generate the paths for each baby ID
-    const paths = data.babies.map((baby) => ({
-      params: { id: baby.baby_id.toString() },
-    }));
+//     // Generate the paths for each baby ID
+//     const paths = data.babies.map((baby) => ({
+//       params: { id: baby.baby_id.toString() },
+//     }));
 
-    return {
-      paths,
-      fallback: false, // See the "fallback" section below
-    };
-  }
+//     return {
+//       paths,
+//       fallback: false, // See the "fallback" section below
+//     };
+//   }
 
-  return {
-    paths: [],
-    fallback: false,
-  };
-}
+//   return {
+//     paths: [],
+//     fallback: false,
+//   };
+// }
 
-export async function getStaticProps({ params, locale }) {
+export async function getServerSideProps({ params, locale }) {
   return {
     props: {
       ...(await serverSideTranslations(locale, ["common"])),
