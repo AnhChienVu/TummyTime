@@ -149,11 +149,9 @@ export default function Journal() {
             : ""),
       });
     } else {
-      const newText =
-        editedEntry.text +
-        (transcript.length
-          ? (editedEntry.text.length ? " " : "") + transcript
-          : "");
+      const newText = transcript.length
+        ? (editedEntry.text.length ? " " : "") + transcript
+        : "";
       setEditedEntry({
         ...editedEntry,
         text: newText,
