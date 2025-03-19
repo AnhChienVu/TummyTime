@@ -1,1022 +1,634 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import styles from "./careServices.module.css";
+import {
+  toggleFavoriteProvider,
+  getFavoriteProviders,
+} from "../../services/addFavoriteChildcareService";
 
-const CareServices = () => {
-  // -----------------------------
-  // State
-  // -----------------------------
-  const [providers, setProviders] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [expandedProvider, setExpandedProvider] = useState(null);
-  const [favorites, setFavorites] = useState([]);
-  const [isFiltersVisible, setIsFiltersVisible] = useState(false);
-  const [category, setCategory] = useState("babysitters");
-
-  // Cache-related
-  const [cacheInfo, setCacheInfo] = useState({
-    isCached: false,
-    lastUpdated: null,
-    fallback: false,
-    requestedLocation: null,
-    actualLocation: null,
-  });
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
-  // Filters
-  const [availabilityFilter, setAvailabilityFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("rating");
-  const [cityFilter, setCityFilter] = useState("");
-  const [selectedCity, setSelectedCity] = useState("");
-
-  // The city actually displayed
-  const [displayedLocation, setDisplayedLocation] = useState("");
-
-  // Router
+export default function CareServices() {
   const router = useRouter();
 
-  // Available cities
-  const [availableCities, setAvailableCities] = useState([]);
+  // --------------------------------
+  // 1. State
+  // --------------------------------
+  const [allProviders, setAllProviders] = useState([]);
+  const [filteredProviders, setFilteredProviders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // -----------------------------
-  // Options
-  // -----------------------------
-  const availabilityOptions = [
-    { id: "all", label: "Any Availability" },
-    { id: "weekdays", label: "Weekdays" },
-    { id: "weekends", label: "Weekends Only" },
-    { id: "evenings", label: "Evenings" },
-    { id: "overnight", label: "Overnight" },
-  ];
+  // Favorites
+  const [favoriteProviderIds, setFavoriteProviderIds] = useState([]);
+  const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
 
+  // Filters
+  const [searchTerm, setSearchTerm] = useState("");
+  const [cityFilter, setCityFilter] = useState("");
+  const [category, setCategory] = useState("all"); // 'all', 'babysitters' or 'nannies'
+
+  // Sorting
+  const [sortBy, setSortBy] = useState("rating");
   const sortOptions = [
     { id: "rating", label: "Top Rated" },
-    { id: "price-low", label: "Lowest Price" },
-    { id: "price-high", label: "Highest Price" },
-    { id: "distance", label: "Nearest" },
+    { id: "hourly_rate_asc", label: "Lowest Price" },
+    { id: "hourly_rate_desc", label: "Highest Price" },
+    { id: "hired_count", label: "Most Hired" },
+    { id: "experience", label: "Most Experience" },
   ];
 
-  // -----------------------------
-  // 1) Define fetch logic in a useRef
-  // -----------------------------
-  // We store a function in doFetchRef.current, so we can call it
-  // from anywhere (effect, button handlers, etc.) without ESLint warnings.
-  const doFetchRef = useRef(null);
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
-  doFetchRef.current = async (forceRefresh = false, cityToUse = null) => {
+  // Message confirmation
+  const [messageConfirmation, setMessageConfirmation] = useState({
+    show: false,
+    providerName: "",
+  });
+
+  // --------------------------------
+  // 2. Authentication Check
+  // --------------------------------
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        setIsAuthenticated(false);
+        setError("Please log in to view care services");
+        setLoading(false);
+        return false;
+      }
+
+      // Basic token validation
+      if (typeof token !== "string" || token.trim() === "") {
+        setIsAuthenticated(false);
+        setError("Invalid authentication token. Please log in again.");
+        setLoading(false);
+        localStorage.removeItem("token");
+        return false;
+      }
+
+      setIsAuthenticated(true);
+      return true;
+    };
+
+    const authStatus = checkAuth();
+    if (authStatus) {
+      fetchData();
+      fetchFavorites();
+    }
+  }, []);
+
+  // --------------------------------
+  // 3. Fetch data with Bearer token
+  // --------------------------------
+  const fetchData = async () => {
     try {
       setLoading(true);
-      if (forceRefresh) {
-        setIsRefreshing(true);
+      setError(null);
+
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        throw new Error("Authentication token not found");
       }
 
-      // Reset fallback info
-      setCacheInfo({
-        isCached: false,
-        lastUpdated: null,
-        fallback: false,
-        requestedLocation: null,
-        actualLocation: null,
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+      const finalUrl = `${apiUrl}/v1/careServices`;
+
+      const response = await fetch(finalUrl, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: "include",
       });
 
-      // Determine endpoint by category
-      const endpoint =
-        category === "babysitters"
-          ? "careServices/babysitters"
-          : "careServices/nannies";
-
-      // Prepare query params
-      const cityParam = cityToUse || cityFilter;
-      let queryParams = new URLSearchParams();
-      if (cityParam) {
-        queryParams.append("location", cityParam);
-      }
-      if (forceRefresh) {
-        queryParams.append("forceRefresh", "true");
-      }
-      const queryString = queryParams.toString();
-
-      // Make API call
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/v1/${endpoint}${
-          queryString ? `?${queryString}` : ""
-        }`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        },
-      );
-
-      if (!res.ok) {
-        throw new Error(`Failed to fetch ${category}`);
+      if (response.status === 401) {
+        localStorage.removeItem("token");
+        setIsAuthenticated(false);
+        throw new Error("Your session has expired. Please log in again.");
       }
 
-      const data = await res.json();
-      console.log("API Response:", data);
-
-      if (data.status === "ok") {
-        const responseData = data.data || data;
-        const isCached = !!responseData.cached;
-        const lastUpdated = responseData.lastUpdated || null;
-
-        let providersArray = [];
-        if (category === "babysitters") {
-          providersArray = responseData.providers || [];
-        } else {
-          // nannies
-          providersArray = responseData.nannies || responseData.providers || [];
-        }
-
-        // Process providers
-        let enhancedProviders = [];
-        if (providersArray && providersArray.length > 0) {
-          enhancedProviders = processProviders(
-            providersArray,
-            category === "babysitters" ? "babysitter" : "nanny",
-          );
-        }
-
-        // Collect all unique cities
-        const allCities = [
-          ...new Set(
-            enhancedProviders
-              .map((p) => p.location)
-              .filter((loc) => loc && loc.trim().length > 0),
-          ),
-        ];
-        setAvailableCities(allCities);
-
-        // City filter logic
-        const requestedCityValue = cityParam;
-        const providersForCity = enhancedProviders.filter((p) =>
-          providerMatchesCity(p, requestedCityValue),
-        );
-
-        // Check fallback
-        const needsFallback =
-          requestedCityValue &&
-          providersForCity.length === 0 &&
-          enhancedProviders.length > 0;
-
-        if (needsFallback) {
-          setDisplayedLocation("all available cities");
-          if (cityToUse) {
-            setSelectedCity("");
-            setCityFilter("");
-          }
-
-          setCacheInfo({
-            isCached,
-            lastUpdated,
-            fallback: true,
-            requestedLocation: requestedCityValue,
-            actualLocation: "all available cities",
-          });
-          setProviders(enhancedProviders);
-        } else if (requestedCityValue) {
-          setDisplayedLocation(requestedCityValue);
-          if (cityToUse) {
-            setSelectedCity(cityToUse);
-            setCityFilter(cityToUse);
-          }
-
-          setCacheInfo({
-            isCached,
-            lastUpdated,
-            fallback: false,
-            requestedLocation: null,
-            actualLocation: null,
-          });
-          setProviders(providersForCity);
-        } else {
-          setDisplayedLocation("all available cities");
-          setCacheInfo({
-            isCached,
-            lastUpdated,
-            fallback: false,
-            requestedLocation: null,
-            actualLocation: null,
-          });
-          setProviders(enhancedProviders);
-        }
-      } else {
-        setError(`No ${category} found`);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch. Status: ${response.status}`);
       }
+
+      const data = await response.json();
+      const providers = data.providers || data.data?.providers || [];
+      setAllProviders(providers);
+      setFilteredProviders(providers);
     } catch (err) {
-      console.error(`Error fetching ${category}:`, err);
-      setError(err.message);
+      console.error("Error fetching providers:", err);
+      setError(err.message || "Error fetching providers");
+      setAllProviders([]);
+      setFilteredProviders([]);
     } finally {
       setLoading(false);
-      setIsRefreshing(false);
     }
   };
 
-  // -----------------------------
-  // 2) useEffect: Re-fetch on mount & whenever category changes
-  // -----------------------------
-  useEffect(() => {
-    // Call doFetchRef.current here so we only depend on `category`.
-    doFetchRef.current();
-  }, [category]);
+  // --------------------------------
+  // 3.1 Fetch Favorites
+  // --------------------------------
+  const fetchFavorites = async () => {
+    try {
+      const favorites = await getFavoriteProviders();
+      setFavoriteProviderIds(favorites || []);
 
-  // -----------------------------
-  // Helpers
-  // -----------------------------
-  const processProviders = (rawProviders, providerCategory) => {
-    return rawProviders.map((provider) => {
-      const isPremium =
-        provider.isPremium !== undefined
-          ? provider.isPremium
-          : providerCategory === "nanny" ||
-            provider.verification ||
-            provider.isLicensed;
+      if (favorites.length > 0) {
+        console.log(`Loaded ${favorites.length} favorites successfully`);
+      } else {
+        console.log("No favorites found for this user");
+      }
+    } catch (err) {
+      console.error("Unexpected error fetching favorites:", err);
+      setFavoriteProviderIds([]);
+    }
+  };
 
-      return {
-        ...provider,
-        isPremium,
-        providerType: isPremium ? "business" : "individual",
-        description: provider.bio || "",
-        category: providerCategory,
-        hourlyRate: provider.hourlyRate || 0,
-        distance: provider.distance || 0,
-        verified: Boolean(
-          provider.verification || provider.isVerified || false,
-        ),
-        licensed: Boolean(provider.isLicensed || false),
-        openings: provider.availability || "Contact for availability",
-        availability: provider.availabilityDays || ["weekdays"],
-        languages: provider.languages || ["English"],
-        certifications: provider.certifications || [],
-        specialties: provider.specialties || [],
-        ageRange: provider.ageRangePreference || "All ages",
-        hours: provider.workingHours || "Contact for details",
-        contactInfo: {
-          email: provider.email || "Contact through platform",
-        },
-      };
+  // --------------------------------
+  // 3.2 Enhanced Search Handler
+  // --------------------------------
+  const handleSearchChange = (e) => {
+    const value = e.target.value.trim();
+    setSearchTerm(value);
+    setCurrentPage(1);
+
+    // If search is empty, reset to all providers
+    if (!value) {
+      setFilteredProviders(allProviders);
+      return;
+    }
+
+    // Convert search to lowercase for case-insensitive matching
+    const lowercaseSearch = value.toLowerCase();
+
+    // Comprehensive search across multiple fields
+    const searchFilteredProviders = allProviders.filter((provider) => {
+      const matchesName = provider.name
+        ?.toLowerCase()
+        .includes(lowercaseSearch);
+      const matchesCity = provider.location
+        ?.toLowerCase()
+        .includes(lowercaseSearch);
+      const matchesBio = provider.bio?.toLowerCase().includes(lowercaseSearch);
+      const matchesTitle = provider.title
+        ?.toLowerCase()
+        .includes(lowercaseSearch);
+
+      // Check if the provider matches any of the search criteria
+      return matchesName || matchesCity || matchesBio || matchesTitle;
     });
+
+    // Update filtered providers
+    setFilteredProviders(searchFilteredProviders);
   };
 
-  const providerMatchesCity = (provider, city) => {
-    if (!city) return true;
-    if (!provider.location) return false;
+  // Rest of the existing methods remain the same...
 
-    const provLoc = provider.location.toLowerCase();
-    const filterLoc = city.toLowerCase();
-    return provLoc.includes(filterLoc) || filterLoc.includes(provLoc);
-  };
+  // --------------------------------
+  // 4. Client-side Filtering & Sorting
+  // --------------------------------
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toLocaleString();
-  };
+  // 4.1 Filter by category
+  const providersByCategory =
+    category === "all"
+      ? filteredProviders
+      : filteredProviders.filter(
+          (provider) => provider.provider_type === category,
+        );
 
-  // -----------------------------
-  // Handlers
-  // -----------------------------
+  // 4.2 Filter by favorites if selected
+  const providersByFavorites = showOnlyFavorites
+    ? providersByCategory.filter((provider) =>
+        favoriteProviderIds.includes(provider.id),
+      )
+    : providersByCategory;
+
+  // 4.3 Sort
+  let sortedProviders = [...providersByFavorites];
+  switch (sortBy) {
+    case "rating":
+      sortedProviders.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      break;
+    case "hourly_rate_asc":
+      sortedProviders.sort(
+        (a, b) => (a.hourly_rate || 0) - (b.hourly_rate || 0),
+      );
+      break;
+    case "hourly_rate_desc":
+      sortedProviders.sort(
+        (a, b) => (b.hourly_rate || 0) - (a.hourly_rate || 0),
+      );
+      break;
+    case "hired_count":
+      sortedProviders.sort(
+        (a, b) => (b.hired_count || 0) - (a.hired_count || 0),
+      );
+      break;
+    case "experience":
+      sortedProviders.sort((a, b) => {
+        const expA = a.experience ? parseInt(a.experience, 10) : 0;
+        const expB = b.experience ? parseInt(b.experience, 10) : 0;
+        return expB - expA;
+      });
+      break;
+    default:
+      sortedProviders.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+      break;
+  }
+
+  // 4.4 Pagination
+  const totalItems = sortedProviders.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const currentStartIndex = (currentPage - 1) * itemsPerPage;
+  const currentEndIndex = currentStartIndex + itemsPerPage;
+  const currentProviders = sortedProviders.slice(
+    currentStartIndex,
+    currentEndIndex,
+  );
+
+  // --------------------------------
+  // 5. Handlers (unchanged)
+  // --------------------------------
   const handleCategoryChange = (newCategory) => {
     setCategory(newCategory);
+    setCurrentPage(1);
   };
 
-  const handleForceRefresh = () => {
-    doFetchRef.current(true);
+  const handleSortChange = (sortId) => {
+    setSortBy(sortId);
+    setCurrentPage(1);
   };
 
-  const toggleExpandProvider = (id) => {
-    setExpandedProvider(expandedProvider === id ? null : id);
+  const handlePageChange = (newPage) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setCurrentPage(newPage);
+    }
   };
 
-  const toggleFavorite = (id, e) => {
-    e.stopPropagation();
-    setFavorites(
-      favorites.includes(id)
-        ? favorites.filter((favId) => favId !== id)
-        : [...favorites, id],
-    );
+  const handleFavoritesFilterChange = (e) => {
+    setShowOnlyFavorites(e.target.checked);
+    setCurrentPage(1);
   };
 
-  const handleCityFilterChange = (e) => {
-    setCityFilter(e.target.value);
+  const handleLogin = () => {
+    router.push("/login?redirect=" + encodeURIComponent(router.asPath));
   };
 
-  const handleApplyFilterClick = () => {
-    doFetchRef.current(false, cityFilter);
-  };
+  const handleToggleFavorite = async (providerId) => {
+    try {
+      const isFavorite = !favoriteProviderIds.includes(providerId);
 
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-  };
-
-  const clearFilters = () => {
-    setSearchTerm("");
-    setCityFilter("");
-    setSelectedCity("");
-    setAvailabilityFilter("all");
-    setSortBy("rating");
-    doFetchRef.current();
-  };
-
-  // -----------------------------
-  // Filtering & sorting
-  // -----------------------------
-  const filteredProviders = providers
-    .filter((p) => {
-      if (
-        searchTerm &&
-        !p.name?.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        !p.description?.toLowerCase().includes(searchTerm.toLowerCase())
-      ) {
-        return false;
+      // Optimistically update UI
+      if (isFavorite) {
+        setFavoriteProviderIds((prev) => [...prev, providerId]);
+      } else {
+        setFavoriteProviderIds((prev) =>
+          prev.filter((id) => id !== providerId),
+        );
       }
-      if (
-        availabilityFilter !== "all" &&
-        (!p.availability || !p.availability.includes(availabilityFilter))
-      ) {
-        return false;
+
+      // Call API with improved error handling
+      const result = await toggleFavoriteProvider(providerId, isFavorite);
+
+      if (!result.success) {
+        // If API call failed, revert optimistic update
+        console.error("Error toggling favorite:", result.message);
+
+        if (isFavorite) {
+          setFavoriteProviderIds((prev) =>
+            prev.filter((id) => id !== providerId),
+          );
+        } else {
+          setFavoriteProviderIds((prev) => [...prev, providerId]);
+        }
+
+        console.warn("Could not update favorite: " + result.message);
+      } else {
+        console.log(
+          isFavorite ? "Added to favorites" : "Removed from favorites",
+        );
       }
-      return true;
-    })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case "price-low":
-          return (a.hourlyRate || 0) - (b.hourlyRate || 0);
-        case "price-high":
-          return (b.hourlyRate || 0) - (a.hourlyRate || 0);
-        case "distance":
-          return (a.distance || 0) - (b.distance || 0);
-        case "rating":
-        default:
-          return (b.rating || 0) - (a.rating || 0);
-      }
+    } catch (err) {
+      console.error("Unexpected error toggling favorite:", err);
+      fetchFavorites();
+    }
+  };
+
+  const handleSendMessage = (providerId, providerName) => {
+    console.log(`Sending message to provider ${providerId}: ${providerName}`);
+
+    setMessageConfirmation({
+      show: true,
+      providerName: providerName,
     });
 
-  // -----------------------------
-  // Stars
-  // -----------------------------
-  const renderStars = (rating) => {
-    if (!rating) return null;
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 >= 0.5;
-
-    return (
-      <div className={styles.stars}>
-        {[...Array(5)].map((_, i) => (
-          <span
-            key={i}
-            className={`${styles.star} ${
-              i < fullStars || (i === fullStars && hasHalfStar)
-                ? styles.starFilled
-                : styles.starEmpty
-            }`}
-          >
-            {i < fullStars || (i === fullStars && hasHalfStar) ? "★" : "☆"}
-          </span>
-        ))}
-      </div>
-    );
+    setTimeout(() => {
+      setMessageConfirmation({
+        show: false,
+        providerName: "",
+      });
+    }, 3000);
   };
 
-  // -----------------------------
-  // Render
-  // -----------------------------
+  const handleViewProfile = (profileUrl) => {
+    if (profileUrl) {
+      window.open(profileUrl, "_blank");
+    } else {
+      console.warn("No profile URL available for this provider");
+    }
+  };
+
+  const closeMessageConfirmation = () => {
+    setMessageConfirmation({
+      show: false,
+      providerName: "",
+    });
+  };
+
+  // --------------------------------
+  // 6. Render
+  // --------------------------------
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>Find Childcare Services</h1>
 
-      {/* Category Selection */}
-      <div className={styles.categorySelector}>
-        <button
-          className={`${styles.categoryButton} ${
-            category === "babysitters" ? styles.categoryActive : ""
-          }`}
-          onClick={() => handleCategoryChange("babysitters")}
-        >
-          Babysitters
-        </button>
-        <button
-          className={`${styles.categoryButton} ${
-            category === "nannies" ? styles.categoryActive : ""
-          }`}
-          onClick={() => handleCategoryChange("nannies")}
-        >
-          Nannies
-        </button>
-      </div>
-
-      {/* Cache status indicator */}
-      {!loading && cacheInfo.isCached && (
-        <div className={styles.cacheInfo}>
-          <div className={styles.cacheStatusBadge}>
-            <span role="img" aria-label="Cache">
-              ⚡
-            </span>{" "}
-            Cached Data
-          </div>
-          {cacheInfo.lastUpdated && (
-            <div className={styles.cacheTimestamp}>
-              Last updated: {formatDate(cacheInfo.lastUpdated)}
-            </div>
-          )}
-          {cacheInfo.fallback && cacheInfo.requestedLocation && (
-            <div className={styles.cacheFallback}>
-              No data available for &quot;{cacheInfo.requestedLocation}&quot;.
-              Showing results from {cacheInfo.actualLocation} instead.
-            </div>
-          )}
-          <button
-            onClick={handleForceRefresh}
-            disabled={isRefreshing}
-            className={styles.refreshButton}
-          >
-            {isRefreshing ? "Refreshing..." : "Refresh Data"}
+      {!isAuthenticated && !loading ? (
+        <div className={styles.error}>
+          <p>⚠️ {error || "Authentication required"}</p>
+          <button className={styles.retryButton} onClick={handleLogin}>
+            Log In
           </button>
         </div>
-      )}
-
-      {/* Search bar with filter button */}
-      <div className={styles.searchContainer}>
-        <span className={styles.searchIcon}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-        </span>
-        <input
-          type="text"
-          className={styles.searchInput}
-          placeholder={`Search ${category}...`}
-          value={searchTerm}
-          onChange={handleSearchChange}
-        />
-        <button
-          onClick={() => setIsFiltersVisible(!isFiltersVisible)}
-          className={styles.filterButton}
-          aria-label="Toggle filters"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <line x1="4" y1="21" x2="4" y2="14"></line>
-            <line x1="4" y1="10" x2="4" y2="3"></line>
-            <line x1="12" y1="21" x2="12" y2="12"></line>
-            <line x1="12" y1="8" x2="12" y2="3"></line>
-            <line x1="20" y1="21" x2="20" y2="16"></line>
-            <line x1="20" y1="12" x2="20" y2="3"></line>
-            <line x1="1" y1="14" x2="7" y2="14"></line>
-            <line x1="9" y1="8" x2="15" y2="8"></line>
-            <line x1="17" y1="16" x2="23" y2="16"></line>
-          </svg>
-          Filters
-        </button>
-      </div>
-
-      {/* City filter section */}
-      <div className={styles.searchContainer}>
-        <span className={styles.searchIcon}>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-            <circle cx="12" cy="10" r="3"></circle>
-          </svg>
-        </span>
-        <input
-          type="text"
-          placeholder="Filter by city..."
-          value={cityFilter}
-          onChange={handleCityFilterChange}
-          className={styles.searchInput}
-        />
-        <button
-          onClick={handleApplyFilterClick}
-          className={styles.applyFilterButton}
-        >
-          Apply
-        </button>
-      </div>
-
-      {availableCities.length > 0 && (
-        <div className={styles.citySuggestions}>
-          <h3 className={styles.suggestionsTitle}>Available Cities:</h3>
-          <div className={styles.cityTags}>
-            {availableCities.map((city) => (
-              <button
-                key={city}
-                onClick={() => doFetchRef.current(false, city)}
-                className={`${styles.cityTag} ${
-                  selectedCity.toLowerCase() === city.toLowerCase()
-                    ? styles.cityTagActive
-                    : ""
-                }`}
-              >
-                {city}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Filters panel */}
-      {isFiltersVisible && (
-        <div className={`${styles.filtersContainer} ${styles.visible}`}>
-          <div className={styles.filterSection}>
-            {/* Availability filter */}
-            <p className={styles.filterTitle}>Availability</p>
-            <div className={styles.filterOptions}>
-              {availabilityOptions.map((option) => (
-                <button
-                  key={option.id}
-                  className={`${styles.filterOption} ${
-                    availabilityFilter === option.id
-                      ? styles.filterOptionActive
-                      : ""
-                  }`}
-                  onClick={() => setAvailabilityFilter(option.id)}
-                >
-                  {option.label}
-                </button>
-              ))}
+      ) : (
+        <>
+          {/* Search and Filter Panel */}
+          <div className={styles.searchFilterPanel}>
+            {/* Combined Search Input */}
+            <div className={styles.combinedSearch}>
+              <input
+                type="text"
+                placeholder="Search by city (e.g. Toronto, Vancouver), or by name (e.g. Sarah, John)"
+                value={searchTerm}
+                onChange={handleSearchChange}
+                className={styles.combinedSearchInput}
+              />
             </div>
 
-            {/* Sort options */}
-            <p className={styles.filterTitle}>Sort By</p>
-            <div className={styles.filterOptions}>
+            {/* Sorting Options */}
+            <div className={styles.sortOptions}>
               {sortOptions.map((option) => (
                 <button
                   key={option.id}
-                  className={`${styles.filterOption} ${
-                    sortBy === option.id ? styles.filterOptionActive : ""
+                  className={`${styles.sortButton} ${
+                    sortBy === option.id ? styles.active : ""
                   }`}
-                  onClick={() => setSortBy(option.id)}
+                  onClick={() => handleSortChange(option.id)}
                 >
                   {option.label}
                 </button>
               ))}
             </div>
 
-            {/* Clear filters button */}
-            <div className={styles.clearFilters}>
-              <button
-                className={styles.clearFiltersButton}
-                onClick={clearFilters}
-              >
-                Clear All Filters
-              </button>
+            {/* Bottom Controls: Category Selection & Favorites */}
+            <div className={styles.bottomControls}>
+              {/* Category Selection with Purple Tint */}
+              <div className={styles.categorySelector}>
+                <button
+                  className={`${styles.categoryButton} ${
+                    category === "all" ? styles.active : ""
+                  }`}
+                  onClick={() => handleCategoryChange("all")}
+                >
+                  All
+                </button>
+                <button
+                  className={`${styles.categoryButton} ${
+                    category === "babysitters" ? styles.active : ""
+                  }`}
+                  onClick={() => handleCategoryChange("babysitters")}
+                >
+                  Babysitters
+                </button>
+                <button
+                  className={`${styles.categoryButton} ${
+                    category === "nannies" ? styles.active : ""
+                  }`}
+                  onClick={() => handleCategoryChange("nannies")}
+                >
+                  Nannies
+                </button>
+              </div>
+
+              {/* Favorites Filter */}
+              <div className={styles.favoritesFilterContainer}>
+                <label className={styles.favoritesFilterLabel}>
+                  <input
+                    type="checkbox"
+                    checked={showOnlyFavorites}
+                    onChange={handleFavoritesFilterChange}
+                    className={styles.favoritesCheckbox}
+                  />
+                  <span className={styles.favoritesHeart}>❤</span>
+                  <span>Show only favorites</span>
+                </label>
+              </div>
             </div>
           </div>
-        </div>
-      )}
 
-      {/* Loading / Error / Results */}
-      {loading ? (
-        <div className={styles.loading}>
-          <div className={styles.spinnerWrapper}>
-            <div className={styles.spinner}></div>
-          </div>
-          <p>Loading {category}...</p>
-        </div>
-      ) : error ? (
-        <div className={styles.error}>{error}</div>
-      ) : (
-        <>
-          <p className={styles.resultCount}>
-            Showing {filteredProviders.length}{" "}
-            {filteredProviders.length === 1
-              ? category === "babysitters"
-                ? "babysitter"
-                : "nanny"
-              : category}
-            {selectedCity
-              ? ` in ${selectedCity}`
-              : filteredProviders.length > 0
-              ? " from all available cities"
-              : ""}
-          </p>
+          {/* Message Confirmation */}
+          {messageConfirmation.show && (
+            <div className={styles.messageConfirmationOverlay}>
+              <div className={styles.messageConfirmation}>
+                <div className={styles.checkmarkIcon}>✓</div>
+                <p>Sent {messageConfirmation.providerName} a message to hire</p>
+                <button
+                  className={styles.confirmationButton}
+                  onClick={closeMessageConfirmation}
+                >
+                  OK
+                </button>
+              </div>
+            </div>
+          )}
 
-          <div className={styles.providersGrid}>
-            {filteredProviders.length > 0 ? (
-              filteredProviders.map((provider, index) => {
-                // If the backend returns a localhost-based profile URL, fix it:
-                const sanitizedProfileUrl = provider.profileUrl?.includes(
-                  "localhost",
-                )
-                  ? provider.profileUrl.replace(
-                      "http://localhost:3000",
-                      "https://care.com",
-                    )
-                  : provider.profileUrl;
-
-                return (
-                  <div
-                    key={provider.id || index}
-                    className={styles.providerCard}
-                  >
-                    {/* Provider type banner */}
-                    <div
-                      className={`${styles.providerTypeBanner} ${
-                        provider.providerType === "individual"
-                          ? styles.individualProvider
-                          : styles.businessProvider
-                      }`}
-                    >
-                      {provider.providerType === "individual"
-                        ? `Individual ${
-                            provider.category === "babysitter"
-                              ? "Babysitter"
-                              : "Nanny"
-                          }`
-                        : `Professional ${
-                            provider.category === "babysitter"
-                              ? "Babysitter"
-                              : "Nanny"
-                          }`}
-                    </div>
-
-                    {/* Premium badge */}
-                    {provider.isPremium && (
-                      <div className={styles.premiumBadge}>Premium</div>
-                    )}
-
-                    <div
-                      className={styles.cardContent}
-                      onClick={() => toggleExpandProvider(provider.id || index)}
-                    >
-                      <div className={styles.cardHeader}>
-                        <div className={styles.imageContainer}>
-                          {provider.profileImage ? (
-                            <Image
-                              src={provider.profileImage}
-                              alt={provider.name || "Profile Image"}
-                              className={styles.providerImage}
-                              width={80}
-                              height={80}
-                            />
-                          ) : (
-                            <div className={styles.placeholderImage}>
-                              {provider.name?.charAt(0) || "?"}
-                            </div>
-                          )}
-                        </div>
-
-                        <div className={styles.headerInfo}>
-                          <h2 className={styles.providerName}>
-                            {provider.name}
-                          </h2>
-                          <p className={styles.providerLocation}>
-                            <span className={styles.locationIcon}>
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="12"
-                                height="12"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              >
-                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                                <circle cx="12" cy="10" r="3"></circle>
-                              </svg>
-                            </span>
-                            {provider.location}
-                            {provider.distance > 0 &&
-                              ` (${provider.distance} km)`}
-                          </p>
-
-                          {provider.rating && (
-                            <div className={styles.ratingContainer}>
-                              {renderStars(provider.rating)}
-                              <span className={styles.ratingText}>
-                                {provider.rating}
-                              </span>
-                              {provider.reviewsCount > 0 && (
-                                <span className={styles.reviewCount}>
-                                  ({provider.reviewsCount})
-                                </span>
-                              )}
-                            </div>
-                          )}
-                        </div>
-
-                        {/* Favorite button */}
+          {/* Loading, Error & Results */}
+          {loading ? (
+            <div className={styles.loadingState}>
+              <div className={styles.loadingSpinner}></div>
+              <p>Loading providers...</p>
+            </div>
+          ) : error ? (
+            <div className={styles.error}>
+              <p>⚠️ {error}</p>
+              <button className={styles.retryButton} onClick={fetchData}>
+                Try Again
+              </button>
+            </div>
+          ) : (
+            <>
+              <p>
+                Showing {currentProviders.length} of {totalItems} {category}
+              </p>
+              {currentProviders.length > 0 ? (
+                <div className={styles.providersGrid}>
+                  {currentProviders.map((provider) => {
+                    const isFavorite = favoriteProviderIds.includes(
+                      provider.id,
+                    );
+                    return (
+                      <div
+                        key={provider.id}
+                        className={`${styles.providerCard} ${
+                          provider.provider_type === "nannies"
+                            ? styles.nanny
+                            : styles.babysitter
+                        } ${provider.is_premium ? styles.premium : ""}`}
+                      >
+                        {/* Favorite Button */}
                         <button
-                          className={`${styles.favoriteButton} ${
-                            favorites.includes(provider.id || index)
-                              ? styles.favoriteActive
-                              : ""
-                          }`}
-                          onClick={(e) =>
-                            toggleFavorite(provider.id || index, e)
-                          }
+                          className={styles.favoriteButton}
+                          onClick={() => handleToggleFavorite(provider.id)}
                           aria-label={
-                            favorites.includes(provider.id || index)
+                            isFavorite
                               ? "Remove from favorites"
                               : "Add to favorites"
                           }
                         >
-                          {favorites.includes(provider.id || index) ? "♥" : "♡"}
+                          <svg
+                            viewBox="0 0 24 24"
+                            className={`${styles.favoriteIcon} ${
+                              isFavorite ? styles.active : ""
+                            }`}
+                          >
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                          </svg>
                         </button>
-                      </div>
 
-                      <div className={styles.infoContent}>
-                        {provider.hourlyRate > 0 && (
-                          <div className={styles.infoRow}>
-                            <span className={styles.infoLabel}>
-                              Hourly Rate:
-                            </span>
-                            <span className={styles.rateValue}>
-                              ${provider.hourlyRate.toFixed(2)}
-                            </span>
-                          </div>
-                        )}
-
-                        {provider.experience && (
-                          <div className={styles.infoRow}>
-                            <span className={styles.infoLabel}>
-                              Experience:
-                            </span>
-                            <span>{provider.experience}</span>
-                          </div>
-                        )}
-
-                        {provider.age && (
-                          <div className={styles.infoRow}>
-                            <span className={styles.infoLabel}>Age:</span>
-                            <span>{provider.age}</span>
-                          </div>
-                        )}
-
-                        {provider.bio && (
-                          <p className={styles.bio}>
-                            {provider.bio.length > 150
-                              ? `${provider.bio.substring(0, 150)}...`
-                              : provider.bio}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Badges */}
-                      <div className={styles.badgesContainer}>
-                        {provider.licensed && (
-                          <span
-                            className={`${styles.badge} ${styles.licensedBadge}`}
-                          >
-                            <span className={styles.badgeIcon}>✓</span> Licensed
-                          </span>
-                        )}
-                        {provider.verified && (
-                          <span
-                            className={`${styles.badge} ${styles.verifiedBadge}`}
-                          >
-                            <span className={styles.badgeIcon}>✓</span> Verified
-                          </span>
-                        )}
-                        {provider.hiredCount > 0 && (
-                          <span
-                            className={`${styles.badge} ${styles.hiredBadge}`}
-                          >
-                            <span className={styles.badgeIcon}>👍</span>
-                            Hired {provider.hiredCount}{" "}
-                            {provider.hiredCount === 1 ? "time" : "times"}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Price and availability */}
-                      <div className={styles.pricingContainer}>
-                        <div className={styles.openings}>
-                          {provider.openings}
-                        </div>
-                        {provider.hourlyRate > 0 && (
-                          <div className={styles.hourlyRate}>
-                            ${provider.hourlyRate.toFixed(2)}
-                            <span className={styles.rateUnit}>/hr</span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* View more button */}
-                      <div className={styles.viewMoreContainer}>
-                        <button className={styles.viewMoreButton}>
-                          {expandedProvider === (provider.id || index)
-                            ? "View less"
-                            : "View more"}
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Expanded details */}
-                    {expandedProvider === (provider.id || index) && (
-                      <div className={styles.expandedDetails}>
-                        <div className={styles.detailsGrid}>
-                          <div>
-                            {provider.age && (
-                              <div className={styles.detailSection}>
-                                <p className={styles.detailLabel}>Age</p>
-                                <p className={styles.detailValue}>
-                                  {provider.age} years
-                                </p>
+                        <div className={styles.providerHeader}>
+                          <div className={styles.providerImage}>
+                            {provider.profile_image ? (
+                              <Image
+                                src={provider.profile_image}
+                                alt={provider.name || "Care provider"}
+                                width={80}
+                                height={80}
+                                className={styles.profileImage}
+                                onError={(e) => {
+                                  e.currentTarget.src = "/placeholder.jpg";
+                                }}
+                              />
+                            ) : (
+                              <div className={styles.placeholderImage}>
+                                {provider.name ? provider.name.charAt(0) : "?"}
                               </div>
                             )}
-
-                            {provider.ageRange && (
-                              <div className={styles.detailSection}>
-                                <p className={styles.detailLabel}>
-                                  Age Range Preference
-                                </p>
-                                <p className={styles.detailValue}>
-                                  {provider.ageRange}
-                                </p>
+                          </div>
+                          <div className={styles.providerInfo}>
+                            <h2>{provider.name || "Name unavailable"}</h2>
+                            {provider.location && <p>{provider.location}</p>}
+                            {provider.rating && (
+                              <div className={styles.starRating}>
+                                <span className={styles.value}>
+                                  {Number(provider.rating).toFixed(1)}
+                                </span>
+                                <span>⭐</span>
                               </div>
                             )}
-
-                            {provider.hours && (
-                              <div className={styles.detailSection}>
-                                <p className={styles.detailLabel}>Hours</p>
-                                <p className={styles.detailValue}>
-                                  {provider.hours}
-                                </p>
-                              </div>
-                            )}
-
-                            {provider.languages &&
-                              provider.languages.length > 0 && (
-                                <div className={styles.detailSection}>
-                                  <p className={styles.detailLabel}>
-                                    Languages
-                                  </p>
-                                  <div className={styles.chipContainer}>
-                                    {provider.languages.map((lang, idx) => (
-                                      <span key={idx} className={styles.chip}>
-                                        {lang}
-                                      </span>
-                                    ))}
-                                  </div>
-                                </div>
+                            <div className={styles.badgeContainer}>
+                              {provider.verification && (
+                                <span className={styles.verifiedBadge}>
+                                  ✔ Verified
+                                </span>
                               )}
-
-                            {provider.featuredReview && (
-                              <div className={styles.detailSection}>
-                                <p className={styles.detailLabel}>Review</p>
-                                <p className={styles.detailValue}>
-                                  &quot;{provider.featuredReview}&quot;
-                                </p>
-                              </div>
-                            )}
-                          </div>
-
-                          <div>
-                            {provider.certifications &&
-                              provider.certifications.length > 0 && (
-                                <div className={styles.detailSection}>
-                                  <p className={styles.detailLabel}>
-                                    Certifications
-                                  </p>
-                                  <div className={styles.chipContainer}>
-                                    {provider.certifications.map(
-                                      (cert, idx) => (
-                                        <span
-                                          key={idx}
-                                          className={`${styles.chip} ${styles.licensedBadge}`}
-                                        >
-                                          <span className={styles.badgeIcon}>
-                                            ✓
-                                          </span>{" "}
-                                          {cert}
-                                        </span>
-                                      ),
-                                    )}
-                                  </div>
-                                </div>
+                              {provider.is_premium && (
+                                <span className={styles.premiumBadge}>
+                                  Premium
+                                </span>
                               )}
-
-                            {provider.specialties &&
-                              provider.specialties.length > 0 && (
-                                <div className={styles.detailSection}>
-                                  <p className={styles.detailLabel}>
-                                    Specialties
-                                  </p>
-                                  <div className={styles.chipContainer}>
-                                    {provider.specialties.map(
-                                      (specialty, idx) => (
-                                        <span key={idx} className={styles.chip}>
-                                          {specialty}
-                                        </span>
-                                      ),
-                                    )}
-                                  </div>
-                                </div>
-                              )}
-
-                            {/* Contact Info */}
-                            {provider.contactInfo && (
-                              <div className={styles.detailSection}>
-                                <p className={styles.detailLabel}>Contact</p>
-                                {provider.contactInfo.phone && (
-                                  <p className={styles.detailValue}>
-                                    {provider.contactInfo.phone}
-                                  </p>
-                                )}
-                                {provider.contactInfo.email && (
-                                  <p className={styles.detailValue}>
-                                    {provider.contactInfo.email}
-                                  </p>
-                                )}
-                              </div>
-                            )}
+                            </div>
                           </div>
                         </div>
 
-                        <div className={styles.actionsContainer}>
-                          {/* Profile link (with sanitized URL) */}
-                          {provider.profileUrl && (
-                            <a
-                              href={sanitizedProfileUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={`${styles.actionButton} ${styles.primaryButton}`}
-                            >
-                              View Full Profile
-                            </a>
+                        <div className={styles.providerContent}>
+                          {provider.title && (
+                            <p className={styles.bio}>{provider.title}</p>
                           )}
+                          {provider.experience && (
+                            <p className={styles.experience}>
+                              Experience: {provider.experience} years
+                            </p>
+                          )}
+                          {provider.hourly_rate && (
+                            <div className={styles.hourlyRate}>
+                              ${Number(provider.hourly_rate).toFixed(2)}/hr
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className={styles.providerActions}>
                           <button
-                            className={`${styles.actionButton} ${styles.secondaryButton}`}
+                            className={styles.viewProfileButton}
+                            onClick={() =>
+                              handleViewProfile(provider.profile_url)
+                            }
                           >
-                            <span className={styles.buttonIcon}>
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="16"
-                                height="16"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              >
-                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-                              </svg>
-                            </span>
-                            Contact {provider.name.split(" ")[0]}
+                            View Profile
+                          </button>
+                          <button
+                            className={styles.contactButton}
+                            onClick={() =>
+                              handleSendMessage(provider.id, provider.name)
+                            }
+                          >
+                            Contact
                           </button>
                         </div>
                       </div>
-                    )}
-                  </div>
-                );
-              })
-            ) : (
-              <div className={styles.noResults}>
-                <p>
-                  No {category} found {selectedCity ? `in ${selectedCity}` : ""}
-                  .
-                </p>
-                <button
-                  onClick={clearFilters}
-                  className={styles.viewProfileButton}
-                  style={{ marginTop: "16px" }}
-                >
-                  Clear Filters
-                </button>
-              </div>
-            )}
-          </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className={styles.emptyState}>
+                  {showOnlyFavorites
+                    ? "You haven't added any providers to your favorites yet."
+                    : "No providers found matching your criteria. Try adjusting your filters."}
+                </div>
+              )}
+
+              {/* Pagination */}
+              {totalItems > 0 && totalPages > 1 && (
+                <div className={styles.pagination}>
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className={styles.paginationButton}
+                  >
+                    Previous
+                  </button>
+                  <span>
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className={styles.paginationButton}
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </>
+          )}
         </>
       )}
     </div>
   );
-};
-
-export default CareServices;
+}
