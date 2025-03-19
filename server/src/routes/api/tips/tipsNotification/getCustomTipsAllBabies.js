@@ -56,7 +56,7 @@ module.exports = async (req, res) => {
             [parseInt(user_id, 10)]
         );  // get all babies for this user
         const babies = babyProfilesResult.rows;
-        logger.debug(babies, `babies for user_id ${user_id}`);
+        logger.debug(babies, `Babies Id for user_id ${user_id}`);
 
         if (babies.length === 0) {
             return res
@@ -116,10 +116,10 @@ module.exports = async (req, res) => {
             const babyTips = tipsResult.rows;
 
             babiesTips = babiesTips.concat(babyTips);
-            logger.info(babyTips, `babyTips for baby_id ${baby.baby_id} is ${babyTips.length} tips: `);
+            logger.info(`babyTips for baby_id ${baby.baby_id} is: ${babyTips.length} tips`);
         }
 
-        logger.info(babiesTips, `babiesTips for user_id ${user_id}: `);
+        logger.info(`babiesTips for user_id ${user_id} is: ${babiesTips.length} tips`);
 
         // IF AFTER FILTER, number of tips is <=2 ==> SHOW ALL TIPS (ignore custom tips)
         if (babiesTips.length <= 2) {
@@ -129,7 +129,7 @@ module.exports = async (req, res) => {
                 `SELECT * FROM CuratedTips`
             );
             babiesTips = allTipsResult.rows;
-            logger.info(babiesTips, `All tips for user_id ${user_id}: `);
+            logger.info(`All tips for user_id ${user_id} is: ${babiesTips.length} tips`);
         }
 
         // Step 5: Send the notification settings and related tips
