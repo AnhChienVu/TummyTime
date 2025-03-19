@@ -12,12 +12,12 @@
 
 //TODO: UNCOMMENT THESE CONSTANTS [AFTER SPRINT3 DEMO]
 // CONSTANTS FOR TIME INTERVALS DAILY/WEEKLY
-// const DAILY_INTERVAL = 2*60000; // 2 minutes
-// const WEEKLY_INTERVAL = 7* 24* 60*60000; // 7 days
+const DAILY_INTERVAL = 60 * 60000; // every 1hour
+const WEEKLY_INTERVAL = 7 * 24 * 60 * 60000; // 7 days
 
-//TODO:  [FOR SPRINT3 DEMO]: 15s for Daily, 30s for Weekly
-const DAILY_INTERVAL = 15000; // 15 seconds
-const WEEKLY_INTERVAL = 30000; // 30 seconds
+// //TODO:  [FOR SPRINT3 DEMO]: 15s for Daily, 30s for Weekly
+// const DAILY_INTERVAL = 15000; // 15 seconds
+// const WEEKLY_INTERVAL = 30000; // 30 seconds
 
 import React, { useState, useEffect } from "react";
 import { Alert, Button } from "react-bootstrap";
