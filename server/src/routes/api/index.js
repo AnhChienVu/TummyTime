@@ -20,11 +20,10 @@ const { getReminders } = require('./baby/reminders/getReminders');
 const { createReminder } = require('./baby/reminders/postReminder');
 const { updateReminder } = require('./baby/reminders/putReminder');
 const { deleteReminders } = require('./baby/reminders/deleteReminders');
-const {
-    getBabysitters,
-    getNannies,
-    refreshCareCache
-  } = require('./careServices');
+
+// Import childcare services routes
+const careServices = require('./careServices/getAllChildcareServices');
+const favoritesHandler = require('./careServices/saveFavorites');
 
 router.post("/login", require("./login"));
 router.post('/signup', require('./signup'));
@@ -205,9 +204,9 @@ router.put('/baby/:babyId/reminders/:reminderId', authenticate(), updateReminder
 router.delete('/baby/:babyId/reminders', authenticate(), deleteReminders);
 
 // ************ /careServices routes ************
-router.get('/careServices/babysitters', authenticate(), getBabysitters);
-router.get('/careServices/nannies', authenticate(), getNannies);
-router.post('/careServices/refresh-cache', authenticate(), refreshCareCache);
+router.get('/careServices', authenticate(), careServices);
+router.get('/careServices/favorites', favoritesHandler.getFavorites);
+router.post('/careServices/favorites', favoritesHandler.toggleFavorite);
 
 // Testing the authentication middleware
 // router.get('/test', authenticate(), require('./test'));
