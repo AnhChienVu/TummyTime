@@ -101,15 +101,29 @@ module.exports = async (req, res) => {
     // Build CSV content
     let csvContent = "";
 
+    // LOOP THROUGH EACH BABY
     for (let baby of babies) {
+      // add [separator] between next baby
+      if (csvContent.length > 0) {
+        csvContent += "==========,==============,============,============,====================\n";
+      }
+
       // Baby header
-      csvContent += `Baby: ${baby.first_name} ${baby.last_name}, DOB: ${baby.birthdate || "N/A"}\n`;
+      csvContent += `Baby: ${baby.first_name} ${baby.last_name}\n`;
+      // csvContent += `, DOB: ${baby.birthdate || "N/A"}`;  //TEMPORARILY REMOVED DOB
+      csvContent += `\n`;
 
       // --- Baby Information ---
       if (includeBabyInfo) {
         csvContent += "Baby Information\n";
-        csvContent += "ID,First Name,Last Name,DOB,Gender,Weight,Created At\n";
-        csvContent += `${baby.baby_id},${baby.first_name},${baby.last_name},${baby.birthdate || "N/A"},${baby.gender},${baby.weight},${baby.created_at}\n\n`;
+        csvContent += "ID,First Name,Last Name,";
+        // csvContent += "DOB,";  //TEMPORARILY REMOVED DOB
+        csvContent += "Gender,Weight,Created At\n";
+
+        csvContent += `${baby.baby_id},${baby.first_name},${baby.last_name}`;
+        //csvContent += `,${baby.birthdate || "N/A"}`;  //TEMPORARILY REMOVED DOB
+        csvContent += `,${baby.gender},${baby.weight},${baby.created_at}`;
+        csvContent += `\n\n`;
       }
 
       // --- Growth Records Section ---
@@ -119,6 +133,7 @@ module.exports = async (req, res) => {
           [baby.baby_id, startDate, endDate]
         );
 
+        csvContent += "---------------------------,---------------------------,----------------------\n";
         csvContent += "Growth Records\n";
         csvContent += "Growth ID,Date,Weight,Height,Notes\n";
         if (growthResult.rows.length > 0) {
@@ -137,6 +152,8 @@ module.exports = async (req, res) => {
           "SELECT * FROM milestones WHERE baby_id = $1 AND date BETWEEN $2 AND $3 ORDER BY date ASC",
           [baby.baby_id, startDate, endDate]
         );
+
+        csvContent += "---------------------------,---------------------------,----------------------\n";
         csvContent += "Milestones\n";
         csvContent += "Milestone ID,Date,Title,Details\n";
         if (milestonesResult.rows.length > 0) {
@@ -155,6 +172,8 @@ module.exports = async (req, res) => {
           "SELECT * FROM feedingschedule WHERE baby_id = $1 AND date BETWEEN $2 AND $3 ORDER BY date ASC, time ASC",
           [baby.baby_id, startDate, endDate]
         );
+
+        csvContent += "---------------------------,---------------------------,----------------------\n";
         csvContent += "Feeding Schedule\n";
         csvContent += "Schedule ID,Date,Time,Meal,Amount,Type,Issues,Notes\n";
         if (feedingResult.rows.length > 0) {
@@ -173,6 +192,8 @@ module.exports = async (req, res) => {
           "SELECT * FROM stool_entries WHERE baby_id = $1 AND date(timestamp) BETWEEN $2 AND $3 ORDER BY timestamp DESC",
           [baby.baby_id, startDate, endDate]
         );
+
+        csvContent += "---------------------------,---------------------------,----------------------\n";
         csvContent += "Stool Records\n";
         csvContent += "Stool ID,Timestamp,Color,Consistency,Notes\n";
         if (stoolResult.rows.length > 0) {
