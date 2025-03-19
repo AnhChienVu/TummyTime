@@ -114,8 +114,10 @@ export default function Journal() {
         (transcript.length ? (searchTerm.length ? " " : "") + transcript : "");
       setSearchTerm(newSearchValue);
     } else {
-      const newTextValue =
-        text + (transcript.length ? (text.length ? " " : "") + transcript : "");
+      const newTextValue = transcript.length
+        ? (text.length ? " " : "") + transcript
+        : "";
+
       setText(newTextValue);
       // Update the editor content. Otherwise, the rich text editor will not be updated with the transcript from speech-to-text
       editor?.commands.setContent(newTextValue);
@@ -147,11 +149,9 @@ export default function Journal() {
             : ""),
       });
     } else {
-      const newText =
-        editedEntry.text +
-        (transcript.length
-          ? (editedEntry.text.length ? " " : "") + transcript
-          : "");
+      const newText = transcript.length
+        ? (editedEntry.text.length ? " " : "") + transcript
+        : "";
       setEditedEntry({
         ...editedEntry,
         text: newText,
@@ -570,7 +570,11 @@ export default function Journal() {
             <Row className="mb-3">
               <Col>
                 <div className={styles.editor}>
-                  <div className={styles.toolbar}>
+                  <div
+                    className={`${styles.toolbar} ${
+                      isListening ? styles.disabledEditor : ""
+                    }`}
+                  >
                     <button
                       type="button"
                       onClick={() => editor.chain().focus().toggleBold().run()}
@@ -639,7 +643,9 @@ export default function Journal() {
                       Link
                     </button>
                   </div>
-                  <EditorContent editor={editor} />
+                  <div className={isListening ? styles.disabledEditor : ""}>
+                    <EditorContent editor={editor} />
+                  </div>
                 </div>
                 {/* Text-to-speech for create mode */}
               </Col>
@@ -892,7 +898,11 @@ export default function Journal() {
           {isEditing ? (
             <div>
               <div className={styles.editor}>
-                <div className={styles.toolbar}>
+                <div
+                  className={`${styles.toolbar} ${
+                    isListening ? styles.disabledEditor : ""
+                  }`}
+                >
                   <button
                     type="button"
                     onClick={() =>
@@ -964,7 +974,13 @@ export default function Journal() {
                   </button>
                 </div>
                 <div className="d-flex">
-                  <EditorContent editor={editEditor} className="flex-grow-1" />
+                  <div
+                    className={`flex-grow-1 ${
+                      isListening ? styles.disabledEditor : ""
+                    }`}
+                  >
+                    <EditorContent editor={editEditor} />
+                  </div>
                   <button
                     onClick={(e) => startStopListeningEdit(e, "text")}
                     className={`${styles.microphone} btn-sm ms-2 align-self-start`}
