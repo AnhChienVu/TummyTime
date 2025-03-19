@@ -86,7 +86,7 @@ function MilestoneEachBaby() {
     } else {
       console.log("Baby ID not found in query params.");
     }
-  }, [baby_id]);
+  }, [baby_id, router.isReady]);
 
   useEffect(() => {
     if (transcript && currentInputField) {
