@@ -5,7 +5,7 @@
 const fs = require('fs').promises;
 const path = require('path');
 const logger = require('../utils/logger');
-const { scrapeChildcareProviders } = require('./scrapers/childcareScrapers');
+const { scrapeChildcareProviders } = require('./scrapers/childCareScrapers');
 
 // Cache file paths
 const CACHE_DIR = path.join(__dirname, '../cache');
@@ -22,12 +22,12 @@ const CACHE_DURATION = 12 * 60 * 60 * 1000;
 let cachedData = {
   babysitters: {
     lastUpdated: null,
-    dataByLocation: {}
+    dataByLocation: {},
   },
   nannies: {
     lastUpdated: null,
-    dataByLocation: {}
-  }
+    dataByLocation: {},
+  },
 };
 
 /**
@@ -52,7 +52,11 @@ async function loadCachedData() {
     try {
       const babysittersData = await fs.readFile(BABYSITTERS_CACHE, 'utf8');
       cachedData.babysitters = JSON.parse(babysittersData);
-      logger.info(`Loaded babysitters cache from disk. Last updated: ${new Date(cachedData.babysitters.lastUpdated)}`);
+      logger.info(
+        `Loaded babysitters cache from disk. Last updated: ${new Date(
+          cachedData.babysitters.lastUpdated
+        )}`
+      );
     } catch (err) {
       if (err.code !== 'ENOENT') {
         logger.error(`Error loading babysitters cache: ${err.message}`);
@@ -65,7 +69,9 @@ async function loadCachedData() {
     try {
       const nanniesData = await fs.readFile(NANNIES_CACHE, 'utf8');
       cachedData.nannies = JSON.parse(nanniesData);
-      logger.info(`Loaded nannies cache from disk. Last updated: ${new Date(cachedData.nannies.lastUpdated)}`);
+      logger.info(
+        `Loaded nannies cache from disk. Last updated: ${new Date(cachedData.nannies.lastUpdated)}`
+      );
     } catch (err) {
       if (err.code !== 'ENOENT') {
         logger.error(`Error loading nannies cache: ${err.message}`);
@@ -102,10 +108,11 @@ async function initializeCache() {
 
   // Check if cache is expired or doesn't exist
   const now = Date.now();
-  const shouldUpdateBabysitters = !cachedData.babysitters.lastUpdated ||
-    (now - cachedData.babysitters.lastUpdated > CACHE_DURATION);
-  const shouldUpdateNannies = !cachedData.nannies.lastUpdated ||
-    (now - cachedData.nannies.lastUpdated > CACHE_DURATION);
+  const shouldUpdateBabysitters =
+    !cachedData.babysitters.lastUpdated ||
+    now - cachedData.babysitters.lastUpdated > CACHE_DURATION;
+  const shouldUpdateNannies =
+    !cachedData.nannies.lastUpdated || now - cachedData.nannies.lastUpdated > CACHE_DURATION;
 
   if (shouldUpdateBabysitters || shouldUpdateNannies) {
     logger.info('Cache is expired or missing, starting update process...');
@@ -113,14 +120,14 @@ async function initializeCache() {
     // Start updating cache in the background
     updateCache()
       .then(() => logger.info('Initial cache update completed'))
-      .catch(err => logger.error(`Initial cache update failed: ${err.message}`));
+      .catch((err) => logger.error(`Initial cache update failed: ${err.message}`));
   }
 
   // Set up periodic cache refresh
   setInterval(() => {
     updateCache()
       .then(() => logger.info('Periodic cache update completed'))
-      .catch(err => logger.error(`Periodic cache update failed: ${err.message}`));
+      .catch((err) => logger.error(`Periodic cache update failed: ${err.message}`));
   }, CACHE_DURATION);
 
   logger.info('Cache initialization complete');
@@ -135,12 +142,12 @@ async function updateCache() {
   // First create new data objects
   const newBabysittersData = {
     lastUpdated: Date.now(),
-    dataByLocation: {}
+    dataByLocation: {},
   };
 
   const newNanniesData = {
     lastUpdated: Date.now(),
-    dataByLocation: {}
+    dataByLocation: {},
   };
 
   // Process each default location
@@ -149,13 +156,17 @@ async function updateCache() {
       // Get babysitters for this location
       logger.info(`Scraping babysitters for ${location}`);
       const babysittersResult = await scrapeChildcareProviders('babysitters', location);
-      if (babysittersResult && babysittersResult.providers && babysittersResult.providers.length > 0) {
+      if (
+        babysittersResult &&
+        babysittersResult.providers &&
+        babysittersResult.providers.length > 0
+      ) {
         newBabysittersData.dataByLocation[location] = babysittersResult;
         logger.info(`Cached ${babysittersResult.providers.length} babysitters for ${location}`);
       }
 
       // Give the server a moment to breathe between requests
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
 
       // Get nannies for this location
       logger.info(`Scraping nannies for ${location}`);
@@ -166,8 +177,7 @@ async function updateCache() {
       }
 
       // Give the server a moment to breathe between locations
-      await new Promise(resolve => setTimeout(resolve, 5000));
-
+      await new Promise((resolve) => setTimeout(resolve, 5000));
     } catch (err) {
       logger.error(`Error updating cache for ${location}: ${err.message}`);
       // Continue with other locations even if one fails
@@ -195,9 +205,10 @@ function getCachedBabysitters(location, limit = 20) {
 
   // Check if we have this location in cache
   for (const [cachedLocation, data] of Object.entries(cachedData.babysitters.dataByLocation)) {
-    if (cachedLocation.toLowerCase().includes(normalizedLocation) ||
-        normalizedLocation.includes(cachedLocation.toLowerCase())) {
-
+    if (
+      cachedLocation.toLowerCase().includes(normalizedLocation) ||
+      normalizedLocation.includes(cachedLocation.toLowerCase())
+    ) {
       // Apply the limit
       const providers = data.providers.slice(0, limit);
 
@@ -207,7 +218,7 @@ function getCachedBabysitters(location, limit = 20) {
         totalFound: providers.length,
         providers,
         cached: true,
-        lastUpdated: new Date(cachedData.babysitters.lastUpdated).toISOString()
+        lastUpdated: new Date(cachedData.babysitters.lastUpdated).toISOString(),
       };
     }
   }
@@ -226,7 +237,7 @@ function getCachedBabysitters(location, limit = 20) {
       cached: true,
       fallback: true,
       requestedLocation: location,
-      lastUpdated: new Date(cachedData.babysitters.lastUpdated).toISOString()
+      lastUpdated: new Date(cachedData.babysitters.lastUpdated).toISOString(),
     };
   }
 
@@ -237,7 +248,7 @@ function getCachedBabysitters(location, limit = 20) {
     totalFound: 0,
     providers: [],
     cached: true,
-    noData: true
+    noData: true,
   };
 }
 
@@ -253,9 +264,10 @@ function getCachedNannies(location, limit = 20) {
 
   // Check if we have this location in cache
   for (const [cachedLocation, data] of Object.entries(cachedData.nannies.dataByLocation)) {
-    if (cachedLocation.toLowerCase().includes(normalizedLocation) ||
-        normalizedLocation.includes(cachedLocation.toLowerCase())) {
-
+    if (
+      cachedLocation.toLowerCase().includes(normalizedLocation) ||
+      normalizedLocation.includes(cachedLocation.toLowerCase())
+    ) {
       // Apply the limit
       const providers = data.providers.slice(0, limit);
 
@@ -265,7 +277,7 @@ function getCachedNannies(location, limit = 20) {
         totalFound: providers.length,
         providers,
         cached: true,
-        lastUpdated: new Date(cachedData.nannies.lastUpdated).toISOString()
+        lastUpdated: new Date(cachedData.nannies.lastUpdated).toISOString(),
       };
     }
   }
@@ -284,7 +296,7 @@ function getCachedNannies(location, limit = 20) {
       cached: true,
       fallback: true,
       requestedLocation: location,
-      lastUpdated: new Date(cachedData.nannies.lastUpdated).toISOString()
+      lastUpdated: new Date(cachedData.nannies.lastUpdated).toISOString(),
     };
   }
 
@@ -295,7 +307,7 @@ function getCachedNannies(location, limit = 20) {
     totalFound: 0,
     providers: [],
     cached: true,
-    noData: true
+    noData: true,
   };
 }
 
@@ -303,5 +315,5 @@ module.exports = {
   initializeCache,
   updateCache,
   getCachedBabysitters,
-  getCachedNannies
+  getCachedNannies,
 };
