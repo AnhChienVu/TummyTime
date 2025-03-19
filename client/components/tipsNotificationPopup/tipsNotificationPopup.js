@@ -10,14 +10,16 @@
 
 // EXCEPTION: IF AFTER FILTER, number of tips is <=2 ==> SHOW ALL TIPS (ignore custom tips)
 
-//TODO: UNCOMMENT THESE CONSTANTS [AFTER SPRINT3 DEMO]
-// CONSTANTS FOR TIME INTERVALS DAILY/WEEKLY
-// const DAILY_INTERVAL = 2*60000; // 2 minutes
-// const WEEKLY_INTERVAL = 7* 24* 60*60000; // 7 days
+// CONSTANTS FOR TIME INTERVALS
+const HIDE_INTERVAL = 7000; // 7 seconds
 
-//TODO:  [FOR SPRINT3 DEMO]: 15s for Daily, 30s for Weekly
-const DAILY_INTERVAL = 15000; // 15 seconds
-const WEEKLY_INTERVAL = 30000; // 30 seconds
+//TODO: UNCOMMENT THESE CONSTANTS [AFTER SPRINT3 DEMO]
+const DAILY_INTERVAL = 60 * 60000; // every 1hour
+const WEEKLY_INTERVAL = 7 * 24 * 60 * 60000; // 7 days
+
+// //TODO:  [FOR SPRINT DEMO]: 15s for Daily, 30s for Weekly
+// const DAILY_INTERVAL = 15000; // 15 seconds
+// const WEEKLY_INTERVAL = 30000; // 30 seconds
 
 import React, { useState, useEffect } from "react";
 import { Alert, Button } from "react-bootstrap";
@@ -128,7 +130,7 @@ const TipsNotificationPopup = () => {
           // Hide tip after 10 seconds
           setTimeout(() => {
             setShow(false);
-          }, 10000);
+          }, HIDE_INTERVAL);
         }
       } catch (error) {
         console.error("Error fetching tip notification:", error);
