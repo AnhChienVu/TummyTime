@@ -1,12 +1,12 @@
-const EventEmitter = require("events");
-const { getUserId } = require("../../../src/utils/userIdHelper");
-const pool = require("../../../database/db");
-const addJournalEntry = require("../../../src/routes/api/journal/addJournalEntry");
+const EventEmitter = require('events');
+const { getUserId } = require('../../../src/utils/userIdHelper');
+const pool = require('../../../database/db');
+const addJournalEntry = require('../../../src/routes/api/journal/addJournalEntry');
 
 // Mock dependencies
-jest.mock("../../../src/utils/userIdHelper");
-jest.mock("../../../database/db");
-jest.mock("../../../src/utils/logger");
+jest.mock('../../../src/utils/userIdHelper');
+jest.mock('../../../database/db');
+jest.mock('../../../src/utils/logger');
 
 let mockFormidableError = null;
 
@@ -25,7 +25,7 @@ Otherwise, we call the callback function with null error and the fields object.
 This allows us to test the behavior of the addJournalEntry function when form parsing fails.
 We reset the mockFormidableError variable after the test to ensure it doesn't affect other tests.
 */
-jest.mock("formidable", () => ({
+jest.mock('formidable', () => ({
   IncomingForm: jest.fn().mockImplementation(() => ({
     parse: jest.fn().mockImplementation((req, cb) => {
       if (mockFormidableError) {
@@ -53,7 +53,7 @@ const createResponsePromise = (res) => {
   });
 };
 
-describe("POST /v1/journal", () => {
+describe('POST /v1/journal', () => {
   let req;
   let res;
 
@@ -63,9 +63,9 @@ describe("POST /v1/journal", () => {
     req = Object.assign(new EventEmitter(), {
       body: {},
       headers: {
-        "content-type": "multipart/form-data",
-        "content-length": "1000",
-        authorization: "Bearer fake-token",
+        'content-type': 'multipart/form-data',
+        'content-length': '1000',
+        authorization: 'Bearer fake-token',
       },
     });
 
@@ -77,12 +77,12 @@ describe("POST /v1/journal", () => {
     };
   });
 
-  it("should create a journal entry successfully", async () => {
+  it('should create a journal entry successfully', async () => {
     const mockUserId = 1;
     const mockEntry = {
-      title: "Test Entry",
-      text: "Test content",
-      date: "2025-02-26",
+      title: 'Test Entry',
+      text: 'Test content',
+      date: '2025-02-26',
     };
     const mockResult = {
       rows: [
@@ -106,18 +106,18 @@ describe("POST /v1/journal", () => {
     await responsePromise; // Wait for the response
 
     expect(pool.query).toHaveBeenCalledWith(
-      "INSERT INTO journalentry (user_id, title, text, date) VALUES ($1, $2, $3, $4) RETURNING *",
-      [mockUserId, mockEntry.title, mockEntry.text, expect.any(String)]
+      'INSERT INTO journalentry (user_id, title, text, date, tags) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [mockUserId, mockEntry.title, mockEntry.text, expect.any(String), []] // Empty array for no tags
     );
     expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith(mockResult.rows[0]);
   });
 
-  it("should validate title length", async () => {
+  it('should validate title length', async () => {
     const mockEntry = {
-      title: "a".repeat(256),
-      text: "Test content",
-      date: "2025-02-26",
+      title: 'a'.repeat(256),
+      text: 'Test content',
+      date: '2025-02-26',
     };
 
     getUserId.mockResolvedValue(1);
@@ -129,15 +129,15 @@ describe("POST /v1/journal", () => {
 
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith({
-      errors: ["Title must be 255 characters or less"],
+      errors: ['Title must be 255 characters or less'],
     });
   });
 
-  it("should return 401 when user is not authenticated", async () => {
+  it('should return 401 when user is not authenticated', async () => {
     req.body = {
-      title: "Test Entry",
-      text: "Test content",
-      date: "2025-02-26",
+      title: 'Test Entry',
+      text: 'Test content',
+      date: '2025-02-26',
     };
 
     getUserId.mockResolvedValue(null);
@@ -148,19 +148,19 @@ describe("POST /v1/journal", () => {
 
     expect(res.status).toHaveBeenCalledWith(401);
     expect(res.json).toHaveBeenCalledWith({
-      error: "User not authenticated",
+      error: 'User not authenticated',
     });
   });
 
-  it("should handle database errors", async () => {
+  it('should handle database errors', async () => {
     const mockUserId = 1;
     getUserId.mockResolvedValue(mockUserId);
-    pool.query.mockRejectedValueOnce(new Error("Database error"));
+    pool.query.mockRejectedValueOnce(new Error('Database error'));
 
     req.body = {
-      title: "Test Entry",
-      text: "Test content",
-      date: "2025-02-26",
+      title: 'Test Entry',
+      text: 'Test content',
+      date: '2025-02-26',
     };
 
     const responsePromise = createResponsePromise(res);
@@ -169,21 +169,21 @@ describe("POST /v1/journal", () => {
 
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith({
-      error: "Internal server error",
+      error: 'Internal server error',
     });
   });
 
-  it("should handle duplicate entries", async () => {
+  it('should handle duplicate entries', async () => {
     const mockUserId = 1;
     getUserId.mockReturnValue(mockUserId);
-    const error = new Error("Duplicate entry");
-    error.code = "23505";
+    const error = new Error('Duplicate entry');
+    error.code = '23505';
     pool.query.mockRejectedValueOnce(error);
 
     req.body = {
-      title: "Test Entry",
-      text: "Test content",
-      date: "2025-02-26",
+      title: 'Test Entry',
+      text: 'Test content',
+      date: '2025-02-26',
     };
 
     const responsePromise = createResponsePromise(res);
@@ -192,14 +192,14 @@ describe("POST /v1/journal", () => {
 
     expect(res.status).toHaveBeenCalledWith(409);
     expect(res.json).toHaveBeenCalledWith({
-      error: "Duplicate entry",
+      error: 'Duplicate entry',
     });
   });
 
-  it("should handle form parsing errors", async () => {
+  it('should handle form parsing errors', async () => {
     // Set the mock error before the test
-    mockFormidableError = new Error("Form parsing failed");
-    mockFormidableError.code = "FORM_ERROR";
+    mockFormidableError = new Error('Form parsing failed');
+    mockFormidableError.code = 'FORM_ERROR';
 
     const responsePromise = createResponsePromise(res);
     addJournalEntry(req, res);
@@ -207,14 +207,14 @@ describe("POST /v1/journal", () => {
 
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith({
-      error: "Error processing form data",
+      error: 'Error processing form data',
     });
 
     // Reset the mock error after the test
     mockFormidableError = null;
   });
 
-  it("should validate missing required fields", async () => {
+  it('should validate missing required fields', async () => {
     req.body = {
       // Missing title, text, and date
     };
@@ -227,18 +227,18 @@ describe("POST /v1/journal", () => {
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith({
       errors: expect.arrayContaining([
-        "Title is required",
-        "Text content is required",
-        "Date is required",
+        'Title is required',
+        'Text content is required',
+        'Date is required',
       ]),
     });
   });
 
-  it("should validate invalid date format", async () => {
+  it('should validate invalid date format', async () => {
     req.body = {
-      title: "Test Entry",
-      text: "Test content",
-      date: "invalid-date",
+      title: 'Test Entry',
+      text: 'Test content',
+      date: 'invalid-date',
     };
 
     getUserId.mockReturnValue(1);
@@ -248,15 +248,15 @@ describe("POST /v1/journal", () => {
 
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith({
-      errors: ["Invalid date format"],
+      errors: ['Invalid date format'],
     });
   });
 
-  it("should handle database query with no results", async () => {
+  it('should handle database query with no results', async () => {
     req.body = {
-      title: "Test Entry",
-      text: "Test content",
-      date: "2025-02-26",
+      title: 'Test Entry',
+      text: 'Test content',
+      date: '2025-02-26',
     };
 
     getUserId.mockReturnValue(1);
@@ -268,15 +268,15 @@ describe("POST /v1/journal", () => {
 
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith({
-      error: "Failed to create journal entry",
+      error: 'Failed to create journal entry',
     });
   });
 
-  it("should validate text length", async () => {
+  it('should validate text length', async () => {
     const mockEntry = {
-      title: "Test Entry",
-      text: "a".repeat(10001), // Exceeds MAX_TEXT_LENGTH of 10000
-      date: "2025-02-26",
+      title: 'Test Entry',
+      text: 'a'.repeat(10001), // Exceeds MAX_TEXT_LENGTH of 10000
+      date: '2025-02-26',
     };
 
     getUserId.mockReturnValue(1);
@@ -288,21 +288,21 @@ describe("POST /v1/journal", () => {
 
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith({
-      errors: ["Text must be 10000 characters or less"],
+      errors: ['Text must be 10000 characters or less'],
     });
   });
 
-  it("should return 401 when no authorization header is present", async () => {
+  it('should return 401 when no authorization header is present', async () => {
     const mockEntry = {
-      title: "Test Entry",
-      text: "Test content",
-      date: "2025-02-26",
+      title: 'Test Entry',
+      text: 'Test content',
+      date: '2025-02-26',
     };
 
     // Remove authorization header
     req.headers = {
-      "content-type": "multipart/form-data",
-      "content-length": "1000",
+      'content-type': 'multipart/form-data',
+      'content-length': '1000',
     };
 
     req.body = mockEntry;
@@ -313,7 +313,108 @@ describe("POST /v1/journal", () => {
 
     expect(res.status).toHaveBeenCalledWith(401);
     expect(res.json).toHaveBeenCalledWith({
-      error: "No authorization token provided",
+      error: 'No authorization token provided',
     });
+  });
+
+  it('should handle invalid tags format', async () => {
+    const mockEntry = {
+      title: 'Test Entry',
+      text: 'Test content',
+      date: '2025-02-26',
+      tags: 'invalid-tags-format', // Send invalid tags format
+    };
+
+    // Mock successful user authentication
+    getUserId.mockResolvedValue(1);
+
+    // Don't mock pool.query since we should fail validation before DB query
+    req.body = mockEntry;
+
+    const responsePromise = createResponsePromise(res);
+    addJournalEntry(req, res);
+    await responsePromise;
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      errors: ['Invalid tags format'],
+    });
+
+    // Verify that pool.query was not called since validation failed
+    expect(pool.query).not.toHaveBeenCalled();
+  });
+
+  it('should validate maximum number of tags', async () => {
+    req.body = {
+      title: 'Test Entry',
+      text: 'Test content',
+      date: '2025-02-26',
+      tags: JSON.stringify(Array(11).fill('tag')), // 11 tags exceeds maximum of 10
+    };
+
+    getUserId.mockReturnValue(1);
+    const responsePromise = createResponsePromise(res);
+    addJournalEntry(req, res);
+    await responsePromise;
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      errors: ['Maximum 10 tags allowed'],
+    });
+  });
+
+  it('should validate tag length', async () => {
+    req.body = {
+      title: 'Test Entry',
+      text: 'Test content',
+      date: '2025-02-26',
+      tags: JSON.stringify(['normal', 'a'.repeat(31)]), // Tag exceeds 30 characters
+    };
+
+    getUserId.mockReturnValue(1);
+    const responsePromise = createResponsePromise(res);
+    addJournalEntry(req, res);
+    await responsePromise;
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.json).toHaveBeenCalledWith({
+      errors: ['Tags must be strings of 30 characters or less'],
+    });
+  });
+
+  it('should successfully create entry with valid tags', async () => {
+    const mockUserId = 1;
+    const mockEntry = {
+      title: 'Test Entry',
+      text: 'Test content',
+      date: '2025-02-26',
+      tags: JSON.stringify(['tag1', 'tag2']),
+    };
+    const mockResult = {
+      rows: [
+        {
+          id: 1,
+          user_id: mockUserId,
+          ...mockEntry,
+          tags: ['tag1', 'tag2'],
+        },
+      ],
+    };
+
+    getUserId.mockResolvedValue(mockUserId);
+    pool.query.mockResolvedValueOnce(mockResult);
+
+    req.body = mockEntry;
+
+    const responsePromise = createResponsePromise(res);
+    addJournalEntry(req, res);
+    await responsePromise;
+
+    expect(pool.query).toHaveBeenCalledWith(
+      'INSERT INTO journalentry (user_id, title, text, date, tags) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [mockUserId, mockEntry.title, mockEntry.text, expect.any(String), ['tag1', 'tag2']]
+    );
+    expect(res.status).toHaveBeenCalledWith(201);
+    expect(res.json).toHaveBeenCalledWith(mockResult.rows[0]);
   });
 });

@@ -1,8 +1,14 @@
 import React, { useEffect, useState } from "react";
 import styles from "./TextToSpeech.module.css";
 
-function TextToSpeech({ text }) {
+function TextToSpeech({ text, title }) {
   const [isSpeaking, setIsSpeaking] = useState(false);
+
+  // Function to strip HTML tags
+  const stripHtml = (html) => {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    return doc.body.textContent || "";
+  };
 
   useEffect(() => {
     return () => {
@@ -10,21 +16,42 @@ function TextToSpeech({ text }) {
     };
   }, []);
 
-  const handleSpeak = () => {
-    if ("speechSynthesis" in window && text) {
-      const utterance = new SpeechSynthesisUtterance(text);
+  const handleSpeak = (e) => {
+    e.preventDefault();
 
-      utterance.voice = speechSynthesis
-        .getVoices()
-        .find((voice) => voice.name === "Google US English");
-      utterance.pith = 1;
-      utterance.rate = 1;
-      utterance.volumn = 1;
+    if ("speechSynthesis" in window) {
+      // Strip HTML tags from both title and text
+      const cleanTitle = stripHtml(title || "");
+      const cleanText = stripHtml(text || "");
 
-      utterance.onstart = () => setIsSpeaking(true);
-      utterance.onend = () => setIsSpeaking(false);
+      // Create utterances for title and content
+      const titleUtterance = new SpeechSynthesisUtterance(cleanTitle ? `Title: ${cleanTitle}` : "");
+      const pauseUtterance = new SpeechSynthesisUtterance(".");  // Creates a natural pause
+      const contentUtterance = new SpeechSynthesisUtterance(cleanText);
 
-      window.speechSynthesis.speak(utterance);
+      // Set properties for all utterances
+      [titleUtterance, contentUtterance].forEach(utterance => {
+        utterance.voice = speechSynthesis
+          .getVoices()
+          .find((voice) => voice.name === "Google US English");
+        utterance.pitch = 1;
+        utterance.rate = 1;
+        utterance.volume = 1;
+      });
+
+      // Configure pause
+      pauseUtterance.rate = 0.1;  // Slow rate creates longer pause
+
+      // Handle speaking states
+      titleUtterance.onstart = () => setIsSpeaking(true);
+      contentUtterance.onend = () => setIsSpeaking(false);
+
+      // Queue the utterances
+      if (cleanTitle) {
+        window.speechSynthesis.speak(titleUtterance);
+        window.speechSynthesis.speak(pauseUtterance);
+      }
+      window.speechSynthesis.speak(contentUtterance);
     } else {
       alert(
         "Text-to-speech is not supported in this browser or no text provided",

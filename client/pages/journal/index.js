@@ -8,8 +8,9 @@ import {
   Row,
   Col,
   Card,
-  Image,
   Modal,
+  Toast,
+  ToastContainer,
 } from "react-bootstrap";
 import styles from "./journal.module.css";
 import { useTranslation } from "next-i18next";
@@ -22,6 +23,32 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import IncompatibleBrowserModal from "@/components/IncompatibleBrowserModal";
 import TextToSpeech from "@/components/TextToSpeech/TextToSpeech";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Link from "@tiptap/extension-link";
+import Image from "@tiptap/extension-image";
+import Underline from "@tiptap/extension-underline";
+import JournalEntryTags from "@/components/JournalEntryTags/JournalEntryTags";
+
+// View-only editor for displaying rich text in journal entries
+const ViewOnlyEditor = ({ content }) => {
+  const editor = useEditor(
+    {
+      extensions: [StarterKit, Link, Image, Underline],
+      content: content,
+      editable: false,
+      editorProps: {
+        attributes: {
+          class: "view-only-editor",
+        },
+      },
+      enableCoreExtensions: true,
+    },
+    [content],
+  );
+
+  return <EditorContent editor={editor} />;
+};
 
 export default function Journal() {
   const { t } = useTranslation("common");
@@ -39,6 +66,10 @@ export default function Journal() {
   const [selectedInput, setSelectedInput] = useState(null);
   const [editSelectedInput, setEditSelectedInput] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTags, setSelectedTags] = useState([]);
+  const [filterTags, setFilterTags] = useState([]); // Filter tags for search
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
 
   const {
     isListening,
@@ -86,6 +117,8 @@ export default function Journal() {
       const newTextValue =
         text + (transcript.length ? (text.length ? " " : "") + transcript : "");
       setText(newTextValue);
+      // Update the editor content. Otherwise, the rich text editor will not be updated with the transcript from speech-to-text
+      editor?.commands.setContent(newTextValue);
       register("text").onChange({ target: { value: newTextValue } });
     }
     stopListening();
@@ -114,19 +147,23 @@ export default function Journal() {
             : ""),
       });
     } else {
+      const newText =
+        editedEntry.text +
+        (transcript.length
+          ? (editedEntry.text.length ? " " : "") + transcript
+          : "");
       setEditedEntry({
         ...editedEntry,
-        text:
-          editedEntry.text +
-          (transcript.length
-            ? (editedEntry.text.length ? " " : "") + transcript
-            : ""),
+        text: newText,
       });
+      // Update the edit editor content. Otherwise, the rich text editor will not be updated with the transcript from speech-to-text
+      editEditor?.commands.setContent(newText);
     }
     stopListening();
     setEditSelectedInput(null);
   };
 
+  // Fetch journal entries
   useEffect(() => {
     const fetchEntries = async () => {
       // Get all journal entries
@@ -170,13 +207,13 @@ export default function Journal() {
   // Submit journal entry
   const onSubmit = async (data) => {
     try {
-      if (data.text.trim() === "") return;
+      if (text.trim() === "") return;
 
-      // Use the current state values instead of form data
       const formData = new FormData();
       formData.append("title", titleText);
       formData.append("text", text);
       formData.append("date", new Date().toISOString());
+      formData.append("tags", JSON.stringify(selectedTags));
 
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/journal`, {
         method: "POST",
@@ -190,14 +227,24 @@ export default function Journal() {
         const newEntry = await res.json();
         setEntries([newEntry, ...entries]);
 
-        // Reset both form and state
+        // Reset form and state
         reset();
         setText("");
         setTitleText("");
+        setSelectedTags([]);
         setFilePreview(null);
+        // Clear the editor content after submission
+        editor?.commands.clearContent();
+
+        // Show success toast
+        setToastMessage(t("Journal entry created successfully"));
+        setShowToast(true);
       }
     } catch (error) {
       console.error("Error submitting journal entry:", error);
+      // Show error toast
+      setToastMessage(t("Error creating journal entry"));
+      setShowToast(true);
     }
   };
 
@@ -250,7 +297,8 @@ export default function Journal() {
     // Check if data was modified
     if (
       editedEntry.title === selectedEntry.title &&
-      editedEntry.text === selectedEntry.text
+      editedEntry.text === selectedEntry.text &&
+      JSON.stringify(editedEntry.tags) === JSON.stringify(selectedEntry.tags)
     ) {
       setIsEditing(false);
       return;
@@ -273,6 +321,7 @@ export default function Journal() {
           body: JSON.stringify({
             title: editedEntry.title.trim(),
             text: editedEntry.text.trim(),
+            tags: editedEntry.tags || [],
             updated_at: currentTime,
           }),
         },
@@ -281,10 +330,11 @@ export default function Journal() {
       if (response.ok) {
         const result = await response.json();
 
-        // Update with the last_edited timestamp
+        // Update with the last_edited timestamp and tags
         const updatedEntry = {
           ...selectedEntry,
           ...result.data,
+          tags: result.data.tags || [],
           last_edited: result.data.updated_at,
         };
 
@@ -343,20 +393,136 @@ export default function Journal() {
   //   }
   // };
 
-  // Filter entries based on search term
+  // Filter entries based on search term and selected tags
   const filteredEntries = entries.filter((entry) => {
     const searchLower = searchTerm.toLowerCase();
-    return (
+    const matchesSearch =
       entry.title.toLowerCase().includes(searchLower) ||
-      entry.text.toLowerCase().includes(searchLower)
+      entry.text.toLowerCase().includes(searchLower);
+
+    // If no tag filters are selected, only use text search
+    if (filterTags.length === 0) {
+      return matchesSearch;
+    }
+
+    // If tag filters are selected, entry must match search AND have ALL selected tags
+    const hasAllTags = filterTags.every(
+      (filterTag) => entry.tags && entry.tags.includes(filterTag),
     );
+
+    return matchesSearch && hasAllTags;
   });
+
+  // Rich text editor for creating an entry
+  const editor = useEditor(
+    {
+      extensions: [
+        StarterKit,
+        Link.configure({
+          openOnClick: false,
+        }),
+        Image,
+        Underline,
+      ],
+      content: "", // Set initial content as empty string
+      onUpdate: ({ editor }) => {
+        setText(editor.getHTML());
+      },
+      immediatelyRender: false,
+      enableCoreExtensions: true,
+      editorProps: {
+        attributes: {
+          class: "main-editor",
+        },
+      },
+    },
+    [],
+  );
+
+  // Rich text editor for editing an entry
+  const editEditor = useEditor({
+    extensions: [
+      StarterKit,
+      Link.configure({
+        openOnClick: false,
+      }),
+      Image,
+      Underline,
+    ],
+    content: "",
+    onUpdate: ({ editor }) => {
+      setEditedEntry((prev) => ({ ...prev, text: editor.getHTML() }));
+    },
+    immediatelyRender: false,
+    enableCoreExtensions: true,
+    editorProps: {
+      attributes: {
+        class: "edit-modal-editor",
+      },
+    },
+  });
+
+  // Update the editor content when editing an entry
+  useEffect(() => {
+    if (editEditor && isEditing && selectedEntry) {
+      editEditor.commands.setContent(selectedEntry.text);
+    }
+  }, [isEditing, selectedEntry, editEditor]);
+
+  // For speech-to-text: update the text content when speech-to-text is active
+  useEffect(() => {
+    if (isListening && transcript) {
+      // For main editor
+      if (selectedInput === "text") {
+        // Get only the new words by removing the existing text from transcript
+        const existingWords = text.toLowerCase().split(/\s+/);
+        const transcriptWords = transcript.toLowerCase().split(/\s+/);
+        const newWords = transcriptWords.filter(
+          (word) => !existingWords.includes(word),
+        );
+
+        // Only append new words
+        if (newWords.length > 0) {
+          const newTextValue = text + (text ? " " : "") + newWords.join(" ");
+          setText(newTextValue);
+          editor?.commands.setContent(newTextValue);
+        }
+      }
+      // For edit modal editor
+      else if (editSelectedInput === "text" && editedEntry) {
+        const existingWords = editedEntry.text.toLowerCase().split(/\s+/);
+        const transcriptWords = transcript.toLowerCase().split(/\s+/);
+        const newWords = transcriptWords.filter(
+          (word) => !existingWords.includes(word),
+        );
+
+        if (newWords.length > 0) {
+          const newText =
+            editedEntry.text +
+            (editedEntry.text ? " " : "") +
+            newWords.join(" ");
+          setEditedEntry((prev) => ({ ...prev, text: newText }));
+          editEditor?.commands.setContent(newText);
+        }
+      }
+    }
+  }, [
+    transcript,
+    isListening,
+    selectedInput,
+    editSelectedInput,
+    editEditor?.commands,
+    editedEntry,
+    editor?.commands,
+    text,
+  ]);
 
   return (
     <>
       <Container className={styles.container} fluid>
         <div className={styles.formContainer}>
           <p className={styles.title}>{t("My Journal")}</p>
+          {/* Create journal entry modal */}
           <Form onSubmit={handleSubmit(onSubmit)} className="mb-4">
             <Row className="mb-3">
               <Col className="d-flex">
@@ -394,49 +560,117 @@ export default function Journal() {
             </Row>
             <Row className="mb-3">
               <Col>
-                <Form.Control
-                  as="textarea"
-                  rows={3}
-                  placeholder={t("Write your thoughts here...")}
-                  required
-                  {...register("text", { value: text })}
-                  className="form-control"
+                <JournalEntryTags
+                  selectedTags={selectedTags}
+                  setTags={setSelectedTags}
                   disabled={isListening}
-                  value={
-                    isListening && selectedInput === "text"
-                      ? text + (transcript || "")
-                      : text
-                  }
-                  onChange={(e) => {
-                    setText(e.target.value);
-                    register("text").onChange(e);
-                  }}
                 />
-                <TextToSpeech text={text} />
+              </Col>
+            </Row>
+            <Row className="mb-3">
+              <Col>
+                <div className={styles.editor}>
+                  <div className={styles.toolbar}>
+                    <button
+                      type="button"
+                      onClick={() => editor.chain().focus().toggleBold().run()}
+                      className={
+                        editor?.isActive("bold") ? styles.isActive : ""
+                      }
+                    >
+                      Bold
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        editor.chain().focus().toggleItalic().run()
+                      }
+                      className={
+                        editor?.isActive("italic") ? styles.isActive : ""
+                      }
+                    >
+                      Italic
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        editor.chain().focus().toggleUnderline().run()
+                      }
+                      className={
+                        editor?.isActive("underline") ? styles.isActive : ""
+                      }
+                    >
+                      Underline
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        editor.chain().focus().toggleBulletList().run()
+                      }
+                      className={
+                        editor?.isActive("bulletList") ? styles.isActive : ""
+                      }
+                    >
+                      Bullet List
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        editor.chain().focus().toggleOrderedList().run()
+                      }
+                      className={
+                        editor?.isActive("orderedList") ? styles.isActive : ""
+                      }
+                    >
+                      Ordered List
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const url = window.prompt("Enter the URL:");
+                        if (url) {
+                          editor.chain().focus().setLink({ href: url }).run();
+                        }
+                      }}
+                      className={
+                        editor?.isActive("link") ? styles.isActive : ""
+                      }
+                    >
+                      Link
+                    </button>
+                  </div>
+                  <EditorContent editor={editor} />
+                </div>
+                {/* Text-to-speech for create mode */}
               </Col>
             </Row>
             <Row className={styles.postRow}>
-              <Col className="d-flex justify-content-end gap-3">
-                <Button
-                  variant="primary"
-                  type="submit"
-                  className={`${styles.submitButton} btn-sm`}
-                >
-                  {t("Post")}
-                </Button>
-                <button
-                  onClick={(e) => startStopListening(e, "text")}
-                  className={`${styles.microphone} btn-sm`}
-                >
-                  <FontAwesomeIcon
-                    icon={
-                      isListening && selectedInput === "text"
-                        ? faMicrophoneSlash
-                        : faMicrophone
-                    }
-                    size="sm"
-                  />
-                </button>
+              <Col className="d-flex justify-content-between align-items-center gap-2">
+                <div>
+                  <TextToSpeech text={text} title={titleText} />
+                </div>
+                <div className="d-flex gap-2">
+                  <Button
+                    variant="primary"
+                    type="submit"
+                    className={`${styles.submitButton} btn-sm`}
+                  >
+                    {t("Post")}
+                  </Button>
+                  <button
+                    onClick={(e) => startStopListening(e, "text")}
+                    className={`${styles.microphone} btn-sm`}
+                  >
+                    <FontAwesomeIcon
+                      icon={
+                        isListening && selectedInput === "text"
+                          ? faMicrophoneSlash
+                          : faMicrophone
+                      }
+                      size="sm"
+                    />
+                  </button>
+                </div>
               </Col>
             </Row>
           </Form>
@@ -474,12 +708,37 @@ export default function Journal() {
                 />
               </button>
             </div>
+
+            {/* Tag filter */}
+            <div className="mb-3">
+              <small className="text-muted mb-2 d-block">
+                {t("Filter by tags:")}
+              </small>
+              <JournalEntryTags
+                selectedTags={filterTags}
+                setTags={setFilterTags}
+                disabled={isListening}
+              />
+            </div>
+            {(searchTerm || filterTags.length > 0) && (
+              <Button
+                variant="outline-secondary"
+                size="sm"
+                onClick={() => {
+                  setSearchTerm("");
+                  setFilterTags([]);
+                }}
+                className="mt-2"
+              >
+                {t("Clear all filters")}
+              </Button>
+            )}
           </Form.Group>
           <div className={styles.entriesSection}>
             {filteredEntries.length === 0 ? (
               <p className="text-muted text-center">
-                {searchTerm
-                  ? t("No matching entries found.")
+                {searchTerm || filterTags.length > 0
+                  ? t("No entries match your search and tag filters.")
                   : t("No journal entries found.")}
               </p>
             ) : (
@@ -498,6 +757,15 @@ export default function Journal() {
                       <Card.Title className={styles.entryCardTitle}>
                         {entry.title}
                       </Card.Title>
+                      {entry.tags && entry.tags.length > 0 && (
+                        <div className={styles.tagList}>
+                          {entry.tags.map((tag, idx) => (
+                            <span key={idx} className={styles.tag}>
+                              #{tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                       <Card.Text
                         className={styles.entryCardText}
                         style={{
@@ -508,7 +776,7 @@ export default function Journal() {
                           textOverflow: "ellipsis",
                         }}
                       >
-                        {entry.text}
+                        <ViewOnlyEditor content={entry.text} />
                       </Card.Text>
 
                       {entry.image && (
@@ -532,7 +800,7 @@ export default function Journal() {
                           })}
                           {entry.updated_at &&
                             (() => {
-                              // Round to seconds for comparison
+                              // Round to seconds for comparison so that the updated_at timestamp is not considered different if it differs by milliseconds from the created_at timestamp
                               const updatedTime = Math.floor(
                                 new Date(entry.updated_at).getTime() / 1000,
                               );
@@ -564,7 +832,8 @@ export default function Journal() {
                       </Card.Footer>
                     </Card.Body>
                   </Card>
-                  <TextToSpeech text={entry.text} />
+                  {/* Text-to-speech for saved journal entries */}
+                  <TextToSpeech text={entry.text} title={entry.title} />
                 </div>
               ))
             )}
@@ -572,7 +841,7 @@ export default function Journal() {
         </div>
       </Container>
 
-      {/* "Entry details" and "edit entry" modal */}
+      {/* Journal entry details and edit journal entry modals */}
       <Modal
         show={showModal}
         onHide={() => {
@@ -622,50 +891,129 @@ export default function Journal() {
         <Modal.Body>
           {isEditing ? (
             <div>
-              <div className="d-flex">
-                <Form.Control
-                  as="textarea"
-                  rows={5}
-                  required
-                  value={
-                    isListening && editSelectedInput === "text"
-                      ? editedEntry?.text + (transcript || "")
-                      : editedEntry?.text || ""
-                  }
-                  onChange={(e) =>
-                    setEditedEntry({ ...editedEntry, text: e.target.value })
-                  }
-                  className={`border-0 ${
-                    editedEntry?.text?.trim() === "" ? "is-invalid" : ""
-                  }`}
+              <div className={styles.editor}>
+                <div className={styles.toolbar}>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      editEditor.chain().focus().toggleBold().run()
+                    }
+                    className={
+                      editEditor?.isActive("bold") ? styles.isActive : ""
+                    }
+                  >
+                    Bold
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      editEditor.chain().focus().toggleItalic().run()
+                    }
+                    className={
+                      editEditor?.isActive("italic") ? styles.isActive : ""
+                    }
+                  >
+                    Italic
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      editEditor.chain().focus().toggleUnderline().run()
+                    }
+                    className={
+                      editEditor?.isActive("underline") ? styles.isActive : ""
+                    }
+                  >
+                    Underline
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      editEditor.chain().focus().toggleBulletList().run()
+                    }
+                    className={
+                      editEditor?.isActive("bulletList") ? styles.isActive : ""
+                    }
+                  >
+                    Bullet List
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      editEditor.chain().focus().toggleOrderedList().run()
+                    }
+                    className={
+                      editEditor?.isActive("orderedList") ? styles.isActive : ""
+                    }
+                  >
+                    Ordered List
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const url = window.prompt("Enter the URL:");
+                      if (url) {
+                        editEditor.chain().focus().setLink({ href: url }).run();
+                      }
+                    }}
+                    className={
+                      editEditor?.isActive("link") ? styles.isActive : ""
+                    }
+                  >
+                    Link
+                  </button>
+                </div>
+                <div className="d-flex">
+                  <EditorContent editor={editEditor} className="flex-grow-1" />
+                  <button
+                    onClick={(e) => startStopListeningEdit(e, "text")}
+                    className={`${styles.microphone} btn-sm ms-2 align-self-start`}
+                  >
+                    <FontAwesomeIcon
+                      icon={
+                        isListening && editSelectedInput === "text"
+                          ? faMicrophoneSlash
+                          : faMicrophone
+                      }
+                      size="sm"
+                    />
+                  </button>
+                </div>
+              </div>
+              <div className="mt-3">
+                <JournalEntryTags
+                  selectedTags={editedEntry?.tags || []}
+                  setTags={(tags) => setEditedEntry({ ...editedEntry, tags })}
                   disabled={isListening}
                 />
-                <button
-                  onClick={(e) => startStopListeningEdit(e, "text")}
-                  className={`${styles.microphone} btn-sm ms-2`}
-                >
-                  <FontAwesomeIcon
-                    icon={
-                      isListening && editSelectedInput === "text"
-                        ? faMicrophoneSlash
-                        : faMicrophone
-                    }
-                    size="sm"
-                  />
-                </button>
               </div>
+              {/* TextToSpeech for edit mode */}
+              <TextToSpeech
+                text={editedEntry?.text || ""}
+                title={editedEntry?.title || ""}
+              />
             </div>
           ) : (
-            <p className={styles.modalText}>{selectedEntry?.text}</p>
+            <div>
+              <div className={styles.modalText}>
+                <ViewOnlyEditor content={selectedEntry?.text} />
+              </div>
+              {selectedEntry?.tags && selectedEntry.tags.length > 0 && (
+                <div className={styles.tagList} style={{ marginTop: "1rem" }}>
+                  {selectedEntry.tags.map((tag, idx) => (
+                    <span key={idx} className={styles.tag}>
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+              {/* TextToSpeech for view mode */}
+              <TextToSpeech
+                text={selectedEntry?.text || ""}
+                title={selectedEntry?.title || ""}
+              />
+            </div>
           )}
-          {/* {selectedEntry?.image && (
-            <Image
-              src={selectedEntry.image}
-              alt="journal entry"
-              className={styles.modalImage}
-              fluid
-            />
-          )} */}
           <div className={styles.modalFooter}>
             {selectedEntry && (
               <small className="text-muted">
@@ -745,7 +1093,10 @@ export default function Journal() {
                 <Button
                   variant="primary"
                   onClick={() => {
-                    setEditedEntry({ ...selectedEntry });
+                    setEditedEntry({
+                      ...selectedEntry,
+                      tags: selectedEntry.tags || [],
+                    });
                     setIsEditing(true);
                   }}
                   className="me-2"
@@ -758,7 +1109,7 @@ export default function Journal() {
         </Modal.Footer>
       </Modal>
 
-      {/* "Confirm delete" modal */}
+      {/* Confirm delete modal */}
       <Modal
         show={showDeleteModal}
         onHide={() => {
@@ -805,6 +1156,20 @@ export default function Journal() {
         show={showIncompatibleModal}
         onHide={() => setShowIncompatibleModal(false)}
       />
+
+      <ToastContainer position="bottom-end" className="p-3">
+        <Toast
+          show={showToast}
+          onClose={() => setShowToast(false)}
+          delay={3000}
+          autohide
+        >
+          <Toast.Header>
+            <strong className="me-auto">{t("Notification")}</strong>
+          </Toast.Header>
+          <Toast.Body>{toastMessage}</Toast.Body>
+        </Toast>
+      </ToastContainer>
     </>
   );
 }
