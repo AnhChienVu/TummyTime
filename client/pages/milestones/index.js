@@ -222,7 +222,7 @@ function Milestones() {
   };
 
   // Get all milestones for all babies
-  const fetchMilestones = async () => {
+  const fetchMilestones = useCallback(async () => {
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/v1/milestones`,
@@ -234,7 +234,6 @@ function Milestones() {
       );
       const data = await res.json();
       if (data.status === "ok") {
-        // Convert the milestones data to the format expected by react-big-calendar
         const formattedMilestones = data.data.map((milestone) => ({
           title: `${milestone.first_name} ${milestone.last_name}: ${milestone.title}`,
           start: new Date(milestone.date),
@@ -247,11 +246,11 @@ function Milestones() {
       console.error("Error fetching milestones:", error);
       showToast("Error fetching milestones", "error");
     }
-  };
+  }, [showToast]);
 
   useEffect(() => {
     fetchMilestones();
-  }, []);
+  }, [fetchMilestones]);
 
   const handleEventClick = (event) => {
     setSelectedMilestone(event);
