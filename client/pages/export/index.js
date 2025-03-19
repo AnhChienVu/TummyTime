@@ -14,7 +14,7 @@ const ExportDataPage = () => {
   });
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
-  const [error, setError] = useState("");
+  const [error, setError] = useState(""); // Error message to display to user
   const [downloadLink, setDownloadLink] = useState("");
   const [downloadFileName, setDownloadFileName] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
@@ -82,9 +82,20 @@ const ExportDataPage = () => {
         },
       );
 
+      // error	Object { code: 404, message: "No baby profiles found for this user" }
       if (!response.ok) {
+        // Extract error message from response and SHOW ERROR TO USER
         const errorData = await response.json();
-        setError(errorData.message || "Export failed");
+        console.log("Error response:", errorData);
+
+        let errorMessage = "Export failed. Please try again later.";
+        if (errorData.error.message) {
+          errorMessage = "Export failed: " + errorData.error.message;
+        }
+
+        console.error(errorMessage);
+
+        setError(errorMessage);
         return;
       }
 
