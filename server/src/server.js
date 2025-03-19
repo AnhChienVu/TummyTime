@@ -20,22 +20,5 @@ const server = stoppable(
   })
 );
 
-// Handle graceful shutdown
-process.on('SIGINT', () => {
-  logger.info('SIGINT signal received: closing HTTP server');
-  server.stop(() => {
-    logger.info('HTTP server closed');
-    process.exit(0);
-  });
-});
-
-process.on('SIGTERM', () => {
-  logger.info('SIGTERM signal received: closing HTTP server');
-  server.stop(() => {
-    logger.info('HTTP server closed');
-    process.exit(0);
-  });
-});
-
 // Export our server instance so other parts of our code can access it if necessary.
 module.exports = server;
