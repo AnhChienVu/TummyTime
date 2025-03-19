@@ -572,6 +572,7 @@ export default function Journal() {
                 <div className={styles.editor}>
                   <div className={styles.toolbar}>
                     <button
+                      type="button"
                       onClick={() => editor.chain().focus().toggleBold().run()}
                       className={
                         editor?.isActive("bold") ? styles.isActive : ""
@@ -580,6 +581,7 @@ export default function Journal() {
                       Bold
                     </button>
                     <button
+                      type="button"
                       onClick={() =>
                         editor.chain().focus().toggleItalic().run()
                       }
@@ -590,6 +592,7 @@ export default function Journal() {
                       Italic
                     </button>
                     <button
+                      type="button"
                       onClick={() =>
                         editor.chain().focus().toggleUnderline().run()
                       }
@@ -600,6 +603,7 @@ export default function Journal() {
                       Underline
                     </button>
                     <button
+                      type="button"
                       onClick={() =>
                         editor.chain().focus().toggleBulletList().run()
                       }
@@ -610,6 +614,7 @@ export default function Journal() {
                       Bullet List
                     </button>
                     <button
+                      type="button"
                       onClick={() =>
                         editor.chain().focus().toggleOrderedList().run()
                       }
@@ -620,6 +625,7 @@ export default function Journal() {
                       Ordered List
                     </button>
                     <button
+                      type="button"
                       onClick={() => {
                         const url = window.prompt("Enter the URL:");
                         if (url) {
@@ -888,6 +894,7 @@ export default function Journal() {
               <div className={styles.editor}>
                 <div className={styles.toolbar}>
                   <button
+                    type="button"
                     onClick={() =>
                       editEditor.chain().focus().toggleBold().run()
                     }
@@ -898,6 +905,7 @@ export default function Journal() {
                     Bold
                   </button>
                   <button
+                    type="button"
                     onClick={() =>
                       editEditor.chain().focus().toggleItalic().run()
                     }
@@ -908,6 +916,7 @@ export default function Journal() {
                     Italic
                   </button>
                   <button
+                    type="button"
                     onClick={() =>
                       editEditor.chain().focus().toggleUnderline().run()
                     }
@@ -918,6 +927,7 @@ export default function Journal() {
                     Underline
                   </button>
                   <button
+                    type="button"
                     onClick={() =>
                       editEditor.chain().focus().toggleBulletList().run()
                     }
@@ -928,6 +938,7 @@ export default function Journal() {
                     Bullet List
                   </button>
                   <button
+                    type="button"
                     onClick={() =>
                       editEditor.chain().focus().toggleOrderedList().run()
                     }
@@ -938,6 +949,7 @@ export default function Journal() {
                     Ordered List
                   </button>
                   <button
+                    type="button"
                     onClick={() => {
                       const url = window.prompt("Enter the URL:");
                       if (url) {
