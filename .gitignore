@@ -129,15 +129,10 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-# Ignore npm package-lock files
-*/package-lock.json
-package-lock.json
-
 # other files (system, etc)
 .DS_Store
 __*
 
 server/public/uploads/*
-server/package-lock.json
 server/src/cache/babysitters_cache.json
 server/src/cache/nannies_cache.json
