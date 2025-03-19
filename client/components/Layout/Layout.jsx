@@ -5,7 +5,7 @@ import Sidebar from "../Sidebar/Sidebar";
 import styles from "./Layout.module.css";
 import { Container } from "react-bootstrap";
 import DoctorSidebar from "../DoctorSidebar/DoctorSidebar";
-import TipsNotificationPopup from "../TipsNotificationPopup/TipsNotificationPopup";
+import TipsNotificationPopup from "../tipsNotificationPopup/tipsNotificationPopup";
 
 export default function Layout({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
