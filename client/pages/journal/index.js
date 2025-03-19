@@ -114,8 +114,10 @@ export default function Journal() {
         (transcript.length ? (searchTerm.length ? " " : "") + transcript : "");
       setSearchTerm(newSearchValue);
     } else {
-      const newTextValue =
-        text + (transcript.length ? (text.length ? " " : "") + transcript : "");
+      const newTextValue = transcript.length
+        ? (text.length ? " " : "") + transcript
+        : "";
+
       setText(newTextValue);
       // Update the editor content. Otherwise, the rich text editor will not be updated with the transcript from speech-to-text
       editor?.commands.setContent(newTextValue);
