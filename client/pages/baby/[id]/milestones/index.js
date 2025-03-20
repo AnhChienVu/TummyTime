@@ -48,7 +48,6 @@ function MilestoneEachBaby({ baby_id }) {
   } = useSpeechToText();
 
   const router = useRouter();
-  // const baby_id = router.query.id;
 
   const handleBackClick = () => {
     router.push("/milestones");
