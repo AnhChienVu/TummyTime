@@ -54,7 +54,6 @@ function MilestoneEachBaby({ baby_id }) {
   };
 
   useEffect(() => {
-    console.log(baby_id);
     if (router.isReady && baby_id) {
       console.log("Fetching milestones for baby:", baby_id);
       async function fetchMilestones() {

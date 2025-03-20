@@ -7,10 +7,9 @@ import styles from "./post.module.css";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
-export default function PostDetail() {
+export default function PostDetail({ post_id }) {
   const { t } = useTranslation("common");
   const router = useRouter();
-  const { post_id } = router.query;
   const [post, setPost] = useState(null);
   const [replies, setReplies] = useState([]);
   const [replyContent, setReplyContent] = useState("");
@@ -28,33 +27,35 @@ export default function PostDetail() {
 
   // Fetch post details
   useEffect(() => {
-    const fetchPost = async () => {
-      if (!post_id) return;
-
-      try {
-        const token = localStorage.getItem("token");
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/v1/forum/posts/${post_id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
+    if (router.isReady && post_id) {
+      const fetchPost = async () => {
+        try {
+          const token = localStorage.getItem("token");
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/v1/forum/posts/${post_id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
             },
-          },
-        );
+          );
 
-        if (response.ok) {
-          const data = await response.json();
-          setPost(data.data);
-        } else {
-          setError("Failed to fetch post");
+          if (response.ok) {
+            const data = await response.json();
+            setPost(data.data);
+          } else {
+            setError("Failed to fetch post");
+          }
+        } catch (error) {
+          setError("Error loading post");
         }
-      } catch (error) {
-        setError("Error loading post");
-      }
-    };
+      };
 
-    fetchPost();
-  }, [post_id]);
+      fetchPost();
+    } else {
+      console.error("Post ID not available");
+    }
+  }, [router.isReady, post_id]);
 
   // Fetch replies
   useEffect(() => {
@@ -629,49 +630,48 @@ export default function PostDetail() {
   );
 }
 
-export async function getStaticPaths() {
-  // Fetch the token from localStorage on the client side
-  if (typeof window !== "undefined") {
-    const token = localStorage.getItem("token");
+// export async function getStaticPaths() {
+//   // Fetch the token from localStorage on the client side
+//   if (typeof window !== "undefined") {
+//     const token = localStorage.getItem("token");
 
-    if (!token) {
-      return {
-        paths: [],
-        fallback: false,
-      };
-    }
+//     if (!token) {
+//       return {
+//         paths: [],
+//         fallback: false,
+//       };
+//     }
 
-    // Fetch the list of post IDs from your custom API route
-    const res = await fetch(`/api/getAllPosts?token=${token}`);
-    const data = await res.json();
+//     // Fetch the list of post IDs from your custom API route
+//     const res = await fetch(`/api/getAllPosts?token=${token}`);
+//     const data = await res.json();
 
-    if (data.status !== "ok") {
-      return {
-        paths: [],
-        fallback: false,
-      };
-    }
-    console.log(data);
+//     if (data.status !== "ok") {
+//       return {
+//         paths: [],
+//         fallback: false,
+//       };
+//     }
+//     console.log(data);
 
-    // Generate the paths for each post ID
-    const paths = data.data.map((post) => ({
-      params: { post_id: post.post_id.toString() },
-    }));
+//     // Generate the paths for each post ID
+//     const paths = data.data.map((post) => ({
+//       params: { post_id: post.post_id.toString() },
+//     }));
 
-    return {
-      paths,
-      fallback: false, // See the "fallback" section below
-    };
-  }
+//     return {
+//       paths,
+//       fallback: false, // See the "fallback" section below
+//     };
+//   }
 
-  return {
-    paths: [],
-    fallback: false,
-  };
-}
+//   return {
+//     paths: [],
+//     fallback: false,
+//   };
+// }
 
-export async function getStaticProps({ params, locale }) {
-  console.log(locale);
+export async function getServerSideProps({ params, locale }) {
   return {
     props: {
       ...(await serverSideTranslations(locale, ["common"])),
