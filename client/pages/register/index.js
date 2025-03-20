@@ -106,7 +106,7 @@ function Register() {
         </button>
         <button onClick={handleShow}>
           <Image
-            src="/parent.svg"
+            src="/MedicalProf-removebg.png"
             alt="medicalProf"
             width={200}
             height={200}
