@@ -23,7 +23,7 @@ const formatDate = (dateString) => {
   });
 };
 
-function MilestoneEachBaby() {
+function MilestoneEachBaby({ baby_id }) {
   const { t } = useTranslation("common");
   const [milestones, setMilestones] = useState([]);
   const [modalError, setModalError] = useState("");
@@ -48,13 +48,14 @@ function MilestoneEachBaby() {
   } = useSpeechToText();
 
   const router = useRouter();
-  const baby_id = router.query.id;
+  // const baby_id = router.query.id;
 
   const handleBackClick = () => {
     router.push("/milestones");
   };
 
   useEffect(() => {
+    console.log(baby_id);
     if (router.isReady && baby_id) {
       console.log("Fetching milestones for baby:", baby_id);
       async function fetchMilestones() {
@@ -539,7 +540,7 @@ export async function getServerSideProps({ params, locale }) {
   return {
     props: {
       ...(await serverSideTranslations(locale, ["common"])),
-      babyId: params.id,
+      baby_id: params.id,
     },
   };
 }
