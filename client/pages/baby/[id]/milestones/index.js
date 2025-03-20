@@ -23,7 +23,7 @@ const formatDate = (dateString) => {
   });
 };
 
-function MilestoneEachBaby() {
+function MilestoneEachBaby({ baby_id }) {
   const { t } = useTranslation("common");
   const [milestones, setMilestones] = useState([]);
   const [modalError, setModalError] = useState("");
@@ -48,7 +48,6 @@ function MilestoneEachBaby() {
   } = useSpeechToText();
 
   const router = useRouter();
-  const baby_id = router.query.id;
 
   const handleBackClick = () => {
     router.push("/milestones");
@@ -539,7 +538,7 @@ export async function getServerSideProps({ params, locale }) {
   return {
     props: {
       ...(await serverSideTranslations(locale, ["common"])),
-      babyId: params.id,
+      baby_id: params.id,
     },
   };
 }
