@@ -77,7 +77,8 @@ module.exports = async (req, res) => {
       });
     }
 
-    if (entryResult.rows[0].user_id !== userId) {
+    // Convert user_id from the database, userId from the token to a number and compare
+    if (Number(entryResult.rows[0].user_id) !== Number(userId)) {
       return res.status(403).json({
         error: 'You can only edit your own journal entries',
       });
