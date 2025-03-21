@@ -222,7 +222,7 @@ function MilestoneEachBaby({ baby_id }) {
         body: JSON.stringify({
           title,
           details,
-          date: date,
+          date: new Date(date + "T00:00:00").toISOString().split("T")[0],
         }),
       });
 
