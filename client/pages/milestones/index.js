@@ -198,7 +198,7 @@ function Milestones() {
           body: JSON.stringify({
             title,
             details,
-            date: format(selectedDate, "yyyy-MM-dd"),
+            date: format(new Date(selectedDate.toDateString()), "yyyy-MM-dd"),
           }),
         },
       );
