@@ -582,6 +582,8 @@ export default function CareServices() {
                           >
                             View Profile
                           </button>
+
+                          {/* 
                           <button
                             className={styles.contactButton}
                             onClick={() =>
@@ -590,6 +592,7 @@ export default function CareServices() {
                           >
                             Contact
                           </button>
+                          */}
                         </div>
                       </div>
                     );
