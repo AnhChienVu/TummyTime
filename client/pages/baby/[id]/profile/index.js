@@ -9,10 +9,9 @@ import { useState, useEffect } from "react";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
-export default function BabyProfile() {
+export default function BabyProfile({ baby_id }) {
   const { t } = useTranslation("common");
   const router = useRouter();
-  const { id: baby_id } = router.query;
   const [baby, setBaby] = useState(null);
   const { register, handleSubmit, setValue, watch } = useForm();
   const [originalData, setOriginalData] = useState(null);
@@ -234,52 +233,11 @@ export default function BabyProfile() {
   );
 }
 
-export async function getStaticPaths() {
-  // Fetch the token from localStorage on the client side
-  if (typeof window !== "undefined") {
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      return {
-        paths: [],
-        fallback: false,
-      };
-    }
-
-    // Fetch the list of baby IDs from your custom API route
-    const res = await fetch(`/api/getBabyProfiles?token=${token}`);
-    const data = await res.json();
-
-    if (data.status !== "ok") {
-      return {
-        paths: [],
-        fallback: false,
-      };
-    }
-
-    // Generate the paths for each baby ID
-    const paths = data.babies.map((baby) => ({
-      params: { id: baby.baby_id.toString() },
-    }));
-
-    return {
-      paths,
-      fallback: false, // See the "fallback" section below
-    };
-  }
-
-  return {
-    paths: [],
-    fallback: false,
-  };
-}
-
-export async function getStaticProps({ params, locale }) {
-  console.log(locale);
+export async function getServerSideProps({ params, locale }) {
   return {
     props: {
       ...(await serverSideTranslations(locale, ["common"])),
-      babyId: params.id,
+      baby_id: params.id,
     },
   };
 }
