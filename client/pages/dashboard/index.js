@@ -16,61 +16,41 @@ import Link from "next/link";
 import VoiceControl from "@/components/VoiceControl/VoiceControl";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import MultipleFeedingSchedules from "@/components/MultipleFeedingSchedules/MultipleFeedingSchedules";
 
 const Dashboard = () => {
   const { t } = useTranslation("common");
 
   return (
     <Container className={`${styles.container} pt-5`}>
+      <h2 className={styles.heading}>{t("Dashboard")}</h2>
+
       <VoiceControl />
+      <br />
       <Row>
         {/* Main Content */}
         <Col md={10}>
-          <Alert variant="danger" className="my-3">
+          {/* <Alert variant="danger" className="my-3">
             {t(`Feed is due now`)}
             <br />
             <small>{t("Last feed at 7:12 AM - 7 oz")}</small>
-          </Alert>
-
-          <h2 className={styles.heading}>{t("Dashboard")}</h2>
+          </Alert> */}
 
           <Row>
             {/* Today's Meals Section */}
             <Col md={12}>
               <Card className={styles.card}>
                 <Card.Body>
-                  <Card.Title>{t("Today's Meals")}</Card.Title>
-                  <Table striped bordered hover>
-                    <thead>
-                      <tr>
-                        <th>{t("Meal")}</th>
-                        <th>{t("Type")}</th>
-                        <th>{t("Amount")}</th>
-                        <th>{t("Notes")}</th>
-                        <th>{t("Actions")}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td>{t("Breakfast")}</td>
-                        <td>{t("Baby formula")}</td>
-                        <td>{t("7.8 oz")}</td>
-                        <td>{t("Only drank half")}</td>
-                        <td>
-                          <Button variant="outline-primary" size="sm">
-                            {t("Edit")}
-                          </Button>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </Table>
-                  <Button
-                    variant="primary"
-                    className={styles.addButton}
-                    href={`${process.env.NEXT_PUBLIC_CLIENT_URL}feeding-schedule`}
-                  >
-                    + {t("Add")}
-                  </Button>
+                  <Card.Title>{t("Feedings")}</Card.Title>
+                  <MultipleFeedingSchedules />
+                  <div className="mt-3">
+                    <Link
+                      href="/feeding-schedule"
+                      className={styles.viewMoreLink}
+                    >
+                      {t("Manage Schedule")} →
+                    </Link>
+                  </div>
                 </Card.Body>
               </Card>
             </Col>
