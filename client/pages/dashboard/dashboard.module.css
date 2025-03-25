@@ -47,3 +47,37 @@ margin-bottom: 1.5rem;
 .addButton:hover {
     background-color:#af9cdd;
 }
+
+.viewMoreBtn {
+  transition: all 0.3s ease;
+  border-radius: 8px;
+  padding: 8px 16px;
+}
+
+.viewMoreBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.customBtn {
+    /* The `!important` rules are needed to override React Bootstrap's default button styles */
+  border-color: #65558F !important; 
+  color: #65558F !important;
+  padding: 8px 16px;
+  border-radius: 8px;
+}
+
+.customBtn:hover {
+  background-color: transparent !important;
+}
+
+.viewMoreLink {
+  color: #65558F;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+.viewMoreLink:hover {
+  color: #65558F;
+  text-decoration: none;
+}
