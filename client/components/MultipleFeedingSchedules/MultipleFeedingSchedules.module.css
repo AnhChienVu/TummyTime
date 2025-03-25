@@ -1,0 +1,9 @@
+.customAccordion :global(.accordion-button:not(.collapsed)) {
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.customAccordion :global(.accordion-button:focus) {
+  box-shadow: none;
+  background-color: transparent;
+}
