@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import styles from "./checkProduct.module.css";
 import BarcodeScanner from "@/components/BarcodeScanner/BarcodeScanner";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -10,6 +10,7 @@ import {
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import SearchByCategoryBox from "@/components/SearchByCategoryBox/SearchByCategoryBox";
+import Image from "next/image";
 
 function CheckProduct() {
   const { t } = useTranslation("common");
@@ -17,6 +18,8 @@ function CheckProduct() {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [input, setInput] = useState("");
+  const [isRecallListExpanded, setIsRecallListExpanded] = useState(true);
+  const recallListRef = useRef(null);
 
   const toggleCamera = () => {
     setCameraActive((prev) => !prev);
@@ -76,6 +79,7 @@ function CheckProduct() {
   const checkInput = useCallback(
     (input) => {
       console.log(input);
+      setInput("");
       if (/^\d{1,13}$/.test(input)) {
         // It's a barcode
         fetchSafetyInfoFromBarcode(input);
@@ -130,13 +134,8 @@ function CheckProduct() {
         </div>
       </div>
 
-      <br />
-
-      <h1>{t("Search By Category")}</h1>
-      <SearchByCategoryBox />
-
       {error && (
-        <div className={styles.error}>
+        <div className={styles.errorMessage}>
           <p>{error}</p>
         </div>
       )}
@@ -146,24 +145,101 @@ function CheckProduct() {
           <h4>
             {t("Search")}: {result.product}
           </h4>
-          <h3>
-            {t("Safety Levels")}: {t(result.safetyLevel)}
-          </h3>
-          {result.recalls.map((alert) => (
-            <div key={alert.NID} className={styles.alert}>
-              <h4>{alert.Title}</h4>
-              <a
-                href={alert.URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.alertLink}
-              >
-                View Recall Details
-              </a>
-            </div>
-          ))}
+
+          <button
+            onClick={() => setIsRecallListExpanded(!isRecallListExpanded)}
+            className={`${styles.collapseBtn} ${
+              isRecallListExpanded ? styles.expanded : ""
+            }`}
+            aria-label={
+              isRecallListExpanded
+                ? "Collapse all recalls"
+                : "Expand all recalls"
+            }
+          >
+            {isRecallListExpanded ? "▲ Collapse" : "▼ Expand"}
+          </button>
+
+          <div
+            ref={recallListRef}
+            className={`${styles.recallsList} ${
+              isRecallListExpanded ? styles.expanded : ""
+            }`}
+            style={{
+              maxHeight: isRecallListExpanded
+                ? `${recallListRef.current?.scrollHeight}px`
+                : "0px",
+            }}
+          >
+            {result.recalls.map((alert, idx) => (
+              <div key={idx} className={styles.alert}>
+                <h4>{alert.title}</h4>
+                <h5>Recall</h5>
+                <span>
+                  {alert.category?.includes("Food") ? (
+                    <div className={styles.alertIcon}>
+                      <Image
+                        src="/icon-food.svg"
+                        alt="Food Recall Icon"
+                        width={40}
+                        height={40}
+                        className={styles.iconImage}
+                      />
+                      <p>Food recall warning | {alert.date}</p>
+                    </div>
+                  ) : alert.category?.includes("Health") ? (
+                    <div className={styles.alertIcon}>
+                      <Image
+                        src="/icon-health.svg"
+                        alt="Health Recall Icon"
+                        width={40}
+                        height={40}
+                        className={styles.iconImage}
+                      />
+                      <p>Health recall warning | {alert.date}</p>
+                    </div>
+                  ) : alert.category?.includes("Product") ? (
+                    <div className={styles.alertIcon}>
+                      <Image
+                        src="/icon-product.svg"
+                        alt="Product Recall Icon"
+                        width={40}
+                        height={40}
+                        className={styles.iconImage}
+                      />
+                      <p>Product recall warning | {alert.date}</p>
+                    </div>
+                  ) : alert.category?.includes("Transport") ? (
+                    <div className={styles.alertIcon}>
+                      <Image
+                        src="/icon-transport.svg"
+                        alt="Transport Recall Icon"
+                        width={40}
+                        height={40}
+                        className={styles.iconImage}
+                      />
+                      <p>Transport recall warning | {alert.date}</p>
+                    </div>
+                  ) : (
+                    "General"
+                  )}
+                </span>
+                <a
+                  href={alert.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.alertLink}
+                >
+                  View Recall Details
+                </a>
+              </div>
+            ))}
+          </div>
         </div>
       )}
+      <br />
+
+      <SearchByCategoryBox />
     </div>
   );
 }
