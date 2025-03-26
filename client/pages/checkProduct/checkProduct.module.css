@@ -20,6 +20,12 @@
     text-align: center;
 }
 
+.cameraToggleButton {
+    background-color: #EADDFF;
+    padding: 10px;
+    border-radius: 12px;
+}
+
 .barcodeForm {
     font-size: 2rem;
     margin-top: 20px;
@@ -44,6 +50,11 @@
     margin-left: 10px;
     border: none;
     background: none;
+    background-color: #f9f9f9;
+}
+
+.searchButton:hover {
+    color: #65558F;
 }
 
 .productNameForm {
@@ -63,3 +74,45 @@
     text-decoration: underline;
 }
 
+.recallsList {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-in-out;
+}
+
+.recallsList.expanded {
+max-height: 2000px; /* Adjust based on your content needs */
+}
+
+.collapseBtn {
+    background-color: #65558F;
+    color: white;
+    padding: 6px;
+    border-radius: 12px;
+    font-size: 1rem;
+}
+
+.collapseBtn:hover {
+    background-color: #4B3B6D;
+}
+
+.alertIcon {
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    margin-top: 10px;
+    width: 100%;
+}
+
+.iconImage {
+    margin-right: 8px;
+}
+
+
+.errorMessage {
+    color: #721c24;
+    background-color: #f8d7da;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 20px;
+}
