@@ -52,7 +52,7 @@ const FeedingSchedule = ({ babyId }) => {
   };
 
   if (loading) return <Alert variant="info">{t("Loading feeding schedule...")}</Alert>;
-  if (error) return <p>{t("No feeding schedules for this baby.")}</p>;
+  if (error) return <p>{t("No feeding schedules found for this baby.")}</p>;
 
   const latestFeed = getLatestFeed();
 
