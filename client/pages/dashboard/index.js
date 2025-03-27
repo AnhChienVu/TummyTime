@@ -144,9 +144,9 @@ const Dashboard = () => {
       </Row>
 
       <Row>
-        {/* Main Content - Update Col to be responsive */}
+        {/* Main Content - TODO Update Col to be responsive */}
         <Col xs={12} lg={10} className="mx-auto">
-          {/* Stats Summary - Update columns to be responsive */}
+          {/* Stats Summary - TODO Update columns to be responsive */}
           <Row className="mb-4 g-3">
             <Col xs={6} md={3}>
               <Card className={styles.statsCard}>
