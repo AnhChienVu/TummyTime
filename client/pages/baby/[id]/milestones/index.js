@@ -15,8 +15,10 @@ import useSpeechToText from "@/hooks/useSpeechToText";
 import IncompatibleBrowserModal from "@/components/IncompatibleBrowserModal";
 
 const formatDate = (dateString) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", {
+  const [year, month, day] = dateString.split("-");
+  const localDate = new Date(year, month - 1, day); // Month is 0-indexed in JavaScript
+
+  return localDate.toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -212,6 +214,10 @@ function MilestoneEachBaby({ baby_id }) {
         : `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${selectedMilestone.baby_id}/milestones/${selectedMilestone.milestone_id}`;
 
       const method = isNewMilestone ? "POST" : "PUT";
+      console.log("Alo");
+      // Parse the date as a local date
+      const [year, month, day] = date.split("-");
+      const localDate = new Date(year, month - 1, day); // Month is 0-indexed in JavaScript
 
       const res = await fetch(url, {
         method: method,
@@ -222,7 +228,7 @@ function MilestoneEachBaby({ baby_id }) {
         body: JSON.stringify({
           title,
           details,
-          date: new Date(date + "T00:00:00").toISOString().split("T")[0],
+          date: localDate,
         }),
       });
 
