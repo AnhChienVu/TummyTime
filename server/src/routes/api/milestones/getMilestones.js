@@ -66,7 +66,7 @@ module.exports.getMilestoneByBabyId = async (req, res) => {
         baby_id,
         TO_CHAR(date, 'YYYY-MM-DD') AS date, -- Format the date as YYYY-MM-DD
         title,
-        details, FROM milestones WHERE baby_id = $1`,
+        details FROM milestones WHERE baby_id = $1`,
       [baby_id]
     );
 
