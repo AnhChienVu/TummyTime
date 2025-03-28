@@ -52,30 +52,6 @@ const DoctorDashboard = () => {
     fetchBabyHealthRecords();
   }, []);
 
-  // const dummyPatients = [
-  //   {
-  //     id: 1,
-  //     name: "John Doe",
-  //     age: 45,
-  //     lastConsult: "2024-01-15",
-  //     status: "Stable",
-  //   },
-  //   {
-  //     id: 2,
-  //     name: "Jane Smith",
-  //     age: 32,
-  //     lastConsult: "2024-01-14",
-  //     status: "Critical",
-  //   },
-  //   {
-  //     id: 3,
-  //     name: "Robert Brown",
-  //     age: 58,
-  //     lastConsult: "2024-01-13",
-  //     status: "Review",
-  //   },
-  // ];
-
   const vitalData = {
     labels: ["Jan", "Feb", "Mar", "Apr", "May"],
     datasets: [
