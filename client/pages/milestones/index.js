@@ -360,6 +360,7 @@ function Milestones() {
                   };
                 }}
                 onSelectEvent={handleEventClick}
+                popup
               />
             </div>
           </Col>
