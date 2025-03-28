@@ -185,6 +185,8 @@ function Milestones() {
     if (!validateInputs()) {
       return;
     }
+    console.log("Selected Date:", selectedDate);
+    console.log("Formatted Date:", selectedDate.toISOString().split("T")[0]);
 
     try {
       const res = await fetch(
@@ -198,7 +200,7 @@ function Milestones() {
           body: JSON.stringify({
             title,
             details,
-            date: format(new Date(selectedDate.toDateString()), "yyyy-MM-dd"),
+            date: selectedDate.toISOString().split("T")[0], // Format date as YYYY-MM-DD in UTC
           }),
         },
       );
@@ -234,12 +236,19 @@ function Milestones() {
       );
       const data = await res.json();
       if (data.status === "ok") {
-        const formattedMilestones = data.data.map((milestone) => ({
-          title: `${milestone.first_name} ${milestone.last_name}: ${milestone.title}`,
-          start: new Date(milestone.date),
-          end: new Date(milestone.date),
-          details: milestone.details,
-        }));
+        const formattedMilestones = data.data.map((milestone) => {
+          console.log("Milestone Date:", milestone.date);
+          // Parse the date as a local date
+          const [year, month, day] = milestone.date.split("-");
+          const localDate = new Date(year, month - 1, day); // Month is 0-indexed in JavaScript
+          return {
+            title: `${milestone.first_name} ${milestone.last_name}: ${milestone.title}`,
+            start: localDate, // Use the parsed local date
+            end: localDate, // Use the same date for start and end
+            details: milestone.details,
+          };
+        });
+        console.log("Formatted Milestones:", formattedMilestones);
         setMilestones(formattedMilestones);
       }
     } catch (error) {
