@@ -438,8 +438,7 @@ const Growth = () => {
             data?.map((row, index) => (
               <tr key={index}>
                 <td className={styles.tableBodyCell}>
-                  {/* {console.log(row.date)} */}
-                  {/* {row?.date
+                  {row?.date
                     ? format(
                         new Date(
                           parseInt(row.date.split("-")[0]),
@@ -448,11 +447,7 @@ const Growth = () => {
                         ).toString(),
                         "MMM d, yyyy",
                       )
-                    : "--"} */}
-                  {row?.date
-                    ? format(parseISO(row.date), "MMM d, yyyy") // Format as "Dec 1, 2024"
                     : "--"}
-                  {console.log(row.date)}
                 </td>
                 <td className={styles.tableBodyCell}>
                   {row?.height ? `${row.height} in` : "--"}
