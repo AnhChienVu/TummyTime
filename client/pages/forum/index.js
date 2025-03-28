@@ -189,15 +189,6 @@ export default function Forum() {
             </Row>
           )}
           <Row className="mb-3">
-            {/* <Col md={4}>
-              <Form.Control
-                type="file"
-                accept="image/*"
-                {...register("image")}
-                onChange={handleFileChange}
-              />
-            </Col>
-            <Col md={4}></Col> */}
             <Col md={6}>
               <Button
                 variant="primary"
@@ -247,7 +238,7 @@ export default function Forum() {
                         </Card.Text>
                         <div className={styles.postMetadata}>
                           <small>
-                            Posted:{" "}
+                            Posted by: {post.display_name} on{" "}
                             {new Date(post.created_at).toLocaleDateString()} at{" "}
                             {new Date(post.created_at).toLocaleTimeString()}
                           </small>
@@ -263,6 +254,7 @@ export default function Forum() {
                               >
                                 <p>{reply.content}</p>
                                 <small>
+                                  Posted by: {reply.author} on{" "}
                                   {new Date(
                                     reply.created_at,
                                   ).toLocaleDateString()}
