@@ -198,7 +198,7 @@ function Milestones() {
           body: JSON.stringify({
             title,
             details,
-            date: format(new Date(selectedDate.toDateString()), "yyyy-MM-dd"),
+            date: selectedDate.toISOString().split("T")[0], // Format date as YYYY-MM-DD in UTC
           }),
         },
       );
