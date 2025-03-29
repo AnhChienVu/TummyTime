@@ -332,73 +332,84 @@ export default function PostDetail({ post_id }) {
         ← {t("Back to Forum")}
       </Button>
 
+      {/* Display one post + edit, delete post form */}
       {post && (
         <Card className={styles.postDetailCard}>
           <Card.Body>
             <div className={styles.postHeader}>
               {isEditing ? (
-                <Form.Control
-                  type="text"
-                  value={editTitle}
-                  onChange={(e) => setEditTitle(e.target.value)}
-                  className={styles.editTitleInput}
-                />
+                <>
+                  <Form.Control
+                    type="text"
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    className={styles.editTitleInput}
+                  />
+                </>
               ) : (
-                <Card.Title className={styles.postTitle}>
-                  {post.title}
-                </Card.Title>
+                <>
+                  <div className={styles.postTitleContainer}>
+                    <Card.Title className={styles.postTitle}>
+                      {post.title}
+                    </Card.Title>
+                  </div>
+                  {post.is_owner && !isEditing && (
+                    <div className={styles.postActions}>
+                      <Button
+                        variant="outline-secondary"
+                        size="sm"
+                        onClick={startEditing}
+                        className={styles.editButton}
+                      >
+                        {t("Edit Post")}
+                      </Button>
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        onClick={handleDeleteClick}
+                        className={styles.deleteButton}
+                      >
+                        {t("Delete Post")}
+                      </Button>
+                    </div>
+                  )}
+                </>
               )}
-              <div>
-                {isEditing ? (
-                  <div className={styles.editButtons}>
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={handleEditSubmit}
-                      className={styles.editActionButton}
-                    >
-                      Save
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => setIsEditing(false)}
-                      className={styles.editActionButton}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                ) : (
-                  <div className={styles.postActions}>
-                    <Button
-                      variant="outline-secondary"
-                      size="sm"
-                      onClick={startEditing}
-                      className={styles.editButton}
-                    >
-                      {t("Edit Post")}
-                    </Button>
-                    <Button
-                      variant="outline-danger"
-                      size="sm"
-                      onClick={handleDeleteClick}
-                      className={styles.deleteButton}
-                    >
-                      {t("Delete Post")}
-                    </Button>
-                  </div>
-                )}
-              </div>
             </div>
-            {isEditing ? (
-              <Form.Control
-                as="textarea"
-                rows={5}
-                value={editContent}
-                onChange={(e) => setEditContent(e.target.value)}
-                className={styles.editContentInput}
-              />
-            ) : (
+            {isEditing && (
+              <>
+                <Form.Control
+                  as="textarea"
+                  rows={5}
+                  value={editContent}
+                  onChange={(e) => setEditContent(e.target.value)}
+                  className={styles.editContentInput}
+                />
+                <div className={styles.editButtons}>
+                  <Button
+                    variant="outline-primary"
+                    size="sm"
+                    onClick={handleEditSubmit}
+                    className={styles.editActionButton}
+                  >
+                    {t("Save")}
+                  </Button>
+                  <Button
+                    variant="outline-secondary"
+                    size="sm"
+                    onClick={() => {
+                      setIsEditing(false);
+                      setEditTitle(post.title);
+                      setEditContent(post.content);
+                    }}
+                    className={styles.editActionButton}
+                  >
+                    {t("Cancel")}
+                  </Button>
+                </div>
+              </>
+            )}
+            {isEditing ? null : (
               <Card.Text className={styles.postContent}>
                 {post.content}
               </Card.Text>
@@ -412,7 +423,7 @@ export default function PostDetail({ post_id }) {
                 }}
               >
                 <small>
-                  {t("Posted")}:{" "}
+                  {t("Posted by")}: {post.display_name} on{" "}
                   {new Date(post.created_at).toLocaleDateString()} at{" "}
                   {new Date(post.created_at).toLocaleTimeString()}
                 </small>
@@ -431,6 +442,7 @@ export default function PostDetail({ post_id }) {
         </Card>
       )}
 
+      {/* Display replies + edit, delete reply forms */}
       <div className={styles.repliesSection}>
         <h5>
           {t("Replies")} ({replies.length})
@@ -453,7 +465,7 @@ export default function PostDetail({ post_id }) {
                       style={{ marginTop: "10px" }}
                     >
                       <Button
-                        variant="primary"
+                        variant="outline-primary"
                         size="sm"
                         onClick={() => handleReplyEdit(reply.reply_id)}
                         className={styles.editActionButton}
@@ -461,7 +473,7 @@ export default function PostDetail({ post_id }) {
                         {t("Save")}
                       </Button>
                       <Button
-                        variant="secondary"
+                        variant="outline-secondary"
                         size="sm"
                         onClick={() => {
                           setEditingReplyId(null);
@@ -478,6 +490,7 @@ export default function PostDetail({ post_id }) {
                     <Card.Text>{reply.content}</Card.Text>
                     <div className={styles.replyMetadata}>
                       <small>
+                        {t("Posted by")}: {reply.author} on{" "}
                         {new Date(reply.created_at).toLocaleDateString()} at{" "}
                         {new Date(reply.created_at).toLocaleTimeString()}
                         {reply.updated_at &&
@@ -498,30 +511,32 @@ export default function PostDetail({ post_id }) {
                             </span>
                           )}
                       </small>
-                      <div>
-                        <Button
-                          variant="link"
-                          size="sm"
-                          onClick={() => {
-                            setEditingReplyId(reply.reply_id);
-                            setEditReplyContent(reply.content);
-                          }}
-                          className={styles.editButton}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          variant="link"
-                          size="sm"
-                          className={styles.deleteButton}
-                          onClick={() => {
-                            setReplyToDelete(reply.reply_id);
-                            setShowDeleteReplyModal(true);
-                          }}
-                        >
-                          Delete
-                        </Button>
-                      </div>
+                      {reply.is_owner && (
+                        <div className={styles.replyActions}>
+                          <Button
+                            variant="outline-secondary"
+                            size="sm"
+                            onClick={() => {
+                              setEditingReplyId(reply.reply_id);
+                              setEditReplyContent(reply.content);
+                            }}
+                            className={styles.editButton}
+                          >
+                            {t("Edit")}
+                          </Button>
+                          <Button
+                            variant="outline-danger"
+                            size="sm"
+                            className={styles.deleteButton}
+                            onClick={() => {
+                              setReplyToDelete(reply.reply_id);
+                              setShowDeleteReplyModal(true);
+                            }}
+                          >
+                            {t("Delete")}
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </>
                 )}
@@ -533,6 +548,7 @@ export default function PostDetail({ post_id }) {
         )}
       </div>
 
+      {/* Add a reply to the post */}
       <Form onSubmit={handleReplySubmit} className={styles.replyForm}>
         <Form.Group>
           <Form.Label>{t("Add a reply")}</Form.Label>
@@ -553,6 +569,7 @@ export default function PostDetail({ post_id }) {
         </Button>
       </Form>
 
+      {/* Confirm delete post modal */}
       <Modal show={showDeleteModal} onHide={handleModalClose}>
         <Modal.Header closeButton>
           <Modal.Title>{t("Confirm Delete")}</Modal.Title>
@@ -584,6 +601,7 @@ export default function PostDetail({ post_id }) {
         </Modal.Footer>
       </Modal>
 
+      {/* Confirm delete reply modal */}
       <Modal
         show={showDeleteReplyModal}
         onHide={() => {
@@ -629,47 +647,6 @@ export default function PostDetail({ post_id }) {
     </Container>
   );
 }
-
-// export async function getStaticPaths() {
-//   // Fetch the token from localStorage on the client side
-//   if (typeof window !== "undefined") {
-//     const token = localStorage.getItem("token");
-
-//     if (!token) {
-//       return {
-//         paths: [],
-//         fallback: false,
-//       };
-//     }
-
-//     // Fetch the list of post IDs from your custom API route
-//     const res = await fetch(`/api/getAllPosts?token=${token}`);
-//     const data = await res.json();
-
-//     if (data.status !== "ok") {
-//       return {
-//         paths: [],
-//         fallback: false,
-//       };
-//     }
-//     console.log(data);
-
-//     // Generate the paths for each post ID
-//     const paths = data.data.map((post) => ({
-//       params: { post_id: post.post_id.toString() },
-//     }));
-
-//     return {
-//       paths,
-//       fallback: false, // See the "fallback" section below
-//     };
-//   }
-
-//   return {
-//     paths: [],
-//     fallback: false,
-//   };
-// }
 
 export async function getServerSideProps({ params, locale }) {
   return {
