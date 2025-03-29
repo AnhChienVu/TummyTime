@@ -40,25 +40,29 @@ module.exports = async (req, res) => {
     }
 
     // Get replies with user information
-    const replies = await pool.query(
-      `SELECT 
+    // the is_owner flag checks if the user is the owner of the reply
+    // Note that the is_owner flag is only used to display/hide UI elements and do not prevent unauthorized actions (`ownershipCheck.js` is used for that)
+    // is_owner in GET endpoints = "Should I show edit buttons?"
+    // ownershipCheck middleware = "Should I allow this modification?"
+    const repliesQuery = `
+      SELECT 
         r.reply_id,
-        r.post_id,
         r.user_id,
         r.content,
         r.created_at,
         r.updated_at,
-        CONCAT(u.first_name, ' ', LEFT(u.last_name, 1), '.') as author
+        CONCAT(u.first_name, ' ', LEFT(u.last_name, 1), '.') as author,
+        (r.user_id = $2) as is_owner
       FROM forumreply r
-      JOIN users u ON r.user_id = u.user_id
+      LEFT JOIN users u ON r.user_id = u.user_id
       WHERE r.post_id = $1
-      ORDER BY r.created_at ASC`,
-      [post_id]
-    );
+      ORDER BY r.created_at ASC
+    `;
+    const result = await pool.query(repliesQuery, [post_id, userId]);
 
     return res.status(200).json({
       status: 'ok',
-      data: replies.rows,
+      data: result.rows,
     });
   } catch (error) {
     logger.error(`Error fetching replies: ${error.message}`);
