@@ -1,0 +1,116 @@
+.postDetailCard {
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.postHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.postTitleContainer {
+  flex: 1;
+}
+
+.postTitle {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.postActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.editButton,
+.deleteButton {
+  min-width: 80px;
+}
+
+.deleteButton:hover {
+  background-color: #dc3545;
+  color: white;
+}
+
+.editTitleInput {
+  margin-bottom: 1rem;
+}
+
+.editContentInput {
+  margin-bottom: 1rem;
+  resize: vertical;
+}
+
+.editButtons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.editActionButton {
+  min-width: 80px;
+}
+
+.postContent {
+  white-space: pre-wrap;
+  margin: 1rem 0;
+}
+
+.postMetadata {
+  border-top: 1px solid #dee2e6;
+  padding-top: 1rem;
+  margin-top: 1rem;
+}
+
+.metadataContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.editedText {
+  color: #666666;
+}
+
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
+
+.modal-content {
+  border-radius: 8px;
+}
+
+.toastContainer {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+}
+
+.toast {
+  min-width: 250px;
+  background-color: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .postHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .postActions {
+    margin-top: 1rem;
+  }
+
+  .metadataContainer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
