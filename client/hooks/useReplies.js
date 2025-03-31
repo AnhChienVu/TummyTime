@@ -11,6 +11,7 @@ export function useReplies(post_id) {
   const [showDeleteReplyModal, setShowDeleteReplyModal] = useState(false);
   const [deleteReplyConfirmed, setDeleteReplyConfirmed] = useState(false);
   const [replyToDelete, setReplyToDelete] = useState(null);
+  const [shouldRefresh, setShouldRefresh] = useState(false);
 
   const handleStartReplyEdit = (reply) => {
     if (!reply) return;
@@ -23,11 +24,6 @@ export function useReplies(post_id) {
     setReplyToDelete(reply);
     setShowDeleteReplyModal(true);
   };
-
-  useEffect(() => {
-    if (!post_id) return;
-    fetchReplies();
-  }, [post_id]);
 
   const fetchReplies = async () => {
     if (!post_id) return;
@@ -43,14 +39,32 @@ export function useReplies(post_id) {
         },
       );
 
-      if (response.ok) {
-        const data = await response.json();
-        setReplies(data.data);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to fetch replies");
       }
+
+      const data = await response.json();
+      if (!data || !data.data) {
+        throw new Error("Invalid response format");
+      }
+
+      setReplies(data.data);
+      setShouldRefresh(false); // Reset refresh flag
     } catch (error) {
-      setError("Failed to fetch posts");
+      setError(error.message || "Failed to fetch replies");
+      console.error("Error fetching replies:", error);
     }
   };
+
+  useEffect(() => {
+    const loadReplies = async () => {
+      if (!post_id) return;
+      await fetchReplies();
+    };
+
+    loadReplies();
+  }, [post_id, shouldRefresh]);
 
   const handleReplySubmit = async (e) => {
     e.preventDefault();
@@ -71,26 +85,9 @@ export function useReplies(post_id) {
       );
 
       if (response.ok) {
-        const result = await response.json();
-        // Create a new reply object with all required fields
-        const newReply = {
-          ...result.data,
-          // created_at: new Date().toISOString(), // Add timestamp if not provided by API
-        };
-
-        // Update replies state with the new reply
-        setReplies((prevReplies) => [...prevReplies, newReply]);
-
-        // Clear the reply input
-        setReplyContent("");
-
-        // Update post reply count if needed
-        if (post) {
-          setPost((prevPost) => ({
-            ...prevPost,
-            reply_count: (prevPost.reply_count || 0) + 1,
-          }));
-        }
+        setReplyContent(""); // Clear the reply input
+        // Perform a hard refresh of the page
+        window.location.reload();
       } else {
         const errorData = await response.json();
         setError(errorData.message || "Failed to post reply");
@@ -203,17 +200,20 @@ export function useReplies(post_id) {
     showDeleteReplyModal,
     deleteReplyConfirmed,
     replyToDelete,
+    shouldRefresh,
     setReplyContent,
     setEditingReplyId,
     setEditReplyContent,
     setShowDeleteReplyModal,
     setDeleteReplyConfirmed,
     setReplyToDelete,
+    setShouldRefresh,
     handleReplySubmit,
     handleReplyEdit,
     handleReplyDelete,
     handleStartReplyEdit,
     handleStartReplyDelete,
     handleCancelReplyEdit,
+    fetchReplies,
   };
 }
