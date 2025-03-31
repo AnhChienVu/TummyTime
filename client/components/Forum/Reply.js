@@ -1,4 +1,9 @@
 // components/Forum/Reply.js
+// This is a component that display a single existing reply. It handles:
+//  - Displaying reply content
+//  - Editing existing replies
+//  - Deleting replies
+//  - Showing metadata about the reply
 import {
   Card,
   Button,
@@ -54,6 +59,26 @@ export function Reply({
     <>
       <Card className={styles.replyCard}>
         <Card.Body>
+          {reply.is_owner && (
+            <div className={styles.replyActions}>
+              <Button
+                variant="outline-secondary"
+                size="sm"
+                onClick={onEdit}
+                className={styles.editButton}
+              >
+                {t("Edit")}
+              </Button>
+              <Button
+                variant="outline-danger"
+                size="sm"
+                onClick={handleDeleteClick}
+                className={styles.deleteButton}
+              >
+                {t("Delete")}
+              </Button>
+            </div>
+          )}
           {isEditing ? (
             <>
               <Form.Control
@@ -90,36 +115,15 @@ export function Reply({
                   {t("Posted by")}: {reply.author} on{" "}
                   {new Date(reply.created_at).toLocaleDateString()} at{" "}
                   {new Date(reply.created_at).toLocaleTimeString()}
-                  {reply.updated_at &&
-                    reply.updated_at !== reply.created_at && (
-                      <span className={styles.editedText}>
-                        <i>
-                          {t(" Last edited")}:{" "}
-                          {new Date(reply.updated_at).toLocaleDateString()} at{" "}
-                          {new Date(reply.updated_at).toLocaleTimeString()}
-                        </i>
-                      </span>
-                    )}
                 </small>
-                {reply.is_owner && (
-                  <div className={styles.replyActions}>
-                    <Button
-                      variant="outline-secondary"
-                      size="sm"
-                      onClick={onEdit}
-                      className={styles.editButton}
-                    >
-                      {t("Edit")}
-                    </Button>
-                    <Button
-                      variant="outline-danger"
-                      size="sm"
-                      onClick={handleDeleteClick}
-                      className={styles.deleteButton}
-                    >
-                      {t("Delete")}
-                    </Button>
-                  </div>
+                {reply.updated_at && reply.updated_at !== reply.created_at && (
+                  <small className={styles.editedText}>
+                    <i>
+                      {t(" Last edited")}:{" "}
+                      {new Date(reply.updated_at).toLocaleDateString()} at{" "}
+                      {new Date(reply.updated_at).toLocaleTimeString()}
+                    </i>
+                  </small>
                 )}
               </div>
             </>
