@@ -110,32 +110,47 @@ module.exports = async (req, res) => {
 
     // Step2: For each baby, query related data and append CSV sections : baby_info, growth_records, milestones, feeding_schedule, stool_records
     
-    // Build CSV content
-    let csvContent = "";
+    // Build HTML content
+    let htmlContent = `
+    <html>
+    <head>
+      <style>
+          body { font-family: Arial, sans-serif; margin: 20px; }
+          h2 { border-bottom: 2px solid #000; padding-bottom: 5px; }
+          h3 { margin-top: 30px; }
+
+          table { border-collapse: collapse; margin-bottom: 20px; width: 100%; }
+          th, td { border: 1px solid #000; padding: 8px; text-align: left; }
+
+          .separator { margin: 30px 0; border-top: 2px dashed #666; }
+      </style>
+    </head>
+    <body>
+    `;  // STYLE for html
 
     // LOOP THROUGH EACH BABY
     for (let baby of babies) {
       // add [separator] between next baby
-      if (csvContent.length > 0) {
-        csvContent += "==========,==============,============,============,====================\n";
+      if (htmlContent.length > 0) {
+        htmlContent += "==========,==============,============,============,====================\n";
       }
 
       // Baby header
-      csvContent += `Baby: ${baby.first_name} ${baby.last_name}\n`;
-      // csvContent += `, DOB: ${baby.birthdate || "N/A"}`;  //TEMPORARILY REMOVED DOB
-      csvContent += `\n`;
+      htmlContent += `Baby: ${baby.first_name} ${baby.last_name}\n`;
+      // htmlContent += `, DOB: ${baby.birthdate || "N/A"}`;  //TEMPORARILY REMOVED DOB
+      htmlContent += `\n`;
 
       // --- Baby Information ---
       if (includeBabyInfo) {
-        csvContent += "Baby Information\n";
-        csvContent += "ID,First Name,Last Name,";
-        // csvContent += "DOB,";  //TEMPORARILY REMOVED DOB
-        csvContent += "Gender,Weight,Created At\n";
+        htmlContent += "Baby Information\n";
+        htmlContent += "ID,First Name,Last Name,";
+        // htmlContent += "DOB,";  //TEMPORARILY REMOVED DOB
+        htmlContent += "Gender,Weight,Created At\n";
 
-        csvContent += `${baby.baby_id},${baby.first_name},${baby.last_name}`;
-        //csvContent += `,${baby.birthdate || "N/A"}`;  //TEMPORARILY REMOVED DOB
-        csvContent += `,${baby.gender},${baby.weight},${baby.created_at}`;
-        csvContent += `\n\n`;
+        htmlContent += `${baby.baby_id},${baby.first_name},${baby.last_name}`;
+        //htmlContent += `,${baby.birthdate || "N/A"}`;  //TEMPORARILY REMOVED DOB
+        htmlContent += `,${baby.gender},${baby.weight},${baby.created_at}`;
+        htmlContent += `\n\n`;
       }
 
       // --- Growth Records Section ---
@@ -145,17 +160,17 @@ module.exports = async (req, res) => {
           [baby.baby_id, startDate, endDate]
         );
 
-        csvContent += "---------------------------,---------------------------,----------------------\n";
-        csvContent += "Growth Records\n";
-        csvContent += "Growth ID,Date,Weight,Height,Notes\n";
+        htmlContent += "---------------------------,---------------------------,----------------------\n";
+        htmlContent += "Growth Records\n";
+        htmlContent += "Growth ID,Date,Weight,Height,Notes\n";
         if (growthResult.rows.length > 0) {
           growthResult.rows.forEach(record => {
-            csvContent += `${record.growth_id},${record.date},${record.weight},${record.height},${record.notes || ""}\n`;
+            htmlContent += `${record.growth_id},${record.date},${record.weight},${record.height},${record.notes || ""}\n`;
           });
         } else {
-          csvContent += "No growth records found\n";
+          htmlContent += "No growth records found\n";
         }
-        csvContent += "\n";
+        htmlContent += "\n";
       }
 
       // --- Milestones Section ---
@@ -165,17 +180,17 @@ module.exports = async (req, res) => {
           [baby.baby_id, startDate, endDate]
         );
 
-        csvContent += "---------------------------,---------------------------,----------------------\n";
-        csvContent += "Milestones\n";
-        csvContent += "Milestone ID,Date,Title,Details\n";
+        htmlContent += "---------------------------,---------------------------,----------------------\n";
+        htmlContent += "Milestones\n";
+        htmlContent += "Milestone ID,Date,Title,Details\n";
         if (milestonesResult.rows.length > 0) {
           milestonesResult.rows.forEach(milestone => {
-            csvContent += `${milestone.milestone_id},${milestone.date},${milestone.title},${milestone.details || ""}\n`;
+            htmlContent += `${milestone.milestone_id},${milestone.date},${milestone.title},${milestone.details || ""}\n`;
           });
         } else {
-          csvContent += "No milestones found\n";
+          htmlContent += "No milestones found\n";
         }
-        csvContent += "\n";
+        htmlContent += "\n";
       }
 
       // --- Feeding Schedule Section ---
@@ -185,17 +200,17 @@ module.exports = async (req, res) => {
           [baby.baby_id, startDate, endDate]
         );
 
-        csvContent += "---------------------------,---------------------------,----------------------\n";
-        csvContent += "Feeding Schedule\n";
-        csvContent += "Schedule ID,Date,Time,Meal,Amount,Type,Issues,Notes\n";
+        htmlContent += "---------------------------,---------------------------,----------------------\n";
+        htmlContent += "Feeding Schedule\n";
+        htmlContent += "Schedule ID,Date,Time,Meal,Amount,Type,Issues,Notes\n";
         if (feedingResult.rows.length > 0) {
           feedingResult.rows.forEach(feed => {
-            csvContent += `${feed.feeding_schedule_id},${feed.date},${feed.time},${feed.meal},${feed.amount},${feed.type},${feed.issues || ""},${feed.notes || ""}\n`;
+            htmlContent += `${feed.feeding_schedule_id},${feed.date},${feed.time},${feed.meal},${feed.amount},${feed.type},${feed.issues || ""},${feed.notes || ""}\n`;
           });
         } else {
-          csvContent += "No feeding schedule records found\n";
+          htmlContent += "No feeding schedule records found\n";
         }
-        csvContent += "\n";
+        htmlContent += "\n";
       }
 
       // --- Stool Records Section ---
@@ -205,21 +220,21 @@ module.exports = async (req, res) => {
           [baby.baby_id, startDate, endDate]
         );
 
-        csvContent += "---------------------------,---------------------------,----------------------\n";
-        csvContent += "Stool Records\n";
-        csvContent += "Stool ID,Timestamp,Color,Consistency,Notes\n";
+        htmlContent += "---------------------------,---------------------------,----------------------\n";
+        htmlContent += "Stool Records\n";
+        htmlContent += "Stool ID,Timestamp,Color,Consistency,Notes\n";
         if (stoolResult.rows.length > 0) {
           stoolResult.rows.forEach(entry => {
-            csvContent += `${entry.stool_id},${entry.timestamp},${entry.color},${entry.consistency},${entry.notes || ""}\n`;
+            htmlContent += `${entry.stool_id},${entry.timestamp},${entry.color},${entry.consistency},${entry.notes || ""}\n`;
           });
         } else {
-          csvContent += "No stool records found\n";
+          htmlContent += "No stool records found\n";
         }
-        csvContent += "\n";
+        htmlContent += "\n";
       }
 
       // Separate each baby
-      csvContent += "\n\n";
+      htmlContent += "\n\n";
     }
 
     // Build file name based on included sections and date range
@@ -250,7 +265,7 @@ module.exports = async (req, res) => {
     res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);
     // add a header for filename
     res.setHeader("exportfilename", fileName);
-    res.send(csvContent);
+    res.send(htmlContent);
   } catch (err) {
     logger.error(err, "ERROR in getExportCSV(), Error exporting data: ");
     return res.status(500).json(createErrorResponse(500, "Internal server error"));
