@@ -5,7 +5,8 @@
 // Step1: VERIFY THE USER + FIND RELATED BABY_ID
 // Step2: FOR EACH BABY_ID, GET THE RELATED DATA: BABY_INFO, GROWTH_RECORDS, MILESTONES, FEEDING_SCHEDULE, STOOL_RECORDS
 // Step3: EXPORT THE DATA AS CSV
-// ===> CONVERT TO PDF
+// ===> PARSE CSV-TO-HTML
+// ===> CONVERT HTML-TO-PDF
 
 const logger = require('../../../utils/logger');
 const { createSuccessResponse, createErrorResponse } = require('../../../utils/response');
