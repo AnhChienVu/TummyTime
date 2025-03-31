@@ -16,7 +16,7 @@ import { AiOutlineInfoCircle } from "react-icons/ai";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
-function Feeding() {
+function Feeding({ baby_id }) {
   const { t, i18n } = useTranslation("common");
   const [feedingSchedule, setFeedingSchedule] = useState([]);
   const [babyId, setBabyId] = useState("");
@@ -51,39 +51,43 @@ function Feeding() {
   const [modalShow, setModalShow] = useState(false);
 
   const router = useRouter();
-  const baby_id = router.query.id;
 
   useEffect(() => {
-    if (baby_id) {
-      async function fetchFeedingSchedule() {
-        try {
-          const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${baby_id}/getFeedingSchedules`,
-            {
-              method: "GET",
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
+    if (router.isReady && baby_id) {
+      console.log("Fetching feeding schedule for baby ID:", baby_id);
+      if (baby_id) {
+        async function fetchFeedingSchedule() {
+          try {
+            const res = await fetch(
+              `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${baby_id}/getFeedingSchedules`,
+              {
+                method: "GET",
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
               },
-            },
-          );
-          const data = await res.json();
-          console.log("Fetched feeding schedule data:", data);
-          if (res.ok) {
-            //  Convert the response to an array of feeding schedules
-            const feedingScheduleArray = Object.keys(data)
-              .filter((key) => key !== "status")
-              .map((key) => data[key]);
-            setFeedingSchedule(feedingScheduleArray);
-          } else {
-            console.error("Failed to fetch feeding schedule:", data);
+            );
+            const data = await res.json();
+            console.log("Fetched feeding schedule data:", data);
+            if (res.ok) {
+              //  Convert the response to an array of feeding schedules
+              const feedingScheduleArray = Object.keys(data)
+                .filter((key) => key !== "status")
+                .map((key) => data[key]);
+              setFeedingSchedule(feedingScheduleArray);
+            } else {
+              console.error("Failed to fetch feeding schedule:", data);
+            }
+          } catch (error) {
+            console.error("Error fetching feeding schedule:", error);
           }
-        } catch (error) {
-          console.error("Error fetching feeding schedule:", error);
         }
+        fetchFeedingSchedule();
+      } else {
+        console.log("No baby ID found.");
       }
-      fetchFeedingSchedule();
     }
-  }, [baby_id]);
+  }, [baby_id, router.isReady]);
 
   let sortedData = [...feedingSchedule].sort((a, b) =>
     compareDesc(parseISO(a.date), parseISO(b.date)),
@@ -722,56 +726,55 @@ function Feeding() {
 
 export default Feeding;
 
-export async function getStaticPaths() {
-  // Fetch the token from localStorage on the client side
-  if (typeof window !== "undefined") {
-    const token = localStorage.getItem("token");
+// export async function getStaticPaths() {
+//   // Fetch the token from localStorage on the client side
+//   if (typeof window !== "undefined") {
+//     const token = localStorage.getItem("token");
 
-    if (!token) {
-      return {
-        paths: [],
-        fallback: false,
-      };
-    }
+//     if (!token) {
+//       return {
+//         paths: [],
+//         fallback: false,
+//       };
+//     }
 
-    // Fetch the list of baby IDs from your custom API route
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/babies`, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    });
-    const data = await res.json();
+//     // Fetch the list of baby IDs from your custom API route
+//     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/babies`, {
+//       headers: {
+//         Authorization: `Bearer ${localStorage.getItem("token")}`,
+//       },
+//     });
+//     const data = await res.json();
 
-    if (data.status !== "ok") {
-      return {
-        paths: [],
-        fallback: false,
-      };
-    }
+//     if (data.status !== "ok") {
+//       return {
+//         paths: [],
+//         fallback: false,
+//       };
+//     }
 
-    // Generate the paths for each baby ID
-    const paths = data.babies.map((baby) => ({
-      params: { id: baby.baby_id.toString() },
-    }));
+//     // Generate the paths for each baby ID
+//     const paths = data.babies.map((baby) => ({
+//       params: { id: baby.baby_id.toString() },
+//     }));
 
-    return {
-      paths,
-      fallback: false, // See the "fallback" section below
-    };
-  }
+//     return {
+//       paths,
+//       fallback: false, // See the "fallback" section below
+//     };
+//   }
 
-  return {
-    paths: [],
-    fallback: false,
-  };
-}
+//   return {
+//     paths: [],
+//     fallback: false,
+//   };
+// }
 
-export async function getStaticProps({ params, locale }) {
-  console.log(locale);
+export async function getServerSideProps({ params, locale }) {
   return {
     props: {
       ...(await serverSideTranslations(locale, ["common"])),
-      babyId: params.id,
+      baby_id: params.id,
     },
   };
 }

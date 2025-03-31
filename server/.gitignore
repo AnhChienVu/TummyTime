@@ -15,8 +15,9 @@ build/
 jest/
 .jest/
 
-# Ignore npm package-lock files
-package-lock.json
-
 # Ignore database files
 *.sql
+
+# Ignore other files (system, etc)
+.DS_Store
+__*

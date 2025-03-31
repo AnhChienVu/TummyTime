@@ -1,8 +1,8 @@
 // src/routes/api/forum/posts/putPost.js
-const pool = require("../../../../../database/db");
-const { createErrorResponse } = require("../../../../utils/response");
-const logger = require("../../../../utils/logger");
-const { getUserId } = require("../../../../utils/userIdHelper");
+const pool = require('../../../../../database/db');
+const { createErrorResponse } = require('../../../../utils/response');
+const logger = require('../../../../utils/logger');
+const { getUserId } = require('../../../../utils/userIdHelper');
 
 // PUT /v1/forum/posts/:post_id
 // Update a post
@@ -13,20 +13,20 @@ module.exports = async (req, res) => {
 
     // Validate request body
     if (!title || !content) {
-      return createErrorResponse(res, 400, "Title and content are required");
+      return createErrorResponse(res, 400, 'Title and content are required');
     }
 
     // Validate authorization
     const authHeader = req.headers.authorization;
     if (!authHeader) {
-      logger.error("No authorization header found");
-      return createErrorResponse(res, 401, "No authorization token provided");
+      logger.error('No authorization header found');
+      return createErrorResponse(res, 401, 'No authorization token provided');
     }
 
     // Get user_id using the helper function
     const userId = await getUserId(authHeader);
     if (!userId) {
-      return createErrorResponse(res, 404, "User not found");
+      return createErrorResponse(res, 404, 'User not found');
     }
 
     // Check if post exists and user is the author
@@ -38,11 +38,11 @@ module.exports = async (req, res) => {
     const postResult = await pool.query(checkPostQuery, [post_id]);
 
     if (postResult.rows.length === 0) {
-      return createErrorResponse(res, 404, "Post not found");
+      return createErrorResponse(res, 404, 'Post not found');
     }
 
-    if (postResult.rows[0].user_id !== userId) {
-      return createErrorResponse(res, 403, "You can only edit your own posts");
+    if (Number(postResult.rows[0].user_id) !== Number(userId)) {
+      return createErrorResponse(res, 403, 'You can only edit your own posts');
     }
 
     // Update the post
@@ -58,7 +58,7 @@ module.exports = async (req, res) => {
     const result = await pool.query(updateQuery, [title, content, post_id]);
 
     return res.status(200).json({
-      status: "ok",
+      status: 'ok',
       data: result.rows[0],
     });
   } catch (error) {

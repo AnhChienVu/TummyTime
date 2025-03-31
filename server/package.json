@@ -7,7 +7,8 @@
     "test": "jest --coverage",
     "start": "node src/index.js",
     "dev": "cross-env LOG_LEVEL=debug nodemon src/index.js",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "postinstall": "npx puppeteer browsers install chrome"
   },
   "author": "T6-PRJ666",
   "license": "ISC",
@@ -15,10 +16,12 @@
     "aws-jwt-verify": "^5.0.0",
     "aws-sdk": "^2.1692.0",
     "bcryptjs": "^2.4.3",
+    "cheerio": "^1.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "formidable": "^3.5.2",
+    "fuse.js": "^7.1.0",
     "http-auth": "^4.2.0",
     "http-auth-passport": "^1.0.7",
     "jsonwebtoken": "^9.0.2",

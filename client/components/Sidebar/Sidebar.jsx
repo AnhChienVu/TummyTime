@@ -61,6 +61,14 @@ function Sidebar() {
         </Nav.Link>
         <Nav.Link
           as={Link}
+          href="/reminders"
+          locale={locale}
+          className={styles.navlink}
+        >
+          {t("Reminders")}
+        </Nav.Link>
+        <Nav.Link
+          as={Link}
           href="/profile"
           locale={locale}
           className={styles.navlink}
@@ -92,13 +100,46 @@ function Sidebar() {
         >
           {t("Curated Tips")}
         </Nav.Link>
-          <Nav.Link
+        <Nav.Link
           as={Link}
           href="/settings"
           locale={locale}
           className={styles.navlink}
         >
           {t("Settings")}
+        </Nav.Link>
+        <Nav.Link
+          as={Link}
+          href="/export"
+          locale={locale}
+          className={styles.navlink}
+        >
+          {t("Export")}
+        </Nav.Link>
+        
+        <Nav.Link
+          as={Link}
+          href="/medicalProfessional"
+          locale={locale}
+          className={styles.navlink}
+        >
+          {t("Medical Professional")}
+        </Nav.Link>
+        <Nav.Link
+          as={Link}
+          href="/checkProduct"
+          locale={locale}
+          className={styles.navlink}
+        >
+          {t("Check Product")}
+        </Nav.Link>
+        <Nav.Link
+          as={Link}
+          href="/careServices"
+          locale={locale}
+          className={styles.navlink}
+        >
+          {t("Childcare Services")}
         </Nav.Link>
       </Nav>
     </Col>
