@@ -37,10 +37,9 @@ module.exports = async (req, res) => {
     let { startDate, endDate, babyInfo, growthRecords, milestones, feedingSchedule, stoolRecords } = req.query;
 
 
-    // if no date range:
-    // startDate = date of useraccount creation (in format: YYYY-MM-DD)
-    // endDate = today
-    // If startDate not provided, set it to the user's creation date (formatted as YYYY-MM-DD)
+    // if no date range ->Set Default date range: startDate = user account creation date, endDate = today
+    // (formatted as YYYY - MM - DD)
+    // {Requirement} user_id: user is already exist with the token
     if (!startDate) {
       const userResult = await pool.query(
         `SELECT to_char(created_at, 'YYYY-MM-DD') as created_at FROM users WHERE user_id = $1`,
@@ -60,12 +59,15 @@ module.exports = async (req, res) => {
     logger.debug(startDate, `Start Date: `);
     logger.debug(endDate, `End Date: `);
 
+
+
+    // set "undefined" to "true"
     babyInfo = babyInfo === undefined ? "true" : babyInfo;
     growthRecords = growthRecords === undefined ? "true" : growthRecords;
     milestones = milestones === undefined ? "true" : milestones;
     feedingSchedule = feedingSchedule === undefined ? "true" : feedingSchedule;
     stoolRecords = stoolRecords === undefined ? "true" : stoolRecords;
-
+    // convert to boolean
     const includeBabyInfo = babyInfo === "true";
     const includeGrowthRecords = growthRecords === "true";
     const includeMilestones = milestones === "true";
@@ -78,7 +80,21 @@ module.exports = async (req, res) => {
     logger.debug(includeFeedingSchedule, `Include Feeding Schedule: `);
     logger.debug(includeStoolRecords, `Include Stool Records: `);
 
+
     // Query to fetch baby profiles for this user
+    // {Requirement} baby_id: must have at least one baby
+        // {checkingRequirement} check if any baby exist for this user
+    const checkBabyExist = await pool.query(
+      `SELECT COUNT(*) FROM user_baby WHERE user_id = $1`,
+      [parseInt(user_id, 10)]
+    );
+    if (checkBabyExist.rows[0].count === "0") {
+      return res
+        .status(404)
+        .json(createErrorResponse(404, "No baby profiles found for this user"));
+    }
+    logger.debug({checkBabyExist}, `Checking if any baby exist for this user: `);
+    
     const babyProfilesResult = await pool.query(
       `SELECT b.* FROM baby b
        JOIN user_baby ub ON b.baby_id = ub.baby_id
@@ -88,12 +104,8 @@ module.exports = async (req, res) => {
       [parseInt(user_id, 10)]
     );
     const babies = babyProfilesResult.rows;
-    if (babies.length === 0) {
-      return res
-        .status(404)
-        .json(createErrorResponse(404, "No baby profiles found for this user"));
-    }
     logger.debug(babies, `Baby profiles: `);
+
 
 
     // Step2: For each baby, query related data and append CSV sections : baby_info, growth_records, milestones, feeding_schedule, stool_records
