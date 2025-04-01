@@ -150,12 +150,12 @@ jest.mock('../../../../database/db', () => ({
       // Create a mock query to check parameters
       const mockQuery = jest.fn().mockResolvedValue({ rows: [] });
       pool.query = mockQuery;
-
+    
       await getReminders(req, res);
-
-      // Verify the query was called with the correct SQL for ordering
+    
+      // Verify essential parts of the query without being sensitive to whitespace
       expect(mockQuery).toHaveBeenCalledWith(
-        'SELECT * FROM reminders WHERE baby_id = $1 ORDER BY date DESC, time ASC',
+        expect.stringMatching(/SELECT.*reminder_id.*baby_id.*title.*TO_CHAR\(date, 'YYYY-MM-DD'\) AS date.*FROM reminders WHERE baby_id = \$1 ORDER BY date DESC, time ASC/s),
         [1]
       );
     });
