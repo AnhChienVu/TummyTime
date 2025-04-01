@@ -9,6 +9,8 @@ import { usePost } from "../../../../hooks/usePost";
 import { useReplies } from "../../../../hooks/useReplies";
 import { Post } from "../../../../components/Forum/Post";
 import { Reply } from "../../../../components/Forum/Reply";
+import { CreateReply } from "../../../../components/Forum/CreateReply";
+import TextToSpeech from "@/components/TextToSpeech/TextToSpeech";
 
 export default function PostDetail({ post_id }) {
   const { t } = useTranslation("common");
@@ -39,12 +41,16 @@ export default function PostDetail({ post_id }) {
     handleCancelReplyEdit,
     handleReplyDelete,
     setEditReplyContent,
+    fetchReplies,
   } = useReplies(post_id);
 
-  if (postError || repliesError) {
+  if (!post || postError || repliesError) {
     return (
       <Container className={styles.container}>
-        <div className={styles.error}>{postError || repliesError}</div>
+        {!post && !postError && <div>Loading...</div>}
+        {(postError || repliesError) && (
+          <div className={styles.error}>{postError || repliesError}</div>
+        )}
       </Container>
     );
   }
@@ -84,6 +90,9 @@ export default function PostDetail({ post_id }) {
         onSave={handleEditSubmit}
         onCancel={() => setIsEditing(false)}
       />
+      <div className={styles.textToSpeechContainer}>
+        <TextToSpeech text={post?.content || ""} title={post?.title || ""} />
+      </div>
 
       <div className={styles.repliesSection}>
         <h5>
@@ -102,6 +111,7 @@ export default function PostDetail({ post_id }) {
             setEditContent={setEditReplyContent}
           />
         ))}
+        <CreateReply postId={post_id} onReplyCreated={fetchReplies} />
       </div>
     </Container>
   );
