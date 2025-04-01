@@ -50,13 +50,14 @@ module.exports = async (req, res) => {
           CONCAT(u.first_name, ' ', LEFT(u.last_name, 1), '.') as display_name,
           p.title,
           p.content,
+          p.category,
           p.created_at,
           p.updated_at,
           COUNT(DISTINCT r.reply_id) as reply_count
         FROM forumpost p
         LEFT JOIN forumreply r ON p.post_id = r.post_id
         LEFT JOIN users u ON p.user_id = u.user_id
-        GROUP BY p.post_id, p.user_id, u.first_name, u.last_name, p.title, p.content, p.created_at, p.updated_at
+        GROUP BY p.post_id, p.user_id, u.first_name, u.last_name, p.title, p.content, p.category, p.created_at, p.updated_at
         ORDER BY p.created_at DESC
       ),
       ReplyData AS (
@@ -79,6 +80,7 @@ module.exports = async (req, res) => {
         p.display_name,
         p.title,
         p.content,
+        p.category,
         p.created_at,
         p.updated_at,
         p.reply_count,
@@ -97,7 +99,7 @@ module.exports = async (req, res) => {
         ) as replies
       FROM PostData p
       LEFT JOIN ReplyData r ON p.post_id = r.post_id
-      GROUP BY p.post_id, p.user_id, p.display_name, p.title, p.content, p.created_at, p.updated_at, p.reply_count`
+      GROUP BY p.post_id, p.user_id, p.display_name, p.title, p.content, p.category, p.created_at, p.updated_at, p.reply_count`
     );
 
     return res.status(200).json({
