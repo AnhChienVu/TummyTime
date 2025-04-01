@@ -222,25 +222,48 @@ module.exports = async (req, res) => {
           });
           htmlContent += `</table>`;
 
-      // --- Milestones Section ---
-      if (includeMilestones) {
-        const milestonesResult = await pool.query(
-          "SELECT * FROM milestones WHERE baby_id = $1 AND date BETWEEN $2 AND $3 ORDER BY date ASC",
-          [baby.baby_id, startDate, endDate]
-        );
+          // --- Milestones Section ---
+          // {Requirement} milestones: must have at least one milestone
+          if (includeMilestones) {
+            // {checkingRequirement} milestones
+            const checkMilestoneExist = await pool.query(
+              `SELECT COUNT(*) FROM milestones WHERE baby_id = $1`,
+              [baby.baby_id]
+            );
 
-        htmlContent += "---------------------------,---------------------------,----------------------\n";
-        htmlContent += "Milestones\n";
-        htmlContent += "Milestone ID,Date,Title,Details\n";
-        if (milestonesResult.rows.length > 0) {
-          milestonesResult.rows.forEach(milestone => {
-            htmlContent += `${milestone.milestone_id},${milestone.date},${milestone.title},${milestone.details || ""}\n`;
-          });
-        } else {
-          htmlContent += "No milestones found\n";
-        }
-        htmlContent += "\n";
-      }
+            // if no milestone record
+            if (checkMilestoneExist.rows[0].count === "0") {
+              htmlContent += `<h3>Milestones</h3>`;
+              htmlContent += `<p>No milestones found</p>`;
+            }
+            else {  // at least one milestone record
+              const milestonesResult = await pool.query(
+              "SELECT * FROM milestones WHERE baby_id = $1 AND date BETWEEN $2 AND $3 ORDER BY date ASC",
+              [baby.baby_id, startDate, endDate]
+              );
+
+              // htmlContent += "---------------------------,---------------------------,----------------------\n";
+              // htmlContent += "Milestones\n";
+              // htmlContent += "Milestone ID,Date,Title,Details\n";
+              htmlContent += `<h3>Milestones</h3>`;
+              htmlContent += `<table>
+              <tr>
+                <th>Milestone ID</th>
+                <th>Date</th>
+                <th>Title</th>
+                <th>Details</th>
+              </tr>`;
+              
+              milestonesResult.rows.forEach(milestone => {
+                htmlContent += `<tr>
+                <td>${milestone.milestone_id}</td>
+                <td>${milestone.date}</td>
+                <td>${milestone.title}</td>
+                <td>${milestone.details || ""}</td>
+              </tr>`;
+              });
+              htmlContent += `</table>`;
+            }
 
       // --- Feeding Schedule Section ---
       if (includeFeedingSchedule) {
