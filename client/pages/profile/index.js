@@ -81,7 +81,7 @@ function ProfilePage() {
       {/* Profile Section */}
       <Row className="mb-4">
         <Col>
-          <h2>{t("Profile")}</h2>
+          <h1>{t("Profile")}</h1>
           <Card className="mb-3">
             <Card.Body className="d-flex align-items-center">
               <Image

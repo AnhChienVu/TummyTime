@@ -1,8 +1,20 @@
 /* client/pages/[export]/export.module.css */
 
 .container {
-  background-color: #ffffff;
-  overflow-x: hidden;
-  padding: 0 15px;
+  max-width: 1200px;
   margin-left: 50px;
+  padding: 12px;
+}
+
+.button {
+  background-color: #65558F;
+  color: white;
+  padding: 8px;
+  border-radius: 12px;
+  text-align: center;
+  margin-top: 12px;
+}
+
+.button:hover {
+  background-color: #4D3D7E;
 }

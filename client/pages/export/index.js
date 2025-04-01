@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "bootstrap/dist/css/bootstrap.min.css";
+import styles from "./export.module.css";
 
 const ExportDataPage = () => {
   const [selectedOptions, setSelectedOptions] = useState({
@@ -126,8 +127,8 @@ const ExportDataPage = () => {
   };
 
   return (
-    <div className="container mt-5">
-      <h2>Export Baby Health Data</h2>
+    <div className={styles.container}>
+      <h1>Export Baby Health Data</h1>
       <div className="card p-4 mt-4">
         <h4>Select Data to Export</h4>
         {Object.keys(selectedOptions).map((option) => (
@@ -173,7 +174,7 @@ const ExportDataPage = () => {
           </div>
         </div>
         {error && <div className="alert alert-danger mt-3">{error}</div>}
-        <button className="btn btn-primary mt-3" onClick={handleExport}>
+        <button className={styles.button} onClick={handleExport}>
           Export Data
         </button>
       </div>

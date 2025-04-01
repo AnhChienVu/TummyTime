@@ -161,7 +161,7 @@ const CuratedTipsPage = () => {
               </Col>
               {/* Filter Button */}
               <Col lg={4} className="d-flex align-items-end mt-2">
-                <Button variant="primary" onClick={handleFilter}>
+                <Button className={styles.button} onClick={handleFilter}>
                   {t("Filter")}
                 </Button>
               </Col>

@@ -469,7 +469,7 @@ function MilestoneEachBaby({ baby_id }) {
           >
             {t("Cancel")}
           </Button>
-          <Button variant="primary" onClick={handleSaveMilestone}>
+          <Button className={styles.button} onClick={handleSaveMilestone}>
             {t("Save Changes")}
           </Button>
         </Modal.Footer>

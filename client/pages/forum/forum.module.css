@@ -36,12 +36,6 @@ display: flex;
 
 }
 
-.title {
-    font-size: 1.5rem;
-    font-weight: bold;
-    margin-bottom: 1rem;
-}
-
 .submitButton {
     width: 20%;
     background-color: #65558F;

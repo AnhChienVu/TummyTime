@@ -4,7 +4,7 @@ import BabyCardGrowth from "@/components/BabyCardGrowth/BabyCardGrowth";
 
 function Growth() {
   return (
-    <div>
+    <div className={styles.container}>
       <h1>Growth</h1>
       <BabyCardGrowth buttons={[{ name: "See Details", path: "growth" }]} />
     </div>

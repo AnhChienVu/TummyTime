@@ -144,7 +144,7 @@ export default function Forum() {
   return (
     <Container className={styles.container} fluid>
       <div className={styles.formContainer}>
-        <p className={styles.title}>{t("Community Forum")}</p>
+        <h1 className={styles.title}>{t("Community Forum")}</h1>
         <Form onSubmit={handleSubmit(onSubmit)} className="mb-4">
           <Row className="mb-3">
             <Col>
@@ -223,7 +223,7 @@ export default function Forum() {
         <hr />
 
         {/* Display saved journal posts */}
-        <p className={styles.title}>{t("Latest Posts")}</p>
+        <h2 className={styles.title}>{t("Latest Posts")}</h2>
         <div className={styles.postsSection}>
           {Array.isArray(posts) && posts.length > 0 ? (
             [...posts]
