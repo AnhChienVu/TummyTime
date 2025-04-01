@@ -133,7 +133,7 @@ module.exports = async (req, res) => {
     // LOOP THROUGH EACH BABY
     for (let baby of babies) {
       // add [separator] between next baby
-      if (htmlContent.length > 0) { 
+      if (htmlContent.length > 0) {
         htmlContent += `<div class="separator"></div>\n`;
 
       }
@@ -148,10 +148,10 @@ module.exports = async (req, res) => {
       // --- Baby Information ---
       if (includeBabyInfo) {
         
-      //   // htmlContent += "DOB,";  //TEMPORARILY REMOVED DOB
-      //   htmlContent += "Gender,Weight,Created At\n";
-      //   htmlContent += `${baby.baby_id},${baby.first_name},${baby.last_name}`;
-      //   //htmlContent += `,${baby.birthdate || "N/A"}`;  //TEMPORARILY REMOVED DOB
+        //   // htmlContent += "DOB,";  //TEMPORARILY REMOVED DOB
+        //   htmlContent += "Gender,Weight,Created At\n";
+        //   htmlContent += `${baby.baby_id},${baby.first_name},${baby.last_name}`;
+        //   //htmlContent += `,${baby.birthdate || "N/A"}`;  //TEMPORARILY REMOVED DOB
         
         htmlContent += `<h3>Baby Information</h3>
         <table>
@@ -172,7 +172,7 @@ module.exports = async (req, res) => {
             <td>${baby.created_at}</td>
           </tr>
         </table>`;
-    }
+      }
 
       // --- Growth Records Section ---
       // {Requirement} growth: must have at least one growth record
@@ -190,9 +190,9 @@ module.exports = async (req, res) => {
         }
         else {  // at least one growth record
           const growthResult = await pool.query(
-          "SELECT * FROM growth WHERE baby_id = $1 AND date BETWEEN $2 AND $3 ORDER BY date ASC",
-          [baby.baby_id, startDate, endDate]
-          ); 
+            "SELECT * FROM growth WHERE baby_id = $1 AND date BETWEEN $2 AND $3 ORDER BY date ASC",
+            [baby.baby_id, startDate, endDate]
+          );
           
           // htmlContent += "---------------------------,---------------------------,----------------------\n";
           // htmlContent += "Growth Records\n";
@@ -220,31 +220,31 @@ module.exports = async (req, res) => {
         }
       } //--- /end of Growth Records Section ---
 
-          // --- Milestones Section ---
-          // {Requirement} milestones: must have at least one milestone
-          if (includeMilestones) {
-            // {checkingRequirement} milestones
-            const checkMilestoneExist = await pool.query(
-              `SELECT COUNT(*) FROM milestones WHERE baby_id = $1`,
-              [baby.baby_id]
-            );
+      // --- Milestones Section ---
+      // {Requirement} milestones: must have at least one milestone
+      if (includeMilestones) {
+        // {checkingRequirement} milestones
+        const checkMilestoneExist = await pool.query(
+          `SELECT COUNT(*) FROM milestones WHERE baby_id = $1`,
+          [baby.baby_id]
+        );
 
-            // if no milestone record
-            if (checkMilestoneExist.rows[0].count === "0") {
-              htmlContent += `<h3>Milestones</h3>`;
-              htmlContent += `<p>No milestones found</p>`;
-            }
-            else {  // at least one milestone record
-              const milestonesResult = await pool.query(
-              "SELECT * FROM milestones WHERE baby_id = $1 AND date BETWEEN $2 AND $3 ORDER BY date ASC",
-              [baby.baby_id, startDate, endDate]
-              );
+        // if no milestone record
+        if (checkMilestoneExist.rows[0].count === "0") {
+          htmlContent += `<h3>Milestones</h3>`;
+          htmlContent += `<p>No milestones found</p>`;
+        }
+        else {  // at least one milestone record
+          const milestonesResult = await pool.query(
+            "SELECT * FROM milestones WHERE baby_id = $1 AND date BETWEEN $2 AND $3 ORDER BY date ASC",
+            [baby.baby_id, startDate, endDate]
+          );
 
-              // htmlContent += "---------------------------,---------------------------,----------------------\n";
-              // htmlContent += "Milestones\n";
-              // htmlContent += "Milestone ID,Date,Title,Details\n";
-              htmlContent += `<h3>Milestones</h3>`;
-              htmlContent += `<table>
+          // htmlContent += "---------------------------,---------------------------,----------------------\n";
+          // htmlContent += "Milestones\n";
+          // htmlContent += "Milestone ID,Date,Title,Details\n";
+          htmlContent += `<h3>Milestones</h3>`;
+          htmlContent += `<table>
               <tr>
                 <th>Milestone ID</th>
                 <th>Date</th>
@@ -252,40 +252,40 @@ module.exports = async (req, res) => {
                 <th>Details</th>
               </tr>`;
               
-              milestonesResult.rows.forEach(milestone => {
-                htmlContent += `<tr>
+          milestonesResult.rows.forEach(milestone => {
+            htmlContent += `<tr>
                 <td>${milestone.milestone_id}</td>
                 <td>${milestone.date}</td>
                 <td>${milestone.title}</td>
                 <td>${milestone.details || ""}</td>
               </tr>`;
-              });
-              htmlContent += `</table>`;
-            }
-          } //--- /end of Milestones Section ---
+          });
+          htmlContent += `</table>`;
+        }
+      } //--- /end of Milestones Section ---
 
-            // --- Feeding Schedule Section ---
-            // {Requirement} feeding: must have at least one feeding schedule
-            if (includeFeedingSchedule) {
-              // {checkingRequirement} feeding
-              const checkFeedingExist = await pool.query(
-                `SELECT COUNT(*) FROM feedingschedule WHERE baby_id = $1`,
-                [baby.baby_id]
-              );
+      // --- Feeding Schedule Section ---
+      // {Requirement} feeding: must have at least one feeding schedule
+      if (includeFeedingSchedule) {
+        // {checkingRequirement} feeding
+        const checkFeedingExist = await pool.query(
+          `SELECT COUNT(*) FROM feedingschedule WHERE baby_id = $1`,
+          [baby.baby_id]
+        );
 
-              // if no feeding schedule record
-              if (checkFeedingExist.rows[0].count === "0") {
-                htmlContent += `<h3>Feeding Schedule</h3>`;
-                htmlContent += `<p>No feeding schedule records found</p>`;
-              }
-              else {  // at least one feeding schedule record
-                const feedingResult = await pool.query(
-                  "SELECT * FROM feedingschedule WHERE baby_id = $1 AND date BETWEEN $2 AND $3 ORDER BY date ASC, time ASC",
-                  [baby.baby_id, startDate, endDate]
-                );
+        // if no feeding schedule record
+        if (checkFeedingExist.rows[0].count === "0") {
+          htmlContent += `<h3>Feeding Schedule</h3>`;
+          htmlContent += `<p>No feeding schedule records found</p>`;
+        }
+        else {  // at least one feeding schedule record
+          const feedingResult = await pool.query(
+            "SELECT * FROM feedingschedule WHERE baby_id = $1 AND date BETWEEN $2 AND $3 ORDER BY date ASC, time ASC",
+            [baby.baby_id, startDate, endDate]
+          );
 
-                htmlContent += `<h3>Feeding Schedule</h3>`;
-                htmlContent += `<table>
+          htmlContent += `<h3>Feeding Schedule</h3>`;
+          htmlContent += `<table>
                 <tr>
                   <th>Schedule ID</th>
                   <th>Date</th>
@@ -297,8 +297,8 @@ module.exports = async (req, res) => {
                   <th>Notes</th>
                 </tr>`;
 
-                feedingResult.rows.forEach(feed => {
-                  htmlContent += `<tr>
+          feedingResult.rows.forEach(feed => {
+            htmlContent += `<tr>
                   <td>${feed.feeding_schedule_id}</td>
                   <td>${feed.date}</td>
                   <td>${feed.time}</td>
@@ -308,32 +308,32 @@ module.exports = async (req, res) => {
                   <td>${feed.issues || ""}</td>
                   <td>${feed.notes || ""}</td>
                 </tr>`;
-                });
-                htmlContent += `</table>`;
-              } //--- /end of Feeding Schedule Section ---
+          });
+          htmlContent += `</table>`;
+        } //--- /end of Feeding Schedule Section ---
 
-              // --- Stool Records Section ---
-              // {Requirement} stool: must have at least one stool record
-              if (includeStoolRecords) {
-                // {checkingRequirement} stool
-                const checkStoolExist = await pool.query(
-                  `SELECT COUNT(*) FROM stool_entries WHERE baby_id = $1`,
-                  [baby.baby_id]
-                );
+        // --- Stool Records Section ---
+        // {Requirement} stool: must have at least one stool record
+        if (includeStoolRecords) {
+          // {checkingRequirement} stool
+          const checkStoolExist = await pool.query(
+            `SELECT COUNT(*) FROM stool_entries WHERE baby_id = $1`,
+            [baby.baby_id]
+          );
 
-                // if no stool record
-                if (checkStoolExist.rows[0].count === "0") {
-                  htmlContent += `<h3>Stool Records</h3>`;
-                  htmlContent += `<p>No stool records found</p>`;
-                }
-                else {  // at least one stool record
-                  const stoolResult = await pool.query(
-                    "SELECT * FROM stool_entries WHERE baby_id = $1 AND date(timestamp) BETWEEN $2 AND $3 ORDER BY timestamp DESC",
-                    [baby.baby_id, startDate, endDate]
-                  );
+          // if no stool record
+          if (checkStoolExist.rows[0].count === "0") {
+            htmlContent += `<h3>Stool Records</h3>`;
+            htmlContent += `<p>No stool records found</p>`;
+          }
+          else {  // at least one stool record
+            const stoolResult = await pool.query(
+              "SELECT * FROM stool_entries WHERE baby_id = $1 AND date(timestamp) BETWEEN $2 AND $3 ORDER BY timestamp DESC",
+              [baby.baby_id, startDate, endDate]
+            );
 
-                  htmlContent += `<h3>Stool Records</h3>`;
-                  htmlContent += `<table>
+            htmlContent += `<h3>Stool Records</h3>`;
+            htmlContent += `<table>
                   <tr>
                     <th>Stool ID</th>
                     <th>Timestamp</th>
@@ -342,22 +342,25 @@ module.exports = async (req, res) => {
                     <th>Notes</th>
                   </tr>`;
 
-                  stoolResult.rows.forEach(entry => {
-                    htmlContent += `<tr>
+            stoolResult.rows.forEach(entry => {
+              htmlContent += `<tr>
                     <td>${entry.stool_id}</td>
                     <td>${entry.timestamp}</td>
                     <td>${entry.color}</td>
                     <td>${entry.consistency}</td>
                     <td>${entry.notes || ""}</td>
                   </tr>`;
-                  });
-                  htmlContent += `</table>`;
-                }
-              } //--- /end of Stool Records Section ---
+            });
+            htmlContent += `</table>`;
+          }
+        } //--- /end of Stool Records Section ---
 
-    //   // Separate each baby
-    //   htmlContent += "\n\n";
-    // }
+        // Separate each baby
+        htmlContent += `<div class="separator"></div>\n`;
+      }
+    } //--- /end of LOOP THROUGH EACH BABY ---
+
+    htmlContent += `</body></html>`;  // END of HTML content
 
     // Build file name based on included sections and date range
     let fileNameParts = ["ExportedBabyData"];
@@ -368,28 +371,61 @@ module.exports = async (req, res) => {
     if (includeStoolRecords) fileNameParts.push("Stool");
     fileNameParts.push(`from${startDate}`);
     fileNameParts.push(`to${endDate}`);
-    const fileName = fileNameParts.join("_") + ".csv";
+
+    const fileName = fileNameParts.join("_") + ".pdf";
 
     // Insert export record into exporteddocument table
     const exportDate = new Date().toISOString(); 
     const insertResult = await pool.query(
       "INSERT INTO exporteddocument (file_name, file_format, created_at) VALUES ($1, $2, $3) RETURNING *",
-      [fileName, "CSV", exportDate]
+      [fileName, "PDF", exportDate]
     );
     logger.info(`Export record created: ${JSON.stringify(insertResult.rows[0])}`);
 
-    // Set headers to expose our custom headers (without using middleware).
-    res.setHeader("Access-Control-Expose-Headers", "Content-Disposition, exportfilename");
-    
+    //====== Convert HTML to PDF ======
+    const pdfOptions = {
+      format: "Letter",
+      border: {
+        top: "0.5in",
+        right: "0.5in",
+        bottom: "0.5in",
+        left: "0.5in"
+      },
+      header: {
+        height: "20mm",
+        contents: {
+          default: `<div style="text-align: center; font-size: 10px;">Exported Baby Data - ${exportDate}</div>`
+        }
+      },
+      footer: {
+        height: "20mm",
+        contents: {
+          default: `<div style="text-align: center; font-size: 10px;">Page: {#pageNum} of {#numPages}</div>`
+        }
+      }
+    };
 
-    // Set headers to trigger CSV download with the dynamic file name
-    res.setHeader("Content-Type", "text/csv");
-    res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);
-    // add a header for filename
-    res.setHeader("exportfilename", fileName);
-    res.send(htmlContent);
+    // Convert HTML to PDF 
+    pdf.create(htmlContent, pdfOptions).toBuffer((err, buffer) => {
+      if (err) {
+        logger.error(err, "ERROR in getExportPDF(), Error converting HTML to PDF: ");
+        return res.status(500).json(createErrorResponse(500, "Internal server error"));
+      }
+
+      
+      // Set headers to expose our custom headers (without using middleware)
+      res.setHeader("Access-Control-Expose-Headers", "Content-Disposition, exportfilename");
+      // Set headers to trigger file download with the dynamic file name
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);
+      res.send(buffer);
+      // add a header for filename
+      res.setHeader("exportfilename", fileName);
+      res.send(htmlContent);
+    });
+
   } catch (err) {
-    logger.error(err, "ERROR in getExportCSV(), Error exporting data: ");
+    logger.error(err, "ERROR in getExportPDF(), Error exporting data: ");
     return res.status(500).json(createErrorResponse(500, "Internal server error"));
   }
 };
