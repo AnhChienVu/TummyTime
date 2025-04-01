@@ -13,6 +13,7 @@ const { createSuccessResponse, createErrorResponse } = require('../../../utils/r
 const pool = require('../../../../database/db');
 const { getUserId } = require('../../../utils/userIdHelper');
 const pdf = require('html-pdf');  // "sudo npm install -g html-pdf"
+const { html } = require('cheerio');
 
 // GET /export/pdf
 // req.headers.[authorization]: is JWT token
@@ -146,17 +147,12 @@ module.exports = async (req, res) => {
 
       // --- Baby Information ---
       if (includeBabyInfo) {
-      //   htmlContent += "Baby Information\n";
-      //   htmlContent += "ID,First Name,Last Name,";
         
       //   // htmlContent += "DOB,";  //TEMPORARILY REMOVED DOB
       //   htmlContent += "Gender,Weight,Created At\n";
-
       //   htmlContent += `${baby.baby_id},${baby.first_name},${baby.last_name}`;
       //   //htmlContent += `,${baby.birthdate || "N/A"}`;  //TEMPORARILY REMOVED DOB
-      //   htmlContent += `,${baby.gender},${baby.weight},${baby.created_at}`;
-      //   htmlContent += `\n\n`;
-        // }
+        
         htmlContent += `<h3>Baby Information</h3>
         <table>
           <tr>
@@ -221,6 +217,8 @@ module.exports = async (req, res) => {
           </tr>`;
           });
           htmlContent += `</table>`;
+        }
+      } //--- /end of Growth Records Section ---
 
           // --- Milestones Section ---
           // {Requirement} milestones: must have at least one milestone
@@ -264,50 +262,102 @@ module.exports = async (req, res) => {
               });
               htmlContent += `</table>`;
             }
+          } //--- /end of Milestones Section ---
 
-      // --- Feeding Schedule Section ---
-      if (includeFeedingSchedule) {
-        const feedingResult = await pool.query(
-          "SELECT * FROM feedingschedule WHERE baby_id = $1 AND date BETWEEN $2 AND $3 ORDER BY date ASC, time ASC",
-          [baby.baby_id, startDate, endDate]
-        );
+            // --- Feeding Schedule Section ---
+            // {Requirement} feeding: must have at least one feeding schedule
+            if (includeFeedingSchedule) {
+              // {checkingRequirement} feeding
+              const checkFeedingExist = await pool.query(
+                `SELECT COUNT(*) FROM feedingschedule WHERE baby_id = $1`,
+                [baby.baby_id]
+              );
 
-        htmlContent += "---------------------------,---------------------------,----------------------\n";
-        htmlContent += "Feeding Schedule\n";
-        htmlContent += "Schedule ID,Date,Time,Meal,Amount,Type,Issues,Notes\n";
-        if (feedingResult.rows.length > 0) {
-          feedingResult.rows.forEach(feed => {
-            htmlContent += `${feed.feeding_schedule_id},${feed.date},${feed.time},${feed.meal},${feed.amount},${feed.type},${feed.issues || ""},${feed.notes || ""}\n`;
-          });
-        } else {
-          htmlContent += "No feeding schedule records found\n";
-        }
-        htmlContent += "\n";
-      }
+              // if no feeding schedule record
+              if (checkFeedingExist.rows[0].count === "0") {
+                htmlContent += `<h3>Feeding Schedule</h3>`;
+                htmlContent += `<p>No feeding schedule records found</p>`;
+              }
+              else {  // at least one feeding schedule record
+                const feedingResult = await pool.query(
+                  "SELECT * FROM feedingschedule WHERE baby_id = $1 AND date BETWEEN $2 AND $3 ORDER BY date ASC, time ASC",
+                  [baby.baby_id, startDate, endDate]
+                );
 
-      // --- Stool Records Section ---
-      if (includeStoolRecords) {
-        const stoolResult = await pool.query(
-          "SELECT * FROM stool_entries WHERE baby_id = $1 AND date(timestamp) BETWEEN $2 AND $3 ORDER BY timestamp DESC",
-          [baby.baby_id, startDate, endDate]
-        );
+                htmlContent += `<h3>Feeding Schedule</h3>`;
+                htmlContent += `<table>
+                <tr>
+                  <th>Schedule ID</th>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th>Meal</th>
+                  <th>Amount</th>
+                  <th>Type</th>
+                  <th>Issues</th>
+                  <th>Notes</th>
+                </tr>`;
 
-        htmlContent += "---------------------------,---------------------------,----------------------\n";
-        htmlContent += "Stool Records\n";
-        htmlContent += "Stool ID,Timestamp,Color,Consistency,Notes\n";
-        if (stoolResult.rows.length > 0) {
-          stoolResult.rows.forEach(entry => {
-            htmlContent += `${entry.stool_id},${entry.timestamp},${entry.color},${entry.consistency},${entry.notes || ""}\n`;
-          });
-        } else {
-          htmlContent += "No stool records found\n";
-        }
-        htmlContent += "\n";
-      }
+                feedingResult.rows.forEach(feed => {
+                  htmlContent += `<tr>
+                  <td>${feed.feeding_schedule_id}</td>
+                  <td>${feed.date}</td>
+                  <td>${feed.time}</td>
+                  <td>${feed.meal}</td>
+                  <td>${feed.amount}</td>
+                  <td>${feed.type}</td>
+                  <td>${feed.issues || ""}</td>
+                  <td>${feed.notes || ""}</td>
+                </tr>`;
+                });
+                htmlContent += `</table>`;
+              } //--- /end of Feeding Schedule Section ---
 
-      // Separate each baby
-      htmlContent += "\n\n";
-    }
+              // --- Stool Records Section ---
+              // {Requirement} stool: must have at least one stool record
+              if (includeStoolRecords) {
+                // {checkingRequirement} stool
+                const checkStoolExist = await pool.query(
+                  `SELECT COUNT(*) FROM stool_entries WHERE baby_id = $1`,
+                  [baby.baby_id]
+                );
+
+                // if no stool record
+                if (checkStoolExist.rows[0].count === "0") {
+                  htmlContent += `<h3>Stool Records</h3>`;
+                  htmlContent += `<p>No stool records found</p>`;
+                }
+                else {  // at least one stool record
+                  const stoolResult = await pool.query(
+                    "SELECT * FROM stool_entries WHERE baby_id = $1 AND date(timestamp) BETWEEN $2 AND $3 ORDER BY timestamp DESC",
+                    [baby.baby_id, startDate, endDate]
+                  );
+
+                  htmlContent += `<h3>Stool Records</h3>`;
+                  htmlContent += `<table>
+                  <tr>
+                    <th>Stool ID</th>
+                    <th>Timestamp</th>
+                    <th>Color</th>
+                    <th>Consistency</th>
+                    <th>Notes</th>
+                  </tr>`;
+
+                  stoolResult.rows.forEach(entry => {
+                    htmlContent += `<tr>
+                    <td>${entry.stool_id}</td>
+                    <td>${entry.timestamp}</td>
+                    <td>${entry.color}</td>
+                    <td>${entry.consistency}</td>
+                    <td>${entry.notes || ""}</td>
+                  </tr>`;
+                  });
+                  htmlContent += `</table>`;
+                }
+              } //--- /end of Stool Records Section ---
+
+    //   // Separate each baby
+    //   htmlContent += "\n\n";
+    // }
 
     // Build file name based on included sections and date range
     let fileNameParts = ["ExportedBabyData"];
