@@ -104,6 +104,7 @@ module.exports = async (req, res) => {
        ORDER BY b.baby_id ASC`,
       [parseInt(user_id, 10)]
     );
+
     const babies = babyProfilesResult.rows;
     logger.debug(babies, `Baby profiles: `);
 
@@ -131,47 +132,95 @@ module.exports = async (req, res) => {
     // LOOP THROUGH EACH BABY
     for (let baby of babies) {
       // add [separator] between next baby
-      if (htmlContent.length > 0) {
-        htmlContent += "==========,==============,============,============,====================\n";
+      if (htmlContent.length > 0) { 
+        htmlContent += `<div class="separator"></div>\n`;
+
       }
 
       // Baby header
-      htmlContent += `Baby: ${baby.first_name} ${baby.last_name}\n`;
+      htmlContent += `<h2>Baby: ${baby.first_name} ${baby.last_name}</h2>\n`;
+
+      // DOB: ${baby.birthdate || "N/A"
       // htmlContent += `, DOB: ${baby.birthdate || "N/A"}`;  //TEMPORARILY REMOVED DOB
-      htmlContent += `\n`;
+      // htmlContent += `\n`;
 
       // --- Baby Information ---
       if (includeBabyInfo) {
-        htmlContent += "Baby Information\n";
-        htmlContent += "ID,First Name,Last Name,";
-        // htmlContent += "DOB,";  //TEMPORARILY REMOVED DOB
-        htmlContent += "Gender,Weight,Created At\n";
+      //   htmlContent += "Baby Information\n";
+      //   htmlContent += "ID,First Name,Last Name,";
+        
+      //   // htmlContent += "DOB,";  //TEMPORARILY REMOVED DOB
+      //   htmlContent += "Gender,Weight,Created At\n";
 
-        htmlContent += `${baby.baby_id},${baby.first_name},${baby.last_name}`;
-        //htmlContent += `,${baby.birthdate || "N/A"}`;  //TEMPORARILY REMOVED DOB
-        htmlContent += `,${baby.gender},${baby.weight},${baby.created_at}`;
-        htmlContent += `\n\n`;
-      }
+      //   htmlContent += `${baby.baby_id},${baby.first_name},${baby.last_name}`;
+      //   //htmlContent += `,${baby.birthdate || "N/A"}`;  //TEMPORARILY REMOVED DOB
+      //   htmlContent += `,${baby.gender},${baby.weight},${baby.created_at}`;
+      //   htmlContent += `\n\n`;
+        // }
+        htmlContent += `<h3>Baby Information</h3>
+        <table>
+          <tr>
+            <th>ID</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Gender</th>
+            <th>Weight</th>
+            <th>Created At</th>
+          </tr>
+          <tr>
+            <td>${baby.baby_id}</td>
+            <td>${baby.first_name}</td>
+            <td>${baby.last_name}</td>
+            <td>${baby.gender}</td>
+            <td>${baby.weight}</td>
+            <td>${baby.created_at}</td>
+          </tr>
+        </table>`;
+    }
 
       // --- Growth Records Section ---
+      // {Requirement} growth: must have at least one growth record
       if (includeGrowthRecords) {
-        const growthResult = await pool.query(
-          "SELECT * FROM growth WHERE baby_id = $1 AND date BETWEEN $2 AND $3 ORDER BY date ASC",
-          [baby.baby_id, startDate, endDate]
+        // {checkingRequirement} growth
+        const checkGrowthExist = await pool.query(
+          `SELECT COUNT(*) FROM growth WHERE baby_id = $1`,
+          [baby.baby_id]
         );
 
-        htmlContent += "---------------------------,---------------------------,----------------------\n";
-        htmlContent += "Growth Records\n";
-        htmlContent += "Growth ID,Date,Weight,Height,Notes\n";
-        if (growthResult.rows.length > 0) {
-          growthResult.rows.forEach(record => {
-            htmlContent += `${record.growth_id},${record.date},${record.weight},${record.height},${record.notes || ""}\n`;
-          });
-        } else {
-          htmlContent += "No growth records found\n";
+        // if no growth record
+        if (checkGrowthExist.rows[0].count === "0") {
+          htmlContent += `<h3>Growth Records</h3>`;
+          htmlContent += `<p>No growth records found</p>`;
         }
-        htmlContent += "\n";
-      }
+        else {  // at least one growth record
+          const growthResult = await pool.query(
+          "SELECT * FROM growth WHERE baby_id = $1 AND date BETWEEN $2 AND $3 ORDER BY date ASC",
+          [baby.baby_id, startDate, endDate]
+          ); 
+          
+          // htmlContent += "---------------------------,---------------------------,----------------------\n";
+          // htmlContent += "Growth Records\n";
+          // htmlContent += "Growth ID,Date,Weight,Height,Notes\n";
+          htmlContent += `<h3>Growth Records</h3>`;
+          htmlContent += `<table>
+          <tr>
+            <th>Growth ID</th>
+            <th>Date</th>
+            <th>Weight</th>
+            <th>Height</th>
+            <th>Notes</th>
+          </tr>`;
+          
+          growthResult.rows.forEach(record => {
+            htmlContent += `<tr>
+            <td>${record.growth_id}</td>
+            <td>${record.date}</td>
+            <td>${record.weight}</td>
+            <td>${record.height}</td>
+            <td>${record.notes || ""}</td>
+          </tr>`;
+          });
+          htmlContent += `</table>`;
 
       // --- Milestones Section ---
       if (includeMilestones) {
