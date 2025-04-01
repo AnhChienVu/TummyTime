@@ -18,6 +18,9 @@ const ExportDataPage = () => {
   const [downloadLink, setDownloadLink] = useState("");
   const [downloadFileName, setDownloadFileName] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
+  const [exportFormat, setExportFormat] = useState("csv");
+  // Choose API endpoint based on export format
+  const endpoint = exportFormat === "pdf" ? "/v1/export/pdf" : "/v1/export/csv";
 
   // Fetch user info to set default start date
   useEffect(() => {
@@ -73,7 +76,7 @@ const ExportDataPage = () => {
       const response = await fetch(
         `${
           process.env.NEXT_PUBLIC_API_URL
-        }/v1/export/csv?${queryParams.toString()}`,
+        }${endpoint}?${queryParams.toString()}`,
         {
           method: "GET",
           headers: {
