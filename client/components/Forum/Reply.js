@@ -59,7 +59,7 @@ export function Reply({
     <>
       <Card className={styles.replyCard}>
         <Card.Body>
-          {reply.is_owner && (
+          {reply.is_owner && !isEditing && (
             <div className={styles.replyActions}>
               <Button
                 variant="outline-secondary"
