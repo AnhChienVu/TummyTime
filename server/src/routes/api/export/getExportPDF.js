@@ -397,12 +397,14 @@ module.exports = async (req, res) => {
           default: `<div style="text-align: center; font-size: 10px;">Exported Baby Data - ${exportDate}</div>`
         }
       },
-      footer: {
-        height: "20mm",
-        contents: {
-          default: `<div style="text-align: center; font-size: 10px;">Page: {#pageNum} of {#numPages}</div>`
-        }
-      }
+      // DEBUG- ERROR FOOTER not showing real number of pages:
+      //       Page: { #pageNum } of { #numPages } 
+      // footer: {
+      //   height: "20mm",
+      //   contents: {
+      //     default: `<div style="text-align: center; font-size: 10px;">Page: {#pageNum} of {#numPages}</div>`
+      // //   }
+      // }
     };
 
     // Convert HTML to PDF 
@@ -418,10 +420,9 @@ module.exports = async (req, res) => {
       // Set headers to trigger file download with the dynamic file name
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);
-      res.send(buffer);
       // add a header for filename
       res.setHeader("exportfilename", fileName);
-      res.send(htmlContent);
+      res.send(buffer); //SEND RESPONSE
     });
 
   } catch (err) {
