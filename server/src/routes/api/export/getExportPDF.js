@@ -13,7 +13,6 @@ const { createSuccessResponse, createErrorResponse } = require('../../../utils/r
 const pool = require('../../../../database/db');
 const { getUserId } = require('../../../utils/userIdHelper');
 const pdf = require('html-pdf');  // "sudo npm install -g html-pdf"
-const { html } = require('cheerio');
 
 // GET /export/pdf
 // req.headers.[authorization]: is JWT token

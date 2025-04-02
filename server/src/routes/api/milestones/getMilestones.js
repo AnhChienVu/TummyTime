@@ -5,11 +5,6 @@ const { createErrorResponse } = require('../../../utils/response');
 const pool = require('../../../../database/db');
 const { getUserId } = require('../../../utils/userIdHelper');
 const { checkBabyBelongsToUser } = require('../../../utils/babyAccessHelper');
-const logger = require('../../../utils/logger');
-const { createErrorResponse } = require('../../../utils/response');
-const pool = require('../../../../database/db');
-const { getUserId } = require('../../../utils/userIdHelper');
-const { checkBabyBelongsToUser } = require('../../../utils/babyAccessHelper');
 
 // GET /v1/baby/:baby_id/milestones
 // Get all milestones for a baby
@@ -56,8 +51,7 @@ module.exports.getMilestoneByBabyId = async (req, res) => {
     if (!hasBabyAccess) {
       return res
         .status(403)
-        .json(createErrorResponse(403, 'Access denied: Baby does not belong to current user'));
-        .json(createErrorResponse(403, 'Access denied: Baby does not belong to current user'));
+        .json(createErrorResponse(403, 'Access denied: Baby does not belong to current user')); 
     }
 
     const result = await pool.query(
