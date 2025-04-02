@@ -83,6 +83,7 @@ export default function PostDetail({ post_id }) {
         isEditing={isEditing}
         editTitle={editTitle}
         editContent={editContent}
+        editCategory={post?.category}
         onEdit={startEditingHandler}
         setEditTitle={setEditTitle}
         setEditContent={setEditContent}
@@ -90,12 +91,15 @@ export default function PostDetail({ post_id }) {
         onSave={handleEditSubmit}
         onCancel={() => setIsEditing(false)}
       />
-      <div className={styles.textToSpeechContainer}>
-        <TextToSpeech text={post?.content || ""} title={post?.title || ""} />
-      </div>
+      {!isEditing && (
+        <div className={styles.textToSpeechContainer}>
+          <TextToSpeech text={post?.content || ""} title={post?.title || ""} />
+        </div>
+      )}
 
       <div className={styles.repliesSection}>
         <h5>
+          <br />
           {t("Replies")} ({replies?.length || 0})
         </h5>
         {replies?.map((reply) => (
