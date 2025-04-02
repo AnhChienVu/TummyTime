@@ -9,11 +9,15 @@ export function usePost(post_id) {
   const [isEditing, setIsEditing] = useState(false);
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
+  const [editCategory, setEditCategory] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmed, setDeleteConfirmed] = useState(false);
   const router = useRouter();
 
   const startEditing = () => {
+    setEditTitle(post.title);
+    setEditContent(post.content);
+    setEditCategory(post.category || "");
     setIsEditing(true);
   };
 
@@ -25,6 +29,7 @@ export function usePost(post_id) {
   const fetchPost = async () => {
     try {
       const token = localStorage.getItem("token");
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/v1/forum/posts/${post_id}`,
         {
@@ -36,6 +41,7 @@ export function usePost(post_id) {
 
       if (response.ok) {
         const data = await response.json();
+        console.log("Post data received:", data);
         setPost(data.data);
       } else {
         setError("Failed to fetch post");
@@ -45,9 +51,12 @@ export function usePost(post_id) {
     }
   };
 
-  const handleEditSubmit = async () => {
+  const handleEditSubmit = async (title, content, category) => {
     try {
+      console.log("Submitting update with content:", content);
+
       const token = localStorage.getItem("token");
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/v1/forum/posts/${post_id}`,
         {
@@ -57,28 +66,28 @@ export function usePost(post_id) {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            title: editTitle,
-            content: editContent,
+            title,
+            content,
+            category,
           }),
         },
       );
 
       if (response.ok) {
-        const data = await response.json();
-        // Update the post state with the new data while preserving other fields
-        setPost((prevPost) => ({
-          ...prevPost,
-          title: editTitle,
-          content: editContent,
+        const { data } = await response.json();
+
+        setPost((currentPost) => ({
+          ...currentPost,
+          title,
+          content,
+          category,
           updated_at: new Date().toISOString(),
         }));
+        setEditContent(content);
         setIsEditing(false);
-      } else {
-        const errorData = await response.json();
-        setError(errorData.message || "Failed to update post");
       }
     } catch (error) {
-      setError("Error updating post");
+      console.error("Error updating post:", error);
     }
   };
 
@@ -115,12 +124,14 @@ export function usePost(post_id) {
     isEditing,
     editTitle,
     editContent,
+    editCategory,
     startEditing,
     setIsEditing,
     showDeleteModal,
     deleteConfirmed,
     setEditTitle,
     setEditContent,
+    setEditCategory,
     setShowDeleteModal,
     setDeleteConfirmed,
     handleEditSubmit,
