@@ -1,7 +1,7 @@
 // pages/login/index.js
 import React, { useState } from "react";
 import { useRouter } from "next/router";
-import { Button, Form } from "react-bootstrap";
+import { Alert, Button, Form } from "react-bootstrap";
 import styles from "./login.module.css";
 import Link from "next/link";
 import { Container } from "react-bootstrap";
@@ -16,6 +16,9 @@ export default function Login() {
   const [validated, setValidated] = useState(false);
 
   const router = useRouter();
+
+  // This message is used to show the error message when the token is expired, it redirects to login page
+  const { message } = router.query;
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -58,6 +61,11 @@ export default function Login() {
   return (
     <Container className={styles.container} fluid>
       <div className={styles.formContainer}>
+        {message && (
+          <Alert variant="danger" className={styles.alert}>
+            {message}{" "}
+          </Alert>
+        )}
         <Form
           noValidate
           validated={validated}
