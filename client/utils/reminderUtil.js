@@ -1,5 +1,5 @@
 // Utility functions for handling reminders, time formatting, and date operations
-
+import { format, parse } from "date-fns";
 /**
  * Formats time from 24h to 12h format with AM/PM
  * @param {string} timeStr - Time string in format "HH:MM"
@@ -26,27 +26,39 @@ export function formatTime12h(timeStr) {
  * @param {Date|string} date - Date to format
  * @returns {Object} Formatted date information
  */
-export function formatDay(date) {
-  try {
-    const d = new Date(date);
-    if (isNaN(d.getTime())) {
-      return { date: "N/A", dateText: "Invalid Date", isToday: false };
-    }
-    const month = d.toLocaleString("default", { month: "short" });
-    const day = d.getDate();
-    const dayName = d.toLocaleString("default", { weekday: "short" });
-    const today = new Date();
-    const isToday =
-      d.getDate() === today.getDate() &&
-      d.getMonth() === today.getMonth() &&
-      d.getFullYear() === today.getFullYear();
+// export function formatDay(date) {
+//   try {
+//     const d = new Date(date);
+//     if (isNaN(d.getTime())) {
+//       return { date: "N/A", dateText: "Invalid Date", isToday: false };
+//     }
+//     const month = d.toLocaleString("default", { month: "short" });
+//     const day = d.getDate();
+//     const dayName = d.toLocaleString("default", { weekday: "short" });
+//     const today = new Date();
+//     const isToday =
+//       d.getDate() === today.getDate() &&
+//       d.getMonth() === today.getMonth() &&
+//       d.getFullYear() === today.getFullYear();
 
-    return { date: day, dateText: `${month}, ${dayName}`, isToday };
-  } catch (err) {
-    console.error("Error formatting date:", err, date);
-    return { date: "N/A", dateText: "Invalid Date", isToday: false };
-  }
-}
+//     return { date: day, dateText: `${month}, ${dayName}`, isToday };
+//   } catch (err) {
+//     console.error("Error formatting date:", err, date);
+//     return { date: "N/A", dateText: "Invalid Date", isToday: false };
+//   }
+// }
+export const formatDay = (dateStr) => {
+  // Parse the date string into a Date object
+  const parsedDate = parse(dateStr, "EEE MMM dd yyyy", new Date());
+
+  // Extract the day number, formatted date text, and check if it's today
+  const date = format(parsedDate, "d"); // Day number (e.g., 27)
+  const dateText = format(parsedDate, "MMM d, yyyy"); // Formatted date (e.g., Mar 27, 2025)
+  const isToday =
+    format(parsedDate, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
+
+  return { date, dateText, isToday };
+};
 
 /**
  * Identifies the next upcoming reminder from a list
@@ -146,9 +158,9 @@ export function findNextDueReminder(remindersList) {
  */
 export function groupRemindersByDate(reminders) {
   return reminders.reduce((acc, reminder) => {
-    if (!reminder || !reminder.date) return acc;
+    if (!reminder || !reminder.createdAt) return acc;
     try {
-      const dateStr = reminder.date.toDateString();
+      const dateStr = new Date(reminder.createdAt).toDateString(); // Example: "Thu Mar 27 2025"
       if (!acc[dateStr]) {
         acc[dateStr] = [];
       }
