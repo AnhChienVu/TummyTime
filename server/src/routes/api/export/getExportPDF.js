@@ -8,11 +8,12 @@
 // ===> PARSE CSV-TO-HTML
 // ===> CONVERT HTML-TO-PDF
 
+const pdf = require('html-pdf');
+
 const logger = require('../../../utils/logger');
 const { createSuccessResponse, createErrorResponse } = require('../../../utils/response');
 const pool = require('../../../../database/db');
 const { getUserId } = require('../../../utils/userIdHelper');
-const pdf = require('html-pdf');  // "sudo npm install -g html-pdf"
 
 // GET /export/pdf
 // req.headers.[authorization]: is JWT token
