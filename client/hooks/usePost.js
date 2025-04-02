@@ -41,7 +41,6 @@ export function usePost(post_id) {
 
       if (response.ok) {
         const data = await response.json();
-        console.log("Post data received:", data);
         setPost(data.data);
       } else {
         setError("Failed to fetch post");
@@ -53,8 +52,6 @@ export function usePost(post_id) {
 
   const handleEditSubmit = async (title, content, category) => {
     try {
-      console.log("Submitting update with content:", content);
-
       const token = localStorage.getItem("token");
 
       const response = await fetch(
