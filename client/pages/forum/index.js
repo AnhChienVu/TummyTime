@@ -61,12 +61,12 @@ export default function Forum() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [toastMessage, setToastMessage] = useState(null);
 
-  const { isListening, transcript, startListening, stopListening } =
-    useSpeechToText({
-      continuous: true,
-      interimResults: true,
-      lang: "en-US",
-    });
+  // const { isListening, transcript, startListening, stopListening } =
+  //   useSpeechToText({
+  //     continuous: true,
+  //     interimResults: true,
+  //     lang: "en-US",
+  //   });
 
   const editor = useEditor({
     extensions: [
@@ -91,30 +91,31 @@ export default function Forum() {
     },
   });
 
-  const startStopListening = (e, inputType) => {
-    e.preventDefault();
-    if (isListening) {
-      stopVoiceInput(inputType);
-    } else {
-      setSelectedInput(inputType);
-      startListening();
-    }
-  };
+  //// Speech recognition
+  // const startStopListening = (e, inputType) => {
+  //   e.preventDefault();
+  //   if (isListening) {
+  //     stopVoiceInput(inputType);
+  //   } else {
+  //     setSelectedInput(inputType);
+  //     startListening();
+  //   }
+  // };
 
-  const stopVoiceInput = (inputType) => {
-    if (transcript) {
-      if (inputType === "title") {
-        const newTitle = titleText + " " + transcript.trim();
-        setTitleText(newTitle);
-        setValue("title", newTitle);
-      } else if (inputType === "content" && editor) {
-        // Insert text at current cursor position instead of setting entire content
-        editor.commands.insertContent(transcript.trim());
-      }
-    }
-    stopListening();
-    setSelectedInput(null);
-  };
+  // const stopVoiceInput = (inputType) => {
+  //   if (transcript) {
+  //     if (inputType === "title") {
+  //       const newTitle = titleText + " " + transcript.trim();
+  //       setTitleText(newTitle);
+  //       setValue("title", newTitle);
+  //     } else if (inputType === "content" && editor) {
+  //       // Insert text at current cursor position instead of setting entire content
+  //       editor.commands.insertContent(transcript.trim());
+  //     }
+  //   }
+  //   stopListening();
+  //   setSelectedInput(null);
+  // };
 
   const handleTitleChange = (e) => {
     setTitleText(e.target.value);
@@ -233,14 +234,15 @@ export default function Forum() {
                 required
                 {...register("title")}
                 onChange={handleTitleChange}
-                value={
-                  isListening && selectedInput === "title"
-                    ? titleText + (transcript || "")
-                    : titleText
-                }
+                // value={
+                //   isListening && selectedInput === "title"
+                //     ? titleText + (transcript || "")
+                //     : titleText
+                // }
+                value={titleText}
                 className="flex-grow-1"
               />
-              <button
+              {/* <button
                 onClick={(e) => startStopListening(e, "title")}
                 className={styles.microphone}
               >
@@ -251,12 +253,12 @@ export default function Forum() {
                       : faMicrophone
                   }
                 />
-              </button>
-              {isListening && selectedInput === "title" && (
+              </button> */}
+              {/* {isListening && selectedInput === "title" && (
                 <span className={styles.listeningIndicator}>
                   {t("Listening...")}
                 </span>
-              )}
+              )} */}
             </Col>
           </Row>
           <Row className="mb-3">
@@ -332,7 +334,7 @@ export default function Forum() {
               />
             </div>
             <div className={styles.rightActions}>
-              <div className={styles.microphoneContainer}>
+              {/* <div className={styles.microphoneContainer}>
                 <button
                   onClick={(e) => startStopListening(e, "content")}
                   className={styles.microphone}
@@ -350,7 +352,7 @@ export default function Forum() {
                     {t("Listening...")}
                   </span>
                 )}
-              </div>
+              </div> */}
               <Button
                 variant="primary"
                 type="submit"
