@@ -54,7 +54,7 @@ function Feeding({ baby_id }) {
 
   useEffect(() => {
     if (router.isReady && baby_id) {
-      console.log("Fetching feeding schedule for baby ID:", baby_id);
+      // console.log("Fetching feeding schedule for baby ID:", baby_id);
       if (baby_id) {
         async function fetchFeedingSchedule() {
           try {
@@ -68,7 +68,7 @@ function Feeding({ baby_id }) {
               },
             );
             const data = await res.json();
-            console.log("Fetched feeding schedule data:", data);
+            // console.log("Fetched feeding schedule data:", data);
             if (res.ok) {
               //  Convert the response to an array of feeding schedules
               const feedingScheduleArray = Object.keys(data)
@@ -96,6 +96,7 @@ function Feeding({ baby_id }) {
 
   const formatDate = (dateString) => {
     const parsed = parseISO(dateString);
+
     return {
       dayNumber: format(parsed, "d"),
       restOfDate: format(parsed, "MMM, EEE yyyy"),
@@ -391,14 +392,30 @@ function Feeding({ baby_id }) {
     }, 5000);
   };
 
+  // Group meals by date
+  const groupMealsByDate = (meals) => {
+    return meals.reduce((acc, meal) => {
+      const date = meal.date;
+      if (!acc[date]) {
+        acc[date] = [];
+      }
+      acc[date].push(meal);
+      return acc;
+    }, {});
+  };
+  const groupedMeals = groupMealsByDate(sortedData);
+
   return (
     <div className={styles.container}>
       <ToastContainer toasts={toasts} removeToast={removeToast} />
-      {sortedData.map((meal, idx) => {
-        const { dayNumber, restOfDate } = formatDate(meal.date);
-        const today = isSameDay(new Date(), parseISO(meal.date));
+      {Object.entries(groupedMeals).map((mealsOnSameDate) => {
+        const meals = mealsOnSameDate[1];
+        const date = mealsOnSameDate[0];
+        const { dayNumber, restOfDate } = formatDate(date);
+        const today = isSameDay(parseISO(date), new Date());
+
         return (
-          <div key={idx} className={styles.dayCard}>
+          <div key={date} className={styles.dayCard}>
             <div className={styles.dayHeader}>
               <div className={styles.dayInfo}>
                 {today ? (
@@ -408,9 +425,13 @@ function Feeding({ baby_id }) {
                 )}
                 <span className={styles.dateText}>{restOfDate}</span>
               </div>
-              <div className={styles.dayHeaderRight}>
-                <span className={styles.todayMeals}>{t("Today’s Meals")}</span>
-              </div>
+              {today && (
+                <div className={styles.dayHeaderRight}>
+                  <span className={styles.todayMeals}>
+                    {t("Today’s Meals")}
+                  </span>
+                </div>
+              )}
             </div>
             <table className={styles.mealsTable}>
               <thead>
@@ -425,29 +446,30 @@ function Feeding({ baby_id }) {
                 </tr>
               </thead>
               <tbody>
-                {/* {sortedData.map((mealItem, mealIdx) => ( */}
-                <tr key={idx}>
-                  <td>{meal.meal}</td>
-                  <td>{meal.time}</td>
-                  <td>{meal.type}</td>
-                  <td>{meal.amount > 0 ? meal.amount + " oz" : "0 oz"}</td>
-                  <td>{meal.issues || "None"}</td>
-                  <td>{meal.notes || "None"}</td>
-                  <td className={styles.actionCell}>
-                    <button
-                      className={styles.editBtn}
-                      onClick={() => handleOpenModal(meal, meal.date)}
-                    >
-                      <FaEdit />
-                    </button>
-                    <button
-                      className={styles.deleteBtn}
-                      onClick={() => handleDeleteMeal(meal, meal.date)}
-                    >
-                      <FaTrash />
-                    </button>
-                  </td>
-                </tr>
+                {meals.map((meal, idx) => (
+                  <tr key={idx}>
+                    <td>{meal.meal}</td>
+                    <td>{meal.time}</td>
+                    <td>{meal.type}</td>
+                    <td>{meal.amount > 0 ? meal.amount + " oz" : "0 oz"}</td>
+                    <td>{meal.issues || "None"}</td>
+                    <td>{meal.notes || "None"}</td>
+                    <td className={styles.actionCell}>
+                      <button
+                        className={styles.editBtn}
+                        onClick={() => handleOpenModal(meal, meal.date)}
+                      >
+                        <FaEdit />
+                      </button>
+                      <button
+                        className={styles.deleteBtn}
+                        onClick={() => handleDeleteMeal(meal, meal.date)}
+                      >
+                        <FaTrash />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
