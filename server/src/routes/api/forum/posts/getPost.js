@@ -32,6 +32,7 @@ module.exports = async (req, res) => {
     p.user_id,
     p.title,
     p.content,
+    p.category,
     p.created_at,
     p.updated_at,
     CONCAT(u.first_name, ' ', LEFT(u.last_name, 1), '.') as display_name,
@@ -56,7 +57,7 @@ module.exports = async (req, res) => {
   LEFT JOIN users u ON p.user_id = u.user_id
   LEFT JOIN users ru ON r.user_id = ru.user_id
   WHERE p.post_id = $1
-  GROUP BY p.post_id, p.user_id, p.title, p.content, p.created_at, p.updated_at, u.first_name, u.last_name
+  GROUP BY p.post_id, p.user_id, p.title, p.content, p.category, p.created_at, p.updated_at, u.first_name, u.last_name
 `;
 
     const result = await pool.query(postQuery, [post_id, userId]);
