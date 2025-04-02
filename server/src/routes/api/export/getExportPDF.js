@@ -117,12 +117,12 @@ module.exports = async (req, res) => {
     <html>
     <head>
       <style>
-          body { font-family: Arial, sans-serif; margin: 20px; }
-          h2 { border-bottom: 2px solid #000; padding-bottom: 5px; }
-          h3 { margin-top: 30px; }
+          body { font-family: Arial, sans-serif; margin: 20px; font-size: 12px; }
+          h2 { border-bottom: 2px solid #000; padding-bottom: 5px; font-size: 14px;}
+          h3 { margin-top: 30px; font-size: 14px;}
 
-          table { border-collapse: collapse; margin-bottom: 20px; width: 100%; }
-          th, td { border: 1px solid #000; padding: 8px; text-align: left; }
+          table { border-collapse: collapse; width: 100%; }
+          th, td { border: 1px solid #000; padding: 6px; text-align: left; font-size: 10px; }
 
           .separator { margin: 30px 0; border-top: 2px dashed #666; }
       </style>
