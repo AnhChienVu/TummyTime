@@ -1,7 +1,11 @@
 // pages/login/index.js
 import React, { useState } from "react";
 import { useRouter } from "next/router";
+<<<<<<< HEAD
 import { Button, Form, InputGroup } from "react-bootstrap";
+=======
+import { Alert, Button, Form } from "react-bootstrap";
+>>>>>>> fa64c1896583bd8c9944a8e98cbcb2da5138bb8d
 import styles from "./login.module.css";
 import Link from "next/link";
 import { Container } from "react-bootstrap";
@@ -24,6 +28,7 @@ export default function Login() {
 
   const router = useRouter();
 
+<<<<<<< HEAD
   const validateEmail = (email) => {
     // Only check if email has @ and at least one character before and after
     const re = /^.+@.+\..+$/;
@@ -57,6 +62,10 @@ export default function Login() {
     setFormErrors(errors);
     return valid;
   };
+=======
+  // This message is used to show the error message when the token is expired, it redirects to login page
+  const { message } = router.query;
+>>>>>>> fa64c1896583bd8c9944a8e98cbcb2da5138bb8d
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -148,6 +157,11 @@ export default function Login() {
   return (
     <Container className={styles.container} fluid>
       <div className={styles.formContainer}>
+        {message && (
+          <Alert variant="danger" className={styles.alert}>
+            {message}{" "}
+          </Alert>
+        )}
         <Form
           className={styles.form}
           onSubmit={handleSubmit}
