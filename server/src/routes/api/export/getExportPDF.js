@@ -422,7 +422,7 @@ module.exports = async (req, res) => {
           default: `<div style="text-align: center; font-size: 10px;">Exported Baby Data - ${exportDate}</div>`
         }
       },
-      // DEBUG- ERROR FOOTER not showing real number of pages:
+      // DEBUG-: ERROR FOOTER not showing real number of pages:
       //       Page: { #pageNum } of { #numPages } 
       // footer: {
       //   height: "20mm",
