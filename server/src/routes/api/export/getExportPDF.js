@@ -369,8 +369,9 @@ module.exports = async (req, res) => {
                     
                     <td>${formatDate(entry.timestamp)}</td>
                     
-                    <td>${entry.color}</td>
-                    <td>${entry.consistency}</td>
+                    <td>${entry.color && entry.color !== "null" ? entry.color : ""}</td>
+                    <td>${entry.consistency && entry.consistency !== "null" ? entry.consistency : ""}</td> 
+                    <!-- if null, show empty string -->
                     
                     <td>${entry.notes || ""}</td>
                   </tr>`;
