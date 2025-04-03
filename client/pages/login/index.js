@@ -1,7 +1,8 @@
 // pages/login/index.js
 import React, { useState } from "react";
 import { useRouter } from "next/router"; 
-import { Button, Form, InputGroup, Alert } from "react-bootstrap"; 
+import { Button, Form, InputGroup } from "react-bootstrap"; 
+import { Alert } from "react-bootstrap"; 
 import styles from "./login.module.css";
 import Link from "next/link";
 import { Container } from "react-bootstrap";
@@ -23,7 +24,6 @@ export default function Login() {
   });
 
   const router = useRouter();
- 
   const validateEmail = (email) => {
     // Only check if email has @ and at least one character before and after
     const re = /^.+@.+\..+$/;
@@ -57,10 +57,10 @@ export default function Login() {
     setFormErrors(errors);
     return valid;
   };
-  
+
   // This message is used to show the error message when the token is expired, it redirects to login page
   const { message } = router.query;
-
+  
   const handleSubmit = async (event) => {
     event.preventDefault();
     
