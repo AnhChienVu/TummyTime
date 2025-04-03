@@ -21,6 +21,16 @@ const { getUserId } = require('../../../utils/userIdHelper');
 // req.query include options for each category (babyInfo, growth,...)
 module.exports = async (req, res) => {
   try {
+    // Helper function to format date for Readibility [[NOT FOR CSV]]
+    // format date to [MM/DD/YYYY]
+    const formatDate = (dateStr) => {
+      if (!dateStr) return "";
+
+      const d = new Date(dateStr);
+      return isNaN(d) ? dateStr : d.toLocaleDateString('en-US');  // MM/DD/YYYY
+    };    
+
+
     // Step1: Verify the user token- get related baby_id
     const authHeader = req.headers.authorization;
     if (!authHeader) {
@@ -169,7 +179,9 @@ module.exports = async (req, res) => {
             <td>${baby.last_name}</td>
             <td>${baby.gender}</td>
             <td>${baby.weight}</td>
-            <td>${baby.created_at}</td>
+
+            <td>${formatDate(baby.created_at)}</td>
+
           </tr>
         </table>`;
       }
@@ -210,7 +222,9 @@ module.exports = async (req, res) => {
           growthResult.rows.forEach(record => {
             htmlContent += `<tr>
             <td>${record.growth_id}</td>
-            <td>${record.date}</td>
+
+            <td>${formatDate(record.date)}</td>
+
             <td>${record.weight}</td>
             <td>${record.height}</td>
             <td>${record.notes || ""}</td>
@@ -255,7 +269,9 @@ module.exports = async (req, res) => {
           milestonesResult.rows.forEach(milestone => {
             htmlContent += `<tr>
                 <td>${milestone.milestone_id}</td>
-                <td>${milestone.date}</td>
+
+                <td>${formatDate(milestone.date)}</td> 
+                
                 <td>${milestone.title}</td>
                 <td>${milestone.details || ""}</td>
               </tr>`;
@@ -300,8 +316,13 @@ module.exports = async (req, res) => {
           feedingResult.rows.forEach(feed => {
             htmlContent += `<tr>
                   <td>${feed.feeding_schedule_id}</td>
-                  <td>${feed.date}</td>
-                  <td>${feed.time}</td>
+
+                  <td>${formatDate(feed.date)}</td>
+                  <!-- Format date to MM/DD/YYYY -->
+                  
+                  <td>${feed.time.split('.')[0]}</td> 
+                  <!-- Split time to remove milliseconds, result: HH:mm:ss -->
+
                   <td>${feed.meal}</td>
                   <td>${feed.amount}</td>
                   <td>${feed.type}</td>
@@ -345,9 +366,12 @@ module.exports = async (req, res) => {
             stoolResult.rows.forEach(entry => {
               htmlContent += `<tr>
                     <td>${entry.stool_id}</td>
-                    <td>${entry.timestamp}</td>
+                    
+                    <td>${formatDate(entry.timestamp)}</td>
+                    
                     <td>${entry.color}</td>
                     <td>${entry.consistency}</td>
+                    
                     <td>${entry.notes || ""}</td>
                   </tr>`;
             });
