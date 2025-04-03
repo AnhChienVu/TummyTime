@@ -133,8 +133,19 @@ module.exports = async (req, res) => {
 
           table { border-collapse: collapse; width: 100%; }
           th, td { border: 1px solid #000; padding: 6px; text-align: left; font-size: 10px; }
-
-          .separator { margin: 30px 0; border-top: 2px dashed #666; }
+          
+          .separator { 
+                margin: 40px 0; 
+                border-top: 4px solid #000; 
+                height: 10px; 
+                background: repeating-linear-gradient(
+                    45deg,
+                    #000,
+                    #000 10px,
+                    #fff 10px,
+                    #fff 20px
+                );
+              }
       </style>
     </head>
     <body>
@@ -142,12 +153,6 @@ module.exports = async (req, res) => {
 
     // LOOP THROUGH EACH BABY
     for (let baby of babies) {
-      // add [separator] between next baby
-      if (htmlContent.length > 0) {
-        htmlContent += `<div class="separator"></div>\n`;
-
-      }
-
       // Baby header
       htmlContent += `<h2>Baby: ${baby.first_name} ${baby.last_name}</h2>\n`;
 
