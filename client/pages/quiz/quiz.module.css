@@ -1,0 +1,8 @@
+/* client/pages/[quiz]/quiz.module.css */
+
+.container {
+  background-color: #ffffff;
+  overflow-x: hidden;
+  padding: 0 15px;
+  margin-left: 50px;
+}
