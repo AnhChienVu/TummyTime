@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 
 const QuizPage = () => {
-  const [category, setCategory] = useState("SLEEP");
+  const [category, setCategory] = useState("ALL");
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({}); // key: question_id, value: selected option
   const [result, setResult] = useState(null);
@@ -80,6 +80,7 @@ const QuizPage = () => {
           onChange={(e) => setCategory(e.target.value)}
           className="form-control"
         >
+          <option value="ALL">ALL</option>
           <option value="SLEEP">SLEEP</option>
           <option value="HYGIENE">HYGIENE</option>
           <option value="PHYSICAL ACTIVITIES">PHYSICAL ACTIVITIES</option>
