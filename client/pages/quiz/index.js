@@ -38,39 +38,60 @@ const QuizPage = () => {
     setAnswers((prev) => ({ ...prev, [question_id]: selected }));
   };
 
-  const submitQuiz = async () => {
+  // NEW: Local submission that computes the result on the frontend only
+  const submitQuiz = () => {
     setError("");
-    try {
-      // Prepare answers payload as an array
-      const payloadAnswers = Object.keys(answers).map((qid) => ({
-        question_id: parseInt(qid, 10),
-        selected: answers[qid],
-      }));
-
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/quiz`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          // Include Authorization header if required:
-          // Authorization: `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify({
-          category,
-          answers: payloadAnswers,
-        }),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error?.message || "Quiz submission failed");
+    let correctCount = 0;
+    const wrongQuestions = [];
+    questions.forEach((q) => {
+      const selected = answers[q.question_id];
+      if (!selected || selected !== q.correct_option) {
+        wrongQuestions.push(q.question_id);
+      } else {
+        correctCount++;
       }
-      const data = await res.json();
-      setResult(data);
-    } catch (err) {
-      console.error(err);
-      setError("Error submitting quiz.");
-    }
+    });
+    setResult({
+      total: questions.length,
+      correct: correctCount,
+      wrong: wrongQuestions,
+    });
+    setSubmitted(true);
   };
+
+  // const submitQuiz = async () => {
+  //   setError("");
+  //   try {
+  //     // Prepare answers payload as an array
+  //     const payloadAnswers = Object.keys(answers).map((qid) => ({
+  //       question_id: parseInt(qid, 10),
+  //       selected: answers[qid],
+  //     }));
+
+  //     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/quiz`, {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         // Include Authorization header if required:
+  //         // Authorization: `Bearer ${localStorage.getItem('token')}`
+  //       },
+  //       body: JSON.stringify({
+  //         category,
+  //         answers: payloadAnswers,
+  //       }),
+  //     });
+
+  //     if (!res.ok) {
+  //       const errorData = await res.json();
+  //       throw new Error(errorData.error?.message || "Quiz submission failed");
+  //     }
+  //     const data = await res.json();
+  //     setResult(data);
+  //   } catch (err) {
+  //     console.error(err);
+  //     setError("Error submitting quiz.");
+  //   }
+  // };
 
   return (
     <div className="container mt-5">
@@ -93,8 +114,9 @@ const QuizPage = () => {
         </select>
       </div>
 
+      {/* Change button text if quiz is loaded */}
       <button className="btn btn-primary mb-3" onClick={fetchQuiz}>
-        Start Quiz
+        {questions.length > 0 ? "Start Another Quiz" : "Start Quiz"}{" "}
       </button>
 
       {error && <div className="alert alert-danger">{error}</div>}
@@ -102,41 +124,85 @@ const QuizPage = () => {
       {/* Display quiz questions if loaded */}
       {questions.length > 0 && (
         <form>
-          {questions.map((q) => (
-            <div key={q.question_id} className="mb-4">
-              <p>
-                <strong>
-                  {questions.indexOf(q) + 1}. {q.question_text}
-                </strong>
-              </p>
-              {["A", "B", "C", "D"].map((opt) => {
-                const optionText = q[`option_${opt.toLowerCase()}`];
-                return (
-                  <div key={opt} className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="radio"
-                      name={`question_${q.question_id}`}
-                      id={`q${q.question_id}_${opt}`}
-                      value={opt}
-                      checked={answers[q.question_id] === opt}
-                      onChange={() => handleOptionChange(q.question_id, opt)}
-                    />
-                    <label
-                      className="form-check-label"
-                      htmlFor={`q${q.question_id}_${opt}`}
-                    >
-                      {optionText}
-                    </label>
-                  </div>
-                );
-              })}
-            </div>
-          ))}
+          {questions.map((q, index) => {
+            // Determine if no answer was provided for this question
+            const noAnswer = submitted && !answers[q.question_id];
+            return (
+              <div
+                key={q.question_id}
+                className="mb-4"
+                style={
+                  noAnswer
+                    ? { borderBottom: "2px solid red" } // highlight question in red if no answer
+                    : {}
+                }
+              >
+                <p>
+                  <strong>
+                    {index + 1}. {q.question_text}
+                  </strong>
+                </p>
+                {/* Display options A, B, C, D */}
+                {["A", "B", "C", "D"].map((opt) => {
+                  let optionText = `${opt}. `;
+                  optionText += q[`option_${opt.toLowerCase()}`];
+
+                  // Determine styles based on submission and correctness
+                  let optionStyle = {};
+                  let extraText = "";
+                  if (submitted) {
+                    if (opt === q.correct_option) {
+                      // Highlight correct answer in green
+                      optionStyle = { backgroundColor: "#d4edda" }; // green background
+                      extraText = " CORRECT"; // extra text appended
+                    }
+                    if (
+                      answers[q.question_id] &&
+                      answers[q.question_id] === opt &&
+                      answers[q.question_id] !== q.correct_option
+                    ) {
+                      // Highlight selected wrong answer in red
+                      optionStyle = { backgroundColor: "#f8d7da" }; // red background
+                    }
+                  }
+                  return (
+                    <div key={opt} className="form-check" style={optionStyle}>
+                      {" "}
+                      <input
+                        className="form-check-input"
+                        type="radio"
+                        name={`question_${q.question_id}`}
+                        id={`q${q.question_id}_${opt}`}
+                        value={opt}
+                        checked={answers[q.question_id] === opt}
+                        onChange={() => handleOptionChange(q.question_id, opt)}
+                        disabled={submitted} // disable options after submission
+                      />
+                      <label
+                        className="form-check-label"
+                        htmlFor={`q${q.question_id}_${opt}`}
+                      >
+                        {optionText}
+                        {opt === q.correct_option &&
+                          submitted && ( // append "CORRECT" for correct answer
+                            <span
+                              style={{ marginLeft: "10px", fontWeight: "bold" }}
+                            >
+                              {extraText}
+                            </span>
+                          )}
+                      </label>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
           <button
             type="button"
             className="btn btn-success"
             onClick={submitQuiz}
+            disabled={submitted} // disable submit button after submission
           >
             Submit Quiz
           </button>
