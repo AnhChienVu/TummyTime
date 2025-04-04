@@ -22,7 +22,9 @@ const QuizPage = () => {
         throw new Error("Failed to load quiz questions");
       }
       const data = await res.json();
-      setQuestions(data.questions);
+      console.log(data);
+
+      setQuestions(data.data || []);
     } catch (err) {
       console.error(err);
       setError("Error loading quiz.");
