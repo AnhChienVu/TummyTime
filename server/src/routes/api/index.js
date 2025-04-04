@@ -192,6 +192,9 @@ router.get('/export/csv', require('./export/getExportCSV'));
 
 router.get('/export/pdf', require('./export/getExportPDF'));
 
+// ************ /quiz routes ************
+router.get('/quiz', require('./quiz/getAllQuizzes'));
+
 // ************ /reminders routes ************
 // GET /baby/:babyId/reminders - Get all reminders for a baby
 router.get('/baby/:babyId/reminders', authenticate(), getReminders);

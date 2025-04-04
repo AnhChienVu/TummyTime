@@ -14,9 +14,9 @@ const QuizPage = () => {
     setAnswers({});
     try {
       const res = await fetch(
-        `${
-          process.env.NEXT_PUBLIC_API_URL
-        }/api/quiz?category=${encodeURIComponent(category)}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/quiz?category=${encodeURIComponent(
+          category,
+        )}`,
       );
       if (!res.ok) {
         throw new Error("Failed to load quiz questions");
