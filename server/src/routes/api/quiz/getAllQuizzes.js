@@ -9,7 +9,7 @@ const pool = require('../../../../database/db');
 
 // GET /quiz
 // {req} has [req.query.category] : for quiz category
-// ==>{res} as json { data: [...] }
+// ==>{res} as json { dataQuiz: [...] }
 module.exports = async (req, res) => {
   try {
     const { category } = req.query;
@@ -39,7 +39,7 @@ module.exports = async (req, res) => {
 
     if (result.rows.length > 0) {
       // return ALL ROWS
-      res.status(200).send(createSuccessResponse({ data: result.rows }));
+      res.status(200).send(createSuccessResponse({ dataQuiz: result.rows }));
     } else {
       res.status(404).send(createErrorResponse(404, 'No quiz found'));
     }
