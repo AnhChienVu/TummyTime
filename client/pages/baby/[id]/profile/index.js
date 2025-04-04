@@ -1,13 +1,12 @@
-// pages/baby/[baby_id]/profile/index.js
-// Front-end for one baby profile
-// Contains the form to edit and delete baby profile
+// client/pages/baby/[id]/profile/index.js
 import { useForm } from "react-hook-form";
-import { Row, Col, Form, Button, Container, Modal } from "react-bootstrap";
+import { Row, Col, Form, Button, Container, Modal, Alert } from "react-bootstrap";
 import { useRouter } from "next/router";
 import styles from "./profile.module.css";
 import { useState, useEffect } from "react";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import ProfilePictureManager from '@/components/ProfilePicture/ProfilePictureManager';
 
 export default function BabyProfile({ baby_id }) {
   const { t } = useTranslation("common");
@@ -15,44 +14,88 @@ export default function BabyProfile({ baby_id }) {
   const [baby, setBaby] = useState(null);
   const { register, handleSubmit, setValue, watch } = useForm();
   const [originalData, setOriginalData] = useState(null);
-  const formValues = watch(); // React Hook Form's watch to track form values
+  const formValues = watch();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirmed, setDeleteConfirmed] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [formError, setFormError] = useState(null);
 
-  // Get the selected baby's profile information and pre-fill the form fields
+  // Get the baby profile information
   useEffect(() => {
     const fetchBabyProfile = async () => {
       if (baby_id) {
         try {
+          setIsLoading(true);
           const res = await fetch(
             `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${baby_id}`,
             {
               headers: {
                 Authorization: `Bearer ${localStorage.getItem("token")}`,
               },
-            },
+            }
           );
 
-          // Destructure the data property since the API response has a nested data object
-          // So we can't just do `const data = await res.json()`
-          const { data } = await res.json();
+          if (!res.ok) {
+            throw new Error(`Failed to fetch baby profile: ${res.status}`);
+          }
 
-          setBaby(data);
-          // Pre-fill form fields
-          setValue("first_name", data.first_name);
-          setValue("last_name", data.last_name);
-          setValue("gender", data.gender);
-          setValue("weight", data.weight);
-          // setValue("date_of_birth", data.date_of_birth); // TODO add a DOB option to addBaby form and database table
-          setOriginalData(data); // Store original data
+          const data = await res.json();
+          const babyData = data.data || data;
+          
+          // If profile_picture_url is missing in the API response, fetch it
+          if (!babyData.profile_picture_url) {
+            try {
+              const fullProfileRes = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/v1/babies`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                  },
+                }
+              );
+              
+              if (fullProfileRes.ok) {
+                const fullProfileData = await fullProfileRes.json();
+                const matchingBaby = fullProfileData.babies?.find(b => 
+                  b.baby_id.toString() === baby_id.toString()
+                );
+                
+                if (matchingBaby && matchingBaby.profile_picture_url) {
+                  babyData.profile_picture_url = matchingBaby.profile_picture_url;
+                }
+              }
+            } catch (error) {
+              console.error("Error fetching full baby profile:", error);
+            }
+          }
+          
+          setBaby(babyData);
+          
+          // Form field setup
+          setValue("first_name", babyData.first_name);
+          setValue("last_name", babyData.last_name);
+          setValue("gender", babyData.gender);
+          setValue("weight", babyData.weight);
+          setOriginalData(babyData);
         } catch (error) {
           console.error("Error fetching baby profile:", error);
+          setFormError(t("Failed to load baby profile. Please try again."));
+        } finally {
+          setIsLoading(false);
         }
       }
     };
 
     fetchBabyProfile();
-  }, [baby_id, setValue]);
+  }, [baby_id, setValue, t]);
+
+  // Handle profile picture update
+  const handleProfilePictureUpdate = (newUrl) => {
+    setBaby(prev => ({
+      ...prev,
+      profile_picture_url: newUrl
+    }));
+  };
 
   // Check if form values have changed
   const isFormChanged = () => {
@@ -65,9 +108,10 @@ export default function BabyProfile({ baby_id }) {
     );
   };
 
-  // Update baby profile
+  // Form submission handler
   const onSubmit = async (data) => {
     try {
+      setFormError(null);
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${baby_id}`,
         {
@@ -81,25 +125,27 @@ export default function BabyProfile({ baby_id }) {
           }),
         },
       );
-      if (res.ok) {
-        router.push("/profile");
+      
+      if (!res.ok) {
+        throw new Error(`Failed to update baby profile: ${res.status}`);
       }
+      
+      router.push("/profile");
     } catch (error) {
       console.error("Error updating baby profile:", error);
+      setFormError(t("Failed to update baby profile. Please try again."));
     }
   };
 
-  /* Event handler for the "Delete Profile" button */
-  // First, display a confirmation modal
+  // Delete handlers
   const handleDeleteClick = () => {
     setShowDeleteModal(true);
   };
 
-  // Then, handle the delete confirmation
   const handleDeleteConfirm = async () => {
     if (!deleteConfirmed) return;
-
     try {
+      setFormError(null);
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${baby_id}`,
         {
@@ -110,15 +156,16 @@ export default function BabyProfile({ baby_id }) {
           },
         },
       );
-      if (res.ok) {
-        setShowDeleteModal(false);
-        // Show success notification
-        alert("Profile successfully deleted");
-        router.push("/profile");
+      
+      if (!res.ok) {
+        throw new Error(`Failed to delete baby profile: ${res.status}`);
       }
+      
+      setShowDeleteModal(false);
+      router.push("/profile");
     } catch (error) {
       console.error("Error deleting baby profile:", error);
-      alert("Error deleting profile");
+      setFormError(t("Failed to delete baby profile. Please try again."));
     }
   };
 
@@ -127,11 +174,50 @@ export default function BabyProfile({ baby_id }) {
     setDeleteConfirmed(false);
   };
 
+  if (isLoading) {
+    return (
+      <Container className="py-4">
+        <div className="text-center">
+          <p>{t("Loading...")}</p>
+        </div>
+      </Container>
+    );
+  }
+
+  if (!baby) {
+    return (
+      <Container className="py-4">
+        <div className="text-center">
+          <p>{t("Baby profile not found")}</p>
+        </div>
+      </Container>
+    );
+  }
+
   return (
     <div className="d-flex">
       <Container className="py-4">
         <h2>{t("Edit Baby Profile")}</h2>
+        
+        {formError && (
+          <Alert variant="danger" className="mb-3">
+            {formError}
+          </Alert>
+        )}
+        
         <Form onSubmit={handleSubmit(onSubmit)}>
+          {/* Profile Picture Manager */}
+          <div className={styles.profilePictureContainer}>
+            <ProfilePictureManager
+              entityType="baby"
+              entityId={baby_id}
+              currentImageUrl={baby.profile_picture_url}
+              onImageUpdate={handleProfilePictureUpdate}
+              size={120}
+            />
+          </div>
+          
+          {/* Form fields */}
           <Row>
             <Col md={6}>
               <Form.Group className="mb-3">
@@ -155,9 +241,7 @@ export default function BabyProfile({ baby_id }) {
               <Form.Group className="mb-3">
                 <Form.Label>{t("Gender")}</Form.Label>
                 <Form.Select {...register("gender")} required>
-                  <option value="" disabled>
-                    {t("Select Gender")}
-                  </option>
+                  <option value="" disabled>{t("Select Gender")}</option>
                   <option value="boy">{t("Boy")}</option>
                   <option value="girl">{t("Girl")}</option>
                 </Form.Select>
@@ -177,27 +261,26 @@ export default function BabyProfile({ baby_id }) {
               </Form.Group>
             </Col>
           </Row>
-          {/* <Form.Group className="mb-3">
-            <Form.Label>Date of Birth</Form.Label>
-            <Form.Control {...register("date_of_birth")} type="date" />
-          </Form.Group> */}
+          
           <div className="d-flex">
             <Button
               type="submit"
               disabled={!isFormChanged()}
-              className={`${
-                !isFormChanged() ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              className={styles.customButton}
             >
               {t("Save Changes")}
             </Button>
-            <Button onClick={handleDeleteClick} className={styles.deleteButton}>
+            <Button 
+              onClick={handleDeleteClick} 
+              className={styles.deleteButton}
+              variant="outline-danger"
+            >
               {t("Delete Profile")}
             </Button>
           </div>
         </Form>
 
-        {/* "Confirm Delete" popup */}
+        {/* Delete modal */}
         <Modal show={showDeleteModal} onHide={handleModalClose}>
           <Modal.Header closeButton>
             <Modal.Title>{t("Confirm Delete")}</Modal.Title>
@@ -207,9 +290,7 @@ export default function BabyProfile({ baby_id }) {
             <Form.Check
               type="checkbox"
               id="delete-confirm"
-              label={t(
-                "I understand that this action cannot be undone and all data will be permanently deleted",
-              )}
+              label={t("I understand that this action cannot be undone and all data will be permanently deleted")}
               checked={deleteConfirmed}
               onChange={(e) => setDeleteConfirmed(e.target.checked)}
               className="mb-3"
