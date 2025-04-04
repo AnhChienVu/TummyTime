@@ -15,8 +15,10 @@ import {
 import styles from "./index.module.css";
 import Image from "next/image";
 import { useRouter } from "next/router";
+import Link from "next/link";
+import HomePageNavBar from "@/components/Navbar/HomePageNavBar";
 
-export default function Home() {
+function HomePage() {
   const router = useRouter();
   const [showScroll, setShowScroll] = useState(false);
   const [currentTestimonialIndex, setCurrentTestimonialIndex] = useState(0);
@@ -94,37 +96,7 @@ export default function Home() {
 
   return (
     <div className={styles.container} style={{ marginLeft: 0, marginRight: 0 }}>
-      {/* Top Navigation */}
-      <div className={styles.navContainer}>
-        <div className={styles.brand}>
-          <Image
-            src="/logo.png"
-            alt="Tummy Time Logo"
-            className={styles.logo}
-            width={40}
-            height={40}
-            priority
-          />
-          <span className={styles.brandName}>Tummy Time</span>
-        </div>
-        <div className={styles.topNav}>
-          <Button
-            variant="light"
-            className="mx-2"
-            onClick={() => router.push("/register")}
-          >
-            Get Started
-          </Button>
-          <Button
-            variant="outline-light"
-            className="mx-2"
-            onClick={() => router.push("/login")}
-          >
-            Log In
-          </Button>
-        </div>
-      </div>
-
+      <HomePageNavBar />
       {/* Hero Section */}
       <Container
         fluid
@@ -312,16 +284,15 @@ export default function Home() {
               </div>
             </Col>
             <Col md={4}>
-              <h5>Links</h5>
               <ul className={styles.footerLinks}>
                 <li>
-                  <a href="/privacy">Privacy Policy</a>
+                  <Link href="/privacy">Privacy Policy</Link>
                 </li>
                 <li>
-                  <a href="/terms">Terms of Service</a>
+                  <Link href="/terms">Terms of Service</Link>
                 </li>
                 <li>
-                  <a href="/faq">FAQ</a>
+                  <Link href="/faq">FAQ</Link>
                 </li>
               </ul>
             </Col>
@@ -331,3 +302,10 @@ export default function Home() {
     </div>
   );
 }
+
+// Override the default layout by returning the page without a layout
+HomePage.getLayout = function getLayout(page) {
+  return page;
+};
+
+export default HomePage;
