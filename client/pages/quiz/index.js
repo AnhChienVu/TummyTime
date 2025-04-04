@@ -24,7 +24,7 @@ const QuizPage = () => {
       const data = await res.json();
       console.log(data);
 
-      setQuestions(data.data || []);
+      setQuestions(data.dataQuiz || []);
     } catch (err) {
       console.error(err);
       setError("Error loading quiz.");
@@ -102,7 +102,9 @@ const QuizPage = () => {
           {questions.map((q) => (
             <div key={q.question_id} className="mb-4">
               <p>
-                <strong>{q.question_text}</strong>
+                <strong>
+                  {questions.indexOf(q) + 1}. {q.question_text}
+                </strong>
               </p>
               {["A", "B", "C", "D"].map((opt) => {
                 const optionText = q[`option_${opt.toLowerCase()}`];
