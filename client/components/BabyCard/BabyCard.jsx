@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Card, Button, Image } from "react-bootstrap";
+import { Card, Button } from "react-bootstrap";
 import styles from "./BabyCard.module.css";
 import { useTranslation } from "next-i18next";
 import Link from "next/link";
+import ProfilePictureManager from '@/components/ProfilePicture/ProfilePictureManager';
 
 function BabyCard({ buttons }) {
   const { t, i18n } = useTranslation("common");
@@ -23,12 +24,7 @@ function BabyCard({ buttons }) {
           },
         );
         const data = await res.json();
-        // console.log("Fetched baby profiles data:", data); // Log the response data
         if (res.ok) {
-          // Convert the object to an array of baby profiles
-          // const babyProfilesArray = Object.keys(data)
-          //   .filter((key) => key !== "status")
-          //   .map((key) => data[key]);
           setBabyProfiles(data.babies);
         } else {
           console.error("Failed to fetch baby profiles:", data);
@@ -41,18 +37,36 @@ function BabyCard({ buttons }) {
     fetchBabyProfiles();
   }, []); // Ensure the dependency array is empty to run only once on mount
 
+  // Handle profile picture update
+  const handleProfilePictureUpdate = (babyId, newUrl) => {
+    // Update the baby profile in the state with the new image URL
+    setBabyProfiles(prevProfiles => 
+      prevProfiles.map(baby => 
+        baby.baby_id === babyId 
+          ? { ...baby, profile_picture_url: newUrl } 
+          : baby
+      )
+    );
+  };
+
   return (
     <div>
       {babyProfiles.length > 0 ? (
         babyProfiles.map((baby) => (
           <Card key={baby.baby_id} className="mb-3">
             <Card.Body className="d-flex align-items-center">
-              <Image
-                src="https://images.unsplash.com/photo-1674650638555-8a2c68584ddc?q=80&w=2027&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                alt="Profile"
-                className="rounded-circle me-3"
-                style={{ width: "80px", height: "80px" }}
-              />
+              {/* ProfilePictureManager component (in read-only mode) */}
+              <div className="me-3">
+                <ProfilePictureManager
+                  entityType="baby"
+                  entityId={baby.baby_id}
+                  currentImageUrl={baby.profile_picture_url}
+                  onImageUpdate={(newUrl) => handleProfilePictureUpdate(baby.baby_id, newUrl)}
+                  size={80}
+                  readOnly={true} // Set to read-only since this is just a card display
+                />
+              </div>
+              
               <div className="flex-grow-1">
                 <Card.Title>
                   {baby.first_name} {baby.last_name}
@@ -66,7 +80,7 @@ function BabyCard({ buttons }) {
               </div>
 
               {/* Buttons */}
-              {buttons.length > 0 &&
+              {buttons && buttons.length > 0 &&
                 buttons.map((button, index) => (
                   <div key={index} className={styles.buttonContainer}>
                     {button.path ? (

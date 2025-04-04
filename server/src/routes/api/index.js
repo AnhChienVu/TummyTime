@@ -229,6 +229,26 @@ router.get('/careServices', authenticate(), careServices);
 router.get('/careServices/favorites', favoritesHandler.getFavorites);
 router.post('/careServices/favorites', favoritesHandler.toggleFavorite);
 
+// ************ /profile-picture routes ************
+router.post(
+  '/profile-picture/upload',
+  authenticate(),
+  require('./profilePicture/putProfilePicture')
+);
+
+// Get a profile picture (public access, no authentication required)
+router.get(
+  '/profile-picture/:entityType/:entityId',
+  require('./profilePicture/getProfilePicture.js')
+);
+
+// Delete a profile picture
+router.delete(
+  '/profile-picture/:entityType/:entityId',
+  authenticate(),
+  require('./profilePicture/deleteProfilePicture')
+);
+
 // Testing the authentication middleware
 // router.get('/test', authenticate(), require('./test'));
 module.exports = router;

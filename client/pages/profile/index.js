@@ -1,11 +1,12 @@
-// pages/profile/index.js
+// client/pages/profile/index.js
 import React, { useEffect, useState } from "react";
-import { Container, Row, Col, Card, Button, Image } from "react-bootstrap";
+import { Container, Row, Col, Card, Button, Alert } from "react-bootstrap";
 import { useRouter } from "next/router";
 import styles from "./profile.module.css";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Link from "next/link";
+import ProfilePictureManager from '@/components/ProfilePicture/ProfilePictureManager';
 
 function ProfilePage() {
   const { t, i18n } = useTranslation("common");
@@ -14,6 +15,8 @@ function ProfilePage() {
   const [profile, setProfile] = useState(null);
   const [babyProfiles, setBabyProfiles] = useState([]);
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     async function fetchProfile() {
@@ -24,14 +27,19 @@ function ProfilePage() {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
-        const data = await res.json();
-        if (res.ok) {
-          setProfile(data);
-        } else {
-          console.error("Failed to fetch profile:", data);
+        
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.message || `Error ${res.status}`);
         }
+        
+        const data = await res.json();
+        setProfile(data);
       } catch (error) {
         console.error("Error fetching profile:", error);
+        setError(t("Failed to fetch user profile. Please try again."));
+      } finally {
+        setLoading(false);
       }
     }
 
@@ -46,59 +54,96 @@ function ProfilePage() {
             },
           },
         );
-        const data = await res.json();
-        if (res.ok) {
-          // Direct access to the babies array
-          setBabyProfiles(data.babies);
-        } else {
-          console.error("Failed to fetch baby profiles:", data);
+        
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.message || `Error ${res.status}`);
         }
+        
+        const data = await res.json();
+        // Direct access to the babies array
+        setBabyProfiles(data.babies || []);
       } catch (error) {
         console.error("Error fetching baby profiles:", error);
+        setError(t("Failed to fetch baby profiles. Please try again."));
       }
     }
 
     fetchProfile();
     fetchBabyProfiles();
-  }, []); // Ensure the dependency array is empty to run only once on mount
+  }, []); // Run only once on mount
 
   const handleEditButton = () => {
+    if (!profile) return;
+    
     router.push({
-      pathname: `user/${profile.user_id}/edit`,
+      pathname: `/user/${profile.user_id}/edit`,
       query: { profile: JSON.stringify(profile), locale },
     });
   };
 
-  const addMealBtn = (babyId) => {
-    router.push({
-      pathname: `/baby/${babyId}/addMeal`,
-      query: { user_id: localStorage.getItem("userId") },
-    });
+  const handleProfilePictureUpdate = (newUrl) => {
+    // Update the profile state with the new image URL
+    setProfile((prevProfile) => ({
+      ...prevProfile,
+      profile_picture_url: newUrl,
+    }));
   };
+
+  if (loading) {
+    return (
+      <Container className={styles.container}>
+        <div className="text-center py-5">
+          <p>{t("Loading...")}</p>
+        </div>
+      </Container>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <Container className={styles.container}>
+        <div className="text-center py-5">
+          <p>{t("No profile data found. Please try again later.")}</p>
+        </div>
+      </Container>
+    );
+  }
 
   return (
     <Container className={styles.container}>
+      {error && (
+        <Alert variant="danger" className="mb-3">
+          {error}
+        </Alert>
+      )}
+      
       {/* Profile Section */}
       <Row className="mb-4">
         <Col>
           <h2>{t("Profile")}</h2>
           <Card className="mb-3">
-            <Card.Body className="d-flex align-items-center">
-              <Image
-                src="https://fastly.picsum.photos/id/177/2515/1830.jpg?hmac=G8-2Q3-YPB2TreOK-4ofcmS-z5F6chIA0GHYAe5yzDY"
-                alt="Profile"
-                className="rounded-circle me-3"
-                style={{ width: "80px", height: "80px" }}
-              />
-              <div className="flex-grow-1">
-                <Card.Title>
-                  {profile
-                    ? `${profile.first_name} ${profile.last_name}`
-                    : "Loading..."}
-                </Card.Title>
-                <Card.Text>{profile ? profile.role : "Loading..."}</Card.Text>
+            <Card.Body className="d-flex align-items-center flex-wrap">
+              {/* Profile Picture Section */}
+              <div className="me-4">
+                <ProfilePictureManager
+                  entityType="user"
+                  entityId={profile.user_id}
+                  currentImageUrl={profile.profile_picture_url}
+                  onImageUpdate={handleProfilePictureUpdate}
+                  size={80}
+                />
               </div>
 
+              {/* Profile Info Section */}
+              <div className="flex-grow-1">
+                <Card.Title>
+                  {profile.first_name} {profile.last_name}
+                </Card.Title>
+                <Card.Text>{profile.role}</Card.Text>
+              </div>
+
+              {/* Edit Button */}
               <Button
                 variant="outline-secondary"
                 onClick={handleEditButton}
@@ -108,6 +153,7 @@ function ProfilePage() {
               </Button>
             </Card.Body>
           </Card>
+          
           <div className="d-flex justify-content-between align-items-center mb-3">
             <h2>{t("Baby Profiles")}</h2>
             <Link href={`/baby/add`} locale={locale}>
@@ -122,7 +168,7 @@ function ProfilePage() {
             babyProfiles.map((baby) => (
               <Link
                 href={{
-                  pathname: `${process.env.NEXT_PUBLIC_CLIENT_URL}/baby/${baby.baby_id}/profile`,
+                  pathname: `/baby/${baby.baby_id}/profile`,
                 }}
                 key={baby.baby_id}
                 style={{ textDecoration: "none", cursor: "pointer" }}
@@ -132,12 +178,17 @@ function ProfilePage() {
                   style={{ transition: "all 0.2s ease" }}
                 >
                   <Card.Body className="d-flex align-items-center">
-                    <Image
-                      src="https://images.unsplash.com/photo-1674650638555-8a2c68584ddc?q=80&w=2027&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-                      alt="Profile"
-                      className="rounded-circle me-3"
-                      style={{ width: "80px", height: "80px" }}
-                    />
+                    {/* Use ProfilePictureManager in read-only mode */}
+                    <div className="me-3">
+                      <ProfilePictureManager
+                        entityType="baby"
+                        entityId={baby.baby_id}
+                        currentImageUrl={baby.profile_picture_url}
+                        size={80}
+                        readOnly={true}
+                      />
+                    </div>
+                    
                     <div className="flex-grow-1">
                       <Card.Title>
                         {baby.first_name} {baby.last_name}
