@@ -14,9 +14,9 @@ const QuizPage = () => {
     setAnswers({});
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/quiz?category=${encodeURIComponent(
-          category,
-        )}`,
+        `${
+          process.env.NEXT_PUBLIC_API_URL
+        }/v1/quiz?category=${encodeURIComponent(category)}`,
       );
       if (!res.ok) {
         throw new Error("Failed to load quiz questions");
@@ -42,7 +42,7 @@ const QuizPage = () => {
         selected: answers[qid],
       }));
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/quiz`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/quiz`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

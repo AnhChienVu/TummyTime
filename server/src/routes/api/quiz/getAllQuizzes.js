@@ -17,17 +17,25 @@ module.exports = async (req, res) => {
       category = 'ALL';
     }
 
-    const categoryFilter = category === 'ALL' ? '' : `WHERE category = $1`;
-
     // Select 5 random questions for the chosen category
-    const result = await pool.query(
+    let result;
+    if (category === 'ALL') {
+      result = await pool.query(
+        `SELECT question_id, category, question_text, option_a, option_b, option_c, option_d 
+        FROM QuizQuestions 
+        ORDER BY random() 
+        LIMIT 5`
+      );
+    } else {
+    result = await pool.query(
       `SELECT question_id, category, question_text, option_a, option_b, option_c, option_d 
       FROM QuizQuestions
-      ${categoryFilter}
+      WHERE category = $1
       ORDER BY random()
       LIMIT 5`,
      [category]
-   );
+    );
+    }
 
     if (result.rows.length > 0) {
       // return ALL ROWS
