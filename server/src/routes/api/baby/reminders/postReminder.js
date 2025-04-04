@@ -23,9 +23,9 @@ module.exports.createReminder = async (req, res) => {
   }
 
   // Validate required fields
-  if (!title || !date) {
-    logger.info(`Missing required fields. title=${title}, date=${date}`);
-    return res.status(400).json(createErrorResponse(400, 'Missing required reminder data (title, date)'));
+  if (!title || !time || !date) {
+    logger.info(`Missing required fields. title=${title}, time=${time}, date=${date}`);
+    return res.status(400).json(createErrorResponse(400, 'Missing required reminder data (title, time, date)'));
   }
 
   try {
@@ -45,30 +45,6 @@ module.exports.createReminder = async (req, res) => {
     const hasBabyAccess = await checkBabyBelongsToUser(numericBabyId, userId);
     if (!hasBabyAccess) {
       return res.status(403).json(createErrorResponse(403, "Access denied: Baby does not belong to current user"));
-    }
-
-    // Ensure the reminders table exists
-    try {
-      await pool.query(`
-        CREATE TABLE IF NOT EXISTS reminders (
-          reminder_id SERIAL PRIMARY KEY,
-          baby_id INTEGER NOT NULL,
-          title VARCHAR(255) NOT NULL,
-          time VARCHAR(255),
-          date DATE NOT NULL,
-          notes TEXT,
-          is_active BOOLEAN DEFAULT TRUE,
-          next_reminder BOOLEAN DEFAULT FALSE,
-          reminder_in INTEGER,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        );
-      `);
-      
-      logger.info('Ensured reminders table exists');
-    } catch (tableError) {
-      logger.error('Error ensuring reminders table exists:', tableError);
-      return res.status(500).json(createErrorResponse(500, 'Failed to ensure database structure'));
     }
 
     // Validate and format the time
@@ -107,13 +83,8 @@ module.exports.createReminder = async (req, res) => {
     const newReminder = result.rows[0];
     logger.info(`Created reminder with ID=${newReminder.reminder_id} for babyId=${babyId}`);
 
-    // Return both success AND status fields for backwards compatibility
-    return res.status(201).json({
-      status: "ok",
-      success: true,
-      message: "Reminder created successfully",
-      data: newReminder
-    });
+    // Return success response
+    return res.status(201).json(createSuccessResponse(newReminder));
 
   } catch (error) {
     logger.error(error, `ERROR in POST /baby/${babyId}/reminders`);
