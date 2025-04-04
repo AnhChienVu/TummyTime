@@ -881,7 +881,7 @@ const FeedingSchedule = () => {
                       <span className={styles.dateText}>{restOfDate}</span>
                     </div>
                     <div className={styles.dayHeaderRight}>
-                      <span className={styles.todayMeals}>Today's Meals</span>
+                      <span className={styles.todayMeals}>Today&apos;s Meals</span>
                     </div>
                   </div>
                   <table className={styles.mealsTable}>
