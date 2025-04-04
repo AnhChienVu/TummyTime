@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 import NavBar from "../Navbar/NavBar";
 import Footer from "../Footer/Footer";
 import Sidebar from "../Sidebar/Sidebar";
@@ -10,6 +11,8 @@ import TipsNotificationPopup from "../tipsNotificationPopup/tipsNotificationPopu
 export default function Layout({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState("");
+  const router = useRouter();
+  const isHomePage = router.pathname === "/"; // Hide the side bar on home page
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -25,10 +28,10 @@ export default function Layout({ children }) {
 
   return (
     <>
-      <NavBar />
+      {!isHomePage && <NavBar />}
       <TipsNotificationPopup />
       <Container fluid className={styles.container}>
-        {isAuthenticated ? (
+        {!isHomePage && isAuthenticated ? (
           userRole === "Parent" ? (
             <Sidebar />
           ) : (
