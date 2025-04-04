@@ -2,9 +2,6 @@
 const pool = require('../../../../database/db');
 const logger = require('../../../utils/logger');
 const { getUserId } = require('../../../utils/userIdHelper');
-const pool = require('../../../../database/db');
-const logger = require('../../../utils/logger');
-const { getUserId } = require('../../../utils/userIdHelper');
 
 // First, get the user ID from the authorization header
 // GET /v1/milestones
@@ -33,26 +30,6 @@ module.exports = async (req, res) => {
       });
     }
 
-    // Check if we want today's milestones only
-    const todayOnly = req.query.today === 'true';
-
-    let query = `
-      SELECT m.*, b.first_name, b.last_name 
-      FROM milestones m
-      LEFT JOIN user_baby ub ON m.baby_id = ub.baby_id
-      LEFT JOIN baby b ON m.baby_id = b.baby_id
-      WHERE ub.user_id = $1
-    `;
-
-    const queryParams = [userId];
-
-    if (todayOnly) {
-      query += ` AND DATE(m.date) = CURRENT_DATE`;
-    }
-
-    query += ` ORDER BY m.baby_id ASC`;
-
-    const milestones = await pool.query(query, queryParams);
     // Get all milestones for babies that belong to the user
     const milestones = await pool.query(
       `SELECT 
@@ -75,12 +52,9 @@ module.exports = async (req, res) => {
       ...milestone,
       first_name: milestone.first_name || 'Unknown',
       last_name: milestone.last_name || '',
-      first_name: milestone.first_name || 'Unknown',
-      last_name: milestone.last_name || '',
     }));
 
     return res.json({
-      status: 'ok',
       status: 'ok',
       data: formattedMilestones,
     });
@@ -88,10 +62,8 @@ module.exports = async (req, res) => {
     logger.error(`Error getting milestones: ${error.message}`);
     return res.status(500).json({
       status: 'error',
-      status: 'error',
       error: {
         code: 500,
-        message: 'Internal server error',
         message: 'Internal server error',
       },
     });
