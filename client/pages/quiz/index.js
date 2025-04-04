@@ -7,11 +7,14 @@ const QuizPage = () => {
   const [answers, setAnswers] = useState({}); // key: question_id, value: selected option
   const [result, setResult] = useState(null);
   const [error, setError] = useState("");
+  const [submitted, setSubmitted] = useState(false);
 
   const fetchQuiz = async () => {
     setError("");
     setResult(null);
     setAnswers({});
+    setSubmitted(false);
+
     try {
       const res = await fetch(
         `${
@@ -26,8 +29,8 @@ const QuizPage = () => {
 
       setQuestions(data.dataQuiz || []);
     } catch (err) {
-      console.error(err);
-      setError("Error loading quiz.");
+      console.error(`Error fetching quiz:`, err);
+      setError("Error loading quiz. Please try again.");
     }
   };
 
