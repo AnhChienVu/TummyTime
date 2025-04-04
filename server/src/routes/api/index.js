@@ -5,9 +5,14 @@ const { authenticate } = require('../../auth');
  * The main entry-point for the v1 version of the API.
  */
 const express = require('express');
+const multer = require('multer');
 
 // Create a router on which to mount our API endpoints
 const router = express.Router();
+
+// Configure Multer for in-memory storage
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 // Import all of stool API endpoints
 const { getStoolEntries } = require('./baby/stool/getStool');
@@ -25,7 +30,7 @@ const { deleteReminders } = require('./baby/reminders/deleteReminders');
 const careServices = require('./careServices/getAllChildcareServices');
 const favoritesHandler = require('./careServices/saveFavorites');
 
-router.post("/login", require("./login"));
+router.post('/login', require('./login'));
 router.post('/signup', require('./signup'));
 
 // ************ /feedingSchedule routes ************
@@ -208,6 +213,48 @@ router.get('/careServices', authenticate(), careServices);
 router.get('/careServices/favorites', favoritesHandler.getFavorites);
 router.post('/careServices/favorites', favoritesHandler.toggleFavorite);
 
-// Testing the authentication middleware
-// router.get('/test', authenticate(), require('./test'));
+// ************ /Sharing Doctor - Parent files routes ************
+// Parent upload file for a baby to a doctor
+router.post(
+  '/parent/:parentId/babies/:babyId/doctors/:doctorId/uploadFile',
+  authenticate(),
+  upload.single('document'), // Middleware to handle file upload
+  require('./parent/uploadFile').uploadFile
+);
+
+// Doctor upload file for a baby to a parent
+router.post(
+  '/doctor/:doctorId/babies/:babyId/parent/:parentId/uploadFile',
+  authenticate(),
+  upload.single('document'),
+  require('./doctor/uploadFile').uploadFile
+);
+
+// Doctor get all files sent by all parents to the doctor
+router.get(
+  '/doctor/:doctorId/getAllFiles',
+  authenticate(),
+  require('./doctor/getAllFiles').getAllFiles
+);
+
+// Parent get all files sent by a doctor to a baby
+router.get(
+  '/parent/:parentId/doctors/:doctorId/babies/:babyId/getFiles',
+  authenticate(),
+  require('./parent/getFiles').getFiles
+);
+
+// Parent get all files sent to a doctor by a baby
+router.get(
+  '/parent/:parentId/babies/:babyId/doctors/:doctorId/getSentFiles',
+  authenticate(),
+  require('./parent/getSentFiles').getSentFiles
+);
+
+// Download file by document_id, it can be used by both parent and doctor
+router.get(
+  '/documents/:document_id/download',
+  authenticate(),
+  require('./parent/downloadFile').downloadFile
+);
 module.exports = router;
