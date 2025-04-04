@@ -214,7 +214,7 @@ font-weight: 550;
 }
 
 .footerLinks li {
-  margin-bottom: 0.3rem;  /* Reduced from 0.5rem */
+  margin-bottom: 0.3rem;
 }
 
 .footerLinks a {
@@ -240,7 +240,7 @@ font-weight: 550;
   color: white;
 }
 
-/* Add styles for contact info */
+/* Styles for contact info */
 .footer p {
   margin-bottom: 0.3rem;
   font-size: 0.9rem;
@@ -435,4 +435,19 @@ font-weight: 550;
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+.heading::after {
+  content: attr(data-symbol);
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-left: 8px;
 }
