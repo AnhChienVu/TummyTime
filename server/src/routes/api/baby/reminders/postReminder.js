@@ -1,6 +1,5 @@
-// server/src/routes/api/reminders/postReminder.js
-// Route for POST /baby/:babyId/reminders
-// Create a new reminder for a specific baby
+// server/src/routes/api/baby/reminders/postReminder.js
+// Fix time format handling in the API endpoint
 
 const logger = require('../../../../utils/logger');
 const { createSuccessResponse, createErrorResponse } = require('../../../../utils/response');
@@ -8,14 +7,12 @@ const pool = require('../../../../../database/db');
 const { getUserId } = require('../../../../utils/userIdHelper');
 const { checkBabyBelongsToUser } = require('../../../../utils/babyAccessHelper');
 
-// server/src/routes/api/baby/reminders/postReminder.js
-// Update the response format to be consistent
-
 module.exports.createReminder = async (req, res) => {
   const { babyId } = req.params;
   const { title, time, date, notes, isActive, nextReminder, reminderIn } = req.body;
 
   logger.info(`Creating reminder for babyId: ${babyId}`);
+  logger.info(`Received time value: ${time}`);
 
   // Validate babyId format
   const numericBabyId = parseInt(babyId, 10);
@@ -50,7 +47,7 @@ module.exports.createReminder = async (req, res) => {
       return res.status(403).json(createErrorResponse(403, "Access denied: Baby does not belong to current user"));
     }
 
-    // First check if the reminders table exists and create it if it doesn't
+    // Ensure the reminders table exists
     try {
       await pool.query(`
         CREATE TABLE IF NOT EXISTS reminders (
@@ -74,6 +71,21 @@ module.exports.createReminder = async (req, res) => {
       return res.status(500).json(createErrorResponse(500, 'Failed to ensure database structure'));
     }
 
+    // Validate and format the time
+    let formattedTime = time;
+    
+    // Check if the time already includes AM/PM
+    if (time && !(/\s(AM|PM)$/i.test(time))) {
+      // If not, check if we have information about AM/PM from client
+      const amPm = req.body.amPm;
+      if (amPm) {
+        formattedTime = `${time} ${amPm}`;
+        logger.info(`Appended AM/PM to time: ${formattedTime}`);
+      }
+    }
+    
+    logger.info(`Final formatted time: ${formattedTime}`);
+
     // Insert the reminder into the database
     const insertQuery = `
       INSERT INTO reminders (baby_id, title, time, date, notes, is_active, next_reminder, reminder_in)
@@ -84,7 +96,7 @@ module.exports.createReminder = async (req, res) => {
     const result = await pool.query(insertQuery, [
       numericBabyId,
       title,
-      time || null,
+      formattedTime || null,
       date,
       notes || null,
       isActive !== undefined ? isActive : true,
@@ -95,7 +107,7 @@ module.exports.createReminder = async (req, res) => {
     const newReminder = result.rows[0];
     logger.info(`Created reminder with ID=${newReminder.reminder_id} for babyId=${babyId}`);
 
-    // Important: Return both success AND status fields for backwards compatibility
+    // Return both success AND status fields for backwards compatibility
     return res.status(201).json({
       status: "ok",
       success: true,
