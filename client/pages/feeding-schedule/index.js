@@ -631,6 +631,13 @@ const FeedingSchedule = () => {
       // Step 2: Create a reminder if enabled
       if (reminderData) {
         try {
+          // IMPORTANT: Make sure we send the full formatted time with AM/PM
+          // Format the time to ensure it includes AM/PM
+          const reminderTime = reminderData.time;
+          const reminderTimeWithAmPm = `${reminderTime} ${reminderData.amPm}`;
+          
+          console.log('Sending reminder with time:', reminderTimeWithAmPm);
+          
           const reminderResponse = await fetch(
             `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${babyId}/reminders`,
             {
@@ -641,7 +648,7 @@ const FeedingSchedule = () => {
               },
               body: JSON.stringify({
                 title: reminderData.title,
-                time: reminderData.time,
+                time: reminderTimeWithAmPm, // Use the full time with AM/PM
                 date: reminderData.date,
                 notes: reminderData.notes,
                 isActive: reminderData.isActive,
@@ -651,9 +658,7 @@ const FeedingSchedule = () => {
             }
           );
   
-          // The key fix: Don't rely on reminderResult.success if the response is OK (200-299)
           if (reminderResponse.ok) {
-            // If response is OK (status 200-299), consider it a success regardless of body content
             showToast(
               "Feed and reminder saved successfully!"
             );
@@ -745,7 +750,7 @@ const FeedingSchedule = () => {
         return;
       }
       
-      // Calculate reminder time using our new function
+      // Calculate reminder time using our dedicated function
       const reminderTimeResult = calculateReminderTime(
         newHour,
         newMinute,
@@ -769,15 +774,20 @@ const FeedingSchedule = () => {
         reminderNotes += `\n\nNotes: ${newNote}`;
       }
       
+      // IMPORTANT: Include the complete time information including AM/PM
       reminderData = {
         title: reminderTitle,
-        time: reminderTimeResult.formattedTime.split(' ')[0], // Just the HH:MM part
+        time: `${reminderTimeResult.hour}:${reminderTimeResult.minute}`,  // Store without AM/PM for server
+        amPm: reminderTimeResult.amPm,  // Store AM/PM separately to ensure it's sent correctly
         date: reminderTimeResult.date,
         notes: reminderNotes,
         isActive: true,
         nextReminder: true,
         reminderIn: parsedReminderMinutes
       };
+      
+      // For debugging
+      console.log('Calculated reminder time:', reminderTimeResult.formattedTime);
     }
     
     try {
@@ -793,7 +803,6 @@ const FeedingSchedule = () => {
       setNewModalError("Something went wrong. Please try again.");
     }
   };
-
   // Helper function to calculate and format preview time
   const calculatePreviewTime = (hour, minute, amPm, addMinutes) => {
     // Convert hour to 24-hour format for calculations
