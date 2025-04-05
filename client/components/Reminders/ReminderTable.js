@@ -3,7 +3,11 @@ import { useTranslation } from "next-i18next";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPencilAlt } from "@fortawesome/free-solid-svg-icons";
 import { useReminders } from "../../context/ReminderContext";
-import { formatDay, formatTime12h, groupRemindersByDate } from "../../utils/reminderUtil";
+import {
+  formatDay,
+  formatTime12h,
+  groupRemindersByDate,
+} from "../../utils/reminderUtil";
 import styles from "../../pages/baby/[id]/reminders/reminders.module.css";
 
 const RemindersTable = () => {
@@ -13,15 +17,16 @@ const RemindersTable = () => {
     deleteMode,
     toggleReminderSelection,
     handleShowEditModal,
-    handleToggleReminderActive
+    handleToggleReminderActive,
   } = useReminders();
+  console.log("RemindersTable reminders:", reminders);
 
   const groupedReminders = groupRemindersByDate(reminders);
-
   return (
     <>
       {Object.keys(groupedReminders).map((dateStr) => {
         const { date, dateText, isToday } = formatDay(dateStr);
+        console.log("Date :", date, dateText, isToday);
         const dateReminders = groupedReminders[dateStr];
 
         return (

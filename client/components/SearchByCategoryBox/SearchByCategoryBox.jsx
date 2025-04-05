@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import styles from "./SearchByCategoryBox.module.css";
 import { useTranslation } from "next-i18next";
 
@@ -7,6 +7,9 @@ function SearchByCategoryBox() {
   const [category, setCategory] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [results, setResults] = useState([]);
+  const [error, setError] = useState("");
+  const [isRecallListExpanded, setIsRecallListExpanded] = useState(true);
+  const recallListRef = useRef(null);
 
   const contructQuery = (category, searchTerm) => {
     const categoryCodes = {
@@ -19,7 +22,7 @@ function SearchByCategoryBox() {
     };
     const gpcCode = categoryCodes[category];
     if (!gpcCode) {
-      throw new Error("Invalid category");
+      return;
     }
 
     if (!searchTerm) {
@@ -30,21 +33,32 @@ function SearchByCategoryBox() {
   };
 
   const handleSearch = async () => {
-    console.log(category, searchTerm);
+    setSearchTerm("");
     const query = contructQuery(category, searchTerm);
     const apiUrl = `https://globalrecalls.oecd.org/ws/search.xqy?end=20&lang=en&order=desc&q=${query}&sort=date&start=0&uiLang=en`;
 
     try {
       const response = await fetch(apiUrl);
       const data = await response.json();
-      setResults(data.results || []);
+      console.log("Data:", data);
+      if (data.results?.length > 0) {
+        setResults(data.results || []);
+        setError("");
+      } else {
+        setError(
+          "No results found. Plase try again with correct product name or category",
+        );
+        setResults([]);
+      }
     } catch (error) {
       console.error("Error fetching data: ", error);
+      setError("Failed to fetch search results");
       setResults([]);
     }
   };
   return (
-    <div>
+    <div className={styles.searchByCategoryBox}>
+      <h1>{t("Search By Category")}</h1>
       <div className={styles.searchByCategory}>
         <select
           id={styles.categoryDropdown}
@@ -72,22 +86,50 @@ function SearchByCategoryBox() {
       </div>
 
       <div className={styles.searchResults}>
-        {results.length > 0 ? (
-          results.map((item, index) => (
-            <div className={styles.resultItem} key={index}>
-              <p>
-                <strong>{t("Product's name")}:</strong> {item["product.name"]}
-              </p>
-              <p>
-                <a href={item.extUrl} className={styles.itemLink}>
-                  {t("External website")}
-                </a>
-              </p>
+        {results && (
+          <div>
+            <h4>{/* {t("Search")}: {results.product} */}</h4>
+
+            <button
+              onClick={() => setIsRecallListExpanded(!isRecallListExpanded)}
+              className={`${styles.collapseBtn} ${
+                isRecallListExpanded ? styles.expanded : ""
+              }`}
+              aria-label={
+                isRecallListExpanded
+                  ? "Collapse all recalls"
+                  : "Expand all recalls"
+              }
+            >
+              {isRecallListExpanded ? "▲ Collapse" : "▼ Expand"}
+            </button>
+
+            <div
+              ref={recallListRef}
+              className={`${styles.recallsList} ${
+                isRecallListExpanded ? styles.expanded : ""
+              }`}
+              style={{
+                maxHeight: isRecallListExpanded
+                  ? `${recallListRef.current?.scrollHeight}px`
+                  : "0px",
+              }}
+            >
+              {results.map((item, index) => (
+                <div className={styles.resultItem} key={index}>
+                  <h4>{item["product.name"]}</h4>
+                  <p>
+                    <a href={item.extUrl} className={styles.itemLink}>
+                      {t("View Recall Details")}
+                    </a>
+                  </p>
+                </div>
+              ))}
             </div>
-          ))
-        ) : (
-          <p>{t("No results found")}</p>
+          </div>
         )}
+
+        {error && <p className={styles.errorMessage}>{error}</p>}
       </div>
     </div>
   );

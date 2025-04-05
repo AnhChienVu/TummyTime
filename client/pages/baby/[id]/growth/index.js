@@ -34,6 +34,7 @@ const fetchGrowthData = async (babyId) => {
     if (!res.ok && res.status === 404) return [];
 
     if (!res.ok) throw new Error("Failed to fetch growth data");
+
     return jsonData.data;
   } catch (err) {
     console.error("Error fetching growth data:", err);
@@ -436,7 +437,16 @@ const Growth = () => {
             data?.map((row, index) => (
               <tr key={index}>
                 <td className={styles.tableBodyCell}>
-                  {row?.date ? format(parseISO(row.date), "MMM d, yyyy") : "--"}
+                  {row?.date
+                    ? format(
+                        new Date(
+                          parseInt(row.date.split("-")[0]),
+                          parseInt(row.date.split("-")[1]) - 1,
+                          parseInt(row.date.split("-")[2]),
+                        ).toString(),
+                        "MMM d, yyyy",
+                      )
+                    : "--"}
                 </td>
                 <td className={styles.tableBodyCell}>
                   {row?.height ? `${row.height} in` : "--"}

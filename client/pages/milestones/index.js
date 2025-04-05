@@ -12,7 +12,7 @@ import {
 import { format } from "date-fns";
 import { FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
 import styles from "./milestones.module.css";
-import BabyCardMilestone from "@/components/BabyCardMilestone/BabyCardMilestone";
+import BabyCard from "@/components/BabyCard/BabyCard";
 import { AiOutlineInfoCircle } from "react-icons/ai";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
@@ -96,8 +96,8 @@ function Milestones() {
     </div>
   );
 
+  let toastIdCounter = 1;
   const showToast = useCallback((message, variant = "success") => {
-    let toastIdCounter = 1;
     const createToastId = () => {
       return toastIdCounter++;
     };
@@ -306,55 +306,64 @@ function Milestones() {
 
   return (
     <Container className={styles.container} fluid>
-      {/* Add ToastContainer at the top level */}
       <ToastContainer toasts={toasts} removeToast={removeToast} />
 
       <Row>
         <Col>
           <h1>{t("Milestones")}</h1>
-          <Col>
-            <div className={styles.calendarWrapper}>
-              <Calendar
-                localizer={localizer}
-                events={milestones}
-                startAccessor="start"
-                endAccessor="end"
-                views={["month"]}
-                tooltipAccessor="details"
-                date={currentDate}
-                onNavigate={(date) => setCurrentDate(date)}
-                defaultView="month"
-                messages={{
-                  today: t("Today"),
-                  previous: t("Back"),
-                  next: t("Next"),
-                  month: t("Month"),
-                }}
-                eventPropGetter={(event) => ({
+          <div className={styles.calendarWrapper}>
+            <Calendar
+              localizer={localizer}
+              events={milestones}
+              startAccessor="start"
+              endAccessor="end"
+              views={["month"]}
+              tooltipAccessor="details"
+              date={currentDate}
+              onNavigate={(date) => setCurrentDate(date)}
+              defaultView="month"
+              messages={{
+                today: t("Today"),
+                previous: t("Back"),
+                next: t("Next"),
+                month: t("Month"),
+              }}
+              eventPropGetter={(event) => ({
+                style: {
+                  backgroundColor: "#007bff",
+                },
+              })}
+              dayPropGetter={(date) => {
+                const isToday =
+                  format(date, "yyyy-MM-dd") ===
+                  format(new Date(), "yyyy-MM-dd");
+                const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+                return {
                   style: {
-                    backgroundColor: "#007bff",
+                    backgroundColor: isToday
+                      ? "#f756566c"
+                      : isWeekend
+                      ? "#f8f9fa"
+                      : "white",
                   },
-                })}
-                dayPropGetter={(date) => {
-                  const isToday =
-                    format(date, "yyyy-MM-dd") ===
-                    format(new Date(), "yyyy-MM-dd");
-                  const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-                  return {
-                    style: {
-                      backgroundColor: isToday
-                        ? "#f756566c" // background for today
-                        : isWeekend
-                        ? "#f8f9fa"
-                        : "white",
-                    },
-                  };
-                }}
-                onSelectEvent={handleEventClick}
-              />
-            </div>
-          </Col>
-          <BabyCardMilestone addMilestoneBtn={handleOpenAddMilestoneModal} />
+                };
+              }}
+              onSelectEvent={handleEventClick}
+            />
+          </div>
+          
+          <BabyCard
+            buttons={[
+              { 
+                name: t("View Milestones"), 
+                path: "milestones" 
+              },
+              { 
+                name: t("Add Milestone"), 
+                functionHandler: handleOpenAddMilestoneModal 
+              }
+            ]}
+          />
         </Col>
       </Row>
 
