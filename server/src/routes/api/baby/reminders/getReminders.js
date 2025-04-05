@@ -23,10 +23,13 @@ module.exports.getReminders = async (req, res) => {
     if (!authHeader) {
       logger.error('No authorization header found');
       return res.status(401).json(createErrorResponse(401, 'No authorization token provided'));
+      logger.error('No authorization header found');
+      return res.status(401).json(createErrorResponse(401, 'No authorization token provided'));
     }
 
     const userId = await getUserId(authHeader);
     if (!userId) {
+      return res.status(404).json(createErrorResponse(404, 'User not found'));
       return res.status(404).json(createErrorResponse(404, 'User not found'));
     }
 
@@ -36,35 +39,35 @@ module.exports.getReminders = async (req, res) => {
       return res
         .status(403)
         .json(createErrorResponse(403, 'Access denied: Baby does not belong to current user'));
+      return res
+        .status(403)
+        .json(createErrorResponse(403, 'Access denied: Baby does not belong to current user'));
     }
 
-    try {
-      // Get reminders for the baby
-      const result = await pool.query(
-        `SELECT 
-          reminder_id,
-          baby_id,
-          title,
-          TO_CHAR(date, 'YYYY-MM-DD') AS date,
-          time,
-          notes,
-          is_active,
-          next_reminder,
-          reminder_in,
-          created_at,
-          updated_at
-        FROM reminders 
-        WHERE baby_id = $1 
-        ORDER BY date DESC, time ASC`,
-        [numericBabyId]
-      );
+    // Fetch reminders for the baby, ordered by date and time
+    const result = await pool.query(
+      `SELECT 
+        reminder_id,
+        baby_id,
+        title,
+        TO_CHAR(date, 'YYYY-MM-DD') AS date,
+        notes,
+        is_active,
+        next_reminder,
+        reminder_in,
+        created_at,
+        updated_at
+      FROM reminders WHERE baby_id = $1 ORDER BY date DESC, time ASC`,
+      [numericBabyId]
+    );
 
-      logger.info(`Found ${result.rows.length} reminders for babyId=${numericBabyId}`);
-      return res.status(200).json(createSuccessResponse(result.rows));
-    } catch (dbError) {
-      logger.error('Database error in getReminders:', dbError);
-      return res.status(500).json(createErrorResponse(500, 'Internal server error'));
+    if (result.rows.length === 0) {
+      logger.info(`No reminders found for babyId: ${numericBabyId}`);
+      return res.status(200).json(createSuccessResponse([])); // Return empty array instead of 404
     }
+
+    logger.info(`Found ${result.rows.length} reminders for babyId=${numericBabyId}`);
+    return res.status(200).json(createSuccessResponse(result.rows));
   } catch (error) {
     logger.error('Unexpected error in getReminders:', error);
     return res.status(500).json(createErrorResponse(500, 'Internal server error'));
