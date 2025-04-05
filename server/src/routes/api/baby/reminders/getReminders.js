@@ -8,7 +8,8 @@ const { checkBabyBelongsToUser } = require('../../../../utils/babyAccessHelper')
 module.exports.getReminders = async (req, res) => {
   try {
     const { babyId } = req.params;
-    logger.info(`Fetching reminders for babyId: ${babyId}`);
+    const { upcoming } = req.query; // Add this to check if we want upcoming reminders
+    logger.info(`Fetching reminders for babyId: ${babyId}, upcoming: ${upcoming}`);
 
     // Validate babyId format
     const numericBabyId = parseInt(babyId, 10);
@@ -44,22 +45,43 @@ module.exports.getReminders = async (req, res) => {
         .json(createErrorResponse(403, 'Access denied: Baby does not belong to current user'));
     }
 
-    // Fetch reminders for the baby, ordered by date and time
-    const result = await pool.query(
-      `SELECT 
-        reminder_id,
-        baby_id,
-        title,
-        TO_CHAR(date, 'YYYY-MM-DD') AS date,
-        notes,
-        is_active,
-        next_reminder,
-        reminder_in,
-        created_at,
-        updated_at
-      FROM reminders WHERE baby_id = $1 ORDER BY date DESC, time ASC`,
-      [numericBabyId]
-    );
+    // Use different queries based on whether we want upcoming reminders
+    const query = upcoming
+      ? `SELECT 
+          reminder_id,
+          baby_id,
+          title,
+          time,
+          TO_CHAR(date, 'YYYY-MM-DD') AS date,
+          notes,
+          is_active,
+          next_reminder,
+          reminder_in,
+          created_at,
+          updated_at,
+          'reminder' as type
+        FROM reminders 
+        WHERE baby_id = $1 
+          AND date >= CURRENT_DATE
+          AND is_active = true
+        ORDER BY date ASC, time ASC
+        LIMIT 5`
+      : `SELECT 
+          reminder_id,
+          baby_id,
+          title,
+          TO_CHAR(date, 'YYYY-MM-DD') AS date,
+          notes,
+          is_active,
+          next_reminder,
+          reminder_in,
+          created_at,
+          updated_at
+        FROM reminders 
+        WHERE baby_id = $1 
+        ORDER BY date DESC, time ASC`;
+
+    const result = await pool.query(query, [numericBabyId]);
 
     if (result.rows.length === 0) {
       logger.info(`No reminders found for babyId: ${numericBabyId}`);
