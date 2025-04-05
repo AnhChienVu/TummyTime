@@ -1,7 +1,4 @@
-// server/src/routes/api/reminders/getReminders.js
-// Route for GET /baby/:babyId/reminders
-// Get all reminders for a specific baby
-
+// server/src/routes/api/baby/reminders/getReminders.js
 const logger = require('../../../../utils/logger');
 const { createSuccessResponse, createErrorResponse } = require('../../../../utils/response');
 const pool = require('../../../../../database/db');
@@ -9,18 +6,18 @@ const { getUserId } = require('../../../../utils/userIdHelper');
 const { checkBabyBelongsToUser } = require('../../../../utils/babyAccessHelper');
 
 module.exports.getReminders = async (req, res) => {
-  const { babyId } = req.params;
-  logger.info(`Fetching reminders for babyId: ${babyId}`);
-
-  // Validate babyId format
-  const numericBabyId = parseInt(babyId, 10);
-  logger.info(`Parsed babyId=${babyId} to numericBabyId=${numericBabyId}`);
-  if (!/^\d+$/.test(babyId) || Number.isNaN(numericBabyId) || numericBabyId < 1) {
-    logger.info(`Invalid babyId format: ${babyId}`);
-    return res.status(400).json(createErrorResponse(400, 'Invalid babyId format'));
-  }
-
   try {
+    const { babyId } = req.params;
+    logger.info(`Fetching reminders for babyId: ${babyId}`);
+
+    // Validate babyId format
+    const numericBabyId = parseInt(babyId, 10);
+    logger.info(`Parsed babyId=${babyId} to numericBabyId=${numericBabyId}`);
+    if (!/^\d+$/.test(babyId) || Number.isNaN(numericBabyId) || numericBabyId < 1) {
+      logger.info(`Invalid babyId format: ${babyId}`);
+      return res.status(400).json(createErrorResponse(400, 'Invalid babyId format'));
+    }
+
     // Get user ID from auth token
     const authHeader = req.headers.authorization;
     if (!authHeader) {
@@ -65,8 +62,8 @@ module.exports.getReminders = async (req, res) => {
 
     logger.info(`Found ${result.rows.length} reminders for babyId=${numericBabyId}`);
     return res.status(200).json(createSuccessResponse(result.rows));
-  } catch (error) {
-    logger.error(error, `ERROR in GET /baby/${babyId}/reminders`);
+  } catch (dbError) {
+    logger.error('Database error in getReminders:', dbError);
     return res.status(500).json(createErrorResponse(500, 'Internal server error'));
   }
 };
