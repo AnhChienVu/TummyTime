@@ -1,8 +1,10 @@
 .container {
-    padding: 0;
+    /* padding: 0;
     margin-left: 50px;
-    max-width: 1400px;
+    max-width: 1400px; */
     margin: 0 auto;
+    background-color: white;
+    min-height: 100vh;
 }
 
 .activeLink {
@@ -17,7 +19,6 @@
 }
 
 .heading {
-    color: #2c3e50;
     font-size: clamp(1.5rem, 3vw, 2rem);
     font-weight: 600;
     margin-bottom: 1.5rem;
@@ -25,17 +26,17 @@
     display: inline-block;
     padding-bottom: 0.5rem;
 }
-
 .card {
     margin-bottom: 1.5rem;
-    border-radius: 0.5rem;
+    border-radius: 5px;
     border: none;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: box-shadow 0.3s ease, transform 0.2s;
 }
 
 .cardHover {
     border: none;
-    border-radius: 15px;
+    border-radius: 5px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
     height: 100%;
@@ -45,6 +46,11 @@
     transform: translateY(-5px);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
     cursor: pointer; /* Change cursor to indicate clickability */
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
 .addButton {
@@ -82,23 +88,23 @@
 }
 
 .viewMoreLink {
-  color: #3498db;
+  color: #515151;
   text-decoration: none;
   font-size: 0.95rem;
-  font-weight: 500;
+  font-weight: bold;
   transition: color 0.2s;
 }
 
 .viewMoreLink:hover {
-  color: #2980b9;
+  color: #6B4B8A;
   text-decoration: none;
 }
 
 .statsCard {
-  background: linear-gradient(145deg, #ffffff, #f0f0f0);
+  background-color: #ffc7e989;
   border: none;
-  border-radius: 15px;
-  box-shadow: 5px 5px 15px #d1d1d1, -5px -5px 15px #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   transition: transform 0.2s;
   height: 100%;
   min-height: 120px;
@@ -113,22 +119,26 @@
 
 .statsCard h3 {
   font-size: clamp(1.2rem, 2.5vw, 1.75rem);
+  color: #7a7a7a;
+  font-weight: bold;
 }
 
 .statsCard small {
   font-size: clamp(0.75rem, 1.5vw, 0.875rem);
 }
 
+/* Milestones section */
 .milestoneAlert {
-  border-left: 4px solid #0d6efd;
-  background-color: rgba(13, 110, 253, 0.05);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  background-color: #d8b4f86f;
+  border: 2px solid #D8B4F8;
+  border-radius: 5px;
 }
 
 .milestoneAlert :global(.alert-heading) {
-  color: #0d6efd;
-  font-size: 1.25rem;
+  color: #515151;
+  font-size: 1.8rem;
   margin-bottom: 1rem;
+  font-weight: bolder;
 }
 
 .milestoneAlert :global(.badge) {
@@ -139,9 +149,10 @@
 .milestoneBadge {
   max-width: 150px;
   white-space: nowrap;
-  overflow: hidden;
   text-overflow: ellipsis;
   flex-shrink: 0;
+  background-color: #CD5888 !important;
+  color: white !important;
 }
 
 .milestoneDetails {
@@ -151,15 +162,25 @@
   hyphens: auto;
   flex: 1;
   min-width: 0;
+  color: #515151;
 }
 
 .milestoneItem {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
-  padding: 0.25rem 0;
+  padding: 10px;
+  margin: 8px 0;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: #cd588942 2px solid;
 }
+
+.milestoneItem:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  border:#cd58898b 2px solid;
+  transform: scale(1.02);
+}
+
+/* Reminders section */
 
 .reminderAlert {
   border-left: 4px solid #ffc107;
@@ -181,6 +202,86 @@
 .reminderDetails {
   font-size: 1em;
   color: #666;
+}
+
+/* Quick Actions section */
+.quickActionsCard {
+  background-color: #d2e8fd;
+  border-radius: 5px;
+  /* box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); */
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.journalButton {
+  background-color: #8E4EC6;
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.heightButton {
+  background-color: #5477ff;
+    color: #ffffff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.weightButton {
+  background-color: #D862BC;
+    color: #ffffff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.feedButton {
+  background-color: #009FBD;
+    color: #ffffff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+/* Feeding Schedule section */
+.feedingCard {
+  /* background-color: #FAF3F0; */
+  border-radius: 5px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  height: 100%;
+}
+
+/* Custom styling for the table in upcoming reminders */
+.card :global(table) {
+  background-color: transparent;
+}
+
+.card :global(tr:hover) {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Custom styling for badges in the table */
+.card :global(.badge) {
+  background-color: #D8B4F8;
+  color: #8E4EC6;
+  border: none;
+}
+
+.card :global(.badge.bg-danger) {
+  background-color: #FFC7EA !important;
+  color: #FF4E8E !important;
+}
+
+.card :global(.badge.bg-secondary) {
+  background-color: #FBF0B2 !important;
+  color: #8E4EC6 !important;
 }
 
 /* Responsive design */
