@@ -30,9 +30,7 @@ module.exports = async (req, res) => {
       });
     }
 
-    // Get all milestones for babies that belong to the user
-    const milestones = await pool.query(
-      `SELECT 
+    let query = `SELECT 
          m.milestone_id,
          m.baby_id,
          TO_CHAR(m.date, 'YYYY-MM-DD') AS date, -- Format the date as YYYY-MM-DD
@@ -43,10 +41,19 @@ module.exports = async (req, res) => {
        FROM milestones m
        LEFT JOIN user_baby ub ON m.baby_id = ub.baby_id
        LEFT JOIN baby b ON m.baby_id = b.baby_id
-       WHERE ub.user_id = $1
-       ORDER BY m.baby_id ASC`,
-      [userId]
-    );
+       WHERE ub.user_id = $1`;
+
+    // Check if the query parameter is provided. If today parameter is true, add date filter for today
+    const { today } = req.query;
+    if (today === 'true') {
+      query += ` AND DATE(m.date) = CURRENT_DATE`;
+    }
+
+    // Order by date
+    query += ` ORDER BY m.date DESC`;
+
+    // Get all milestones for babies that belong to the user
+    const milestones = await pool.query(query, [userId]);
 
     const formattedMilestones = milestones.rows.map((milestone) => ({
       ...milestone,
