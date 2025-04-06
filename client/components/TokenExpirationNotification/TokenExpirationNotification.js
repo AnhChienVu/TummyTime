@@ -3,7 +3,7 @@
 // Display a notification for Login again when JWT token expires
 import React, { useEffect } from "react";
 import { Alert, Button } from "react-bootstrap";
-import { useRouter } from "next/router"; // or use your routing mechanism
+import { useRouter } from "next/router";
 
 const TokenExpirationNotification = ({ show, onClose }) => {
   const router = useRouter();
