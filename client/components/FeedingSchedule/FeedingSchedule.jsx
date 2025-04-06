@@ -40,7 +40,6 @@ const FeedingSchedule = ({ babyId }) => {
   const getLatestFeed = () => {
     if (!feedingSchedules.length) return null;
     
-    const today = new Date().toISOString().split('T')[0];
     // Sort feeds by date and time
     const sortedFeeds = [...feedingSchedules].sort((a, b) => {
       const dateA = new Date(`${a.date.split('T')[0]}T${a.time}`);

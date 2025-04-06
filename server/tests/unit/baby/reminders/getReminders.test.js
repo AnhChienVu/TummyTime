@@ -34,7 +34,6 @@ const { createSuccessResponse, createErrorResponse } = require('../../../../src/
 const pool = require('../../../../database/db');
 const { getUserId } = require('../../../../src/utils/userIdHelper');
 const { checkBabyBelongsToUser } = require('../../../../src/utils/babyAccessHelper');
-const logger = require('../../../../src/utils/logger');
 
 describe('getReminders direct invocation', () => {
   let req, res;
@@ -45,6 +44,7 @@ describe('getReminders direct invocation', () => {
       headers: {
         authorization: 'Bearer sometoken',
       },
+      query: {},
     };
     res = {
       status: jest.fn().mockReturnThis(),
@@ -57,6 +57,7 @@ describe('getReminders direct invocation', () => {
     // Default mock implementations
     getUserId.mockResolvedValue(1);
     checkBabyBelongsToUser.mockResolvedValue(true);
+    pool.query.mockResolvedValue({ rows: [] }); // Default mock for database queries
   });
 
   // Invalid babyId format tests
