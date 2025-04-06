@@ -1,8 +1,8 @@
 import React from "react";
-import { Container, Row, Col, Nav } from "react-bootstrap";
+import { Container, Row, Col, Nav, Button } from "react-bootstrap";
 import styles from "./Footer.module.css";
 
-function Footer() {
+function Footer({ onSimulateExpire }) {
   return (
     <Container className={styles.footer} fluid>
       {/* <Row className={`${styles.footerRow} py-3`}>
@@ -26,12 +26,26 @@ function Footer() {
           </ul>
         </Col>
       </Row> */}
+
+      {/* Copyright Row */}
       <Row className={`${styles.copyrightRow} py-2 border-top`}>
         <Col className="text-center">
           <small className="text-muted">
             &copy; {new Date().getFullYear()} Tummy Time. All rights reserved.
           </small>
         </Col>
+      </Row>
+
+      {/* Simulate Token Expiration Button */}
+      <Row className="justify-content-center mt-2">
+        <Button
+          variant="outline-secondary"
+          size="sm"
+          style={{ opacity: 0.6 }}
+          onClick={onSimulateExpire}
+        >
+          Simulate Token Expiration
+        </Button>
       </Row>
     </Container>
   );

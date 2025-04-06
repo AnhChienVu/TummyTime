@@ -6,10 +6,17 @@ import styles from "./Layout.module.css";
 import { Container } from "react-bootstrap";
 import DoctorSidebar from "../DoctorSidebar/DoctorSidebar";
 import TipsNotificationPopup from "../tipsNotificationPopup/tipsNotificationPopup";
+import TokenExpirationNotification from "../TokenExpirationNotification/TokenExpirationNotification";
 
 export default function Layout({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState("");
+
+  // State to simulate token expiration (by deleting the token)
+  const [tokenExpired, setTokenExpired] = useState(false);
+  const handleSimulateExpire = () => {
+    setTokenExpired(true);
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -37,7 +44,9 @@ export default function Layout({ children }) {
         ) : null}
         <main className={styles.main}>{children}</main>
       </Container>
-      <Footer />
+      <Footer onSimulateExpire={handleSimulateExpire} />{" "}
+      {/* Pass the function to simulate token expiration */}
+      <TokenExpirationNotification show={tokenExpired} />
     </>
   );
 }
