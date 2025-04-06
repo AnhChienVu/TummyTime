@@ -51,17 +51,7 @@ const { createSuccessResponse, createErrorResponse } = require('../../../../src/
 const pool = require('../../../../database/db');
 const { getUserId } = require('../../../../src/utils/userIdHelper');
 const { checkBabyBelongsToUser } = require('../../../../src/utils/babyAccessHelper');
-const logger = require('../../../../src/utils/logger');
-// Now import the module under test and mocked dependencies
-const { getReminders } = require('../../../../src/routes/api/baby/reminders/getReminders');
-const { createSuccessResponse, createErrorResponse } = require('../../../../src/utils/response');
-const pool = require('../../../../database/db');
-const { getUserId } = require('../../../../src/utils/userIdHelper');
-const { checkBabyBelongsToUser } = require('../../../../src/utils/babyAccessHelper');
-const logger = require('../../../../src/utils/logger');
 
-describe('getReminders direct invocation', () => {
-  let req, res;
 describe('getReminders direct invocation', () => {
   let req, res;
 
@@ -71,17 +61,7 @@ describe('getReminders direct invocation', () => {
       headers: {
         authorization: 'Bearer sometoken',
       },
-    };
-    res = {
-      status: jest.fn().mockReturnThis(),
-      json: jest.fn(),
-    };
-  beforeEach(() => {
-    req = {
-      params: { babyId: '1' },
-      headers: {
-        authorization: 'Bearer sometoken',
-      },
+      query: {},
     };
     res = {
       status: jest.fn().mockReturnThis(),
@@ -90,25 +70,18 @@ describe('getReminders direct invocation', () => {
 
     // Clear all mocks
     jest.clearAllMocks();
-    // Clear all mocks
-    jest.clearAllMocks();
 
     // Default mock implementations
     getUserId.mockResolvedValue(1);
     checkBabyBelongsToUser.mockResolvedValue(true);
+    pool.query.mockResolvedValue({ rows: [] }); // Default mock for database queries
   });
     // Default mock implementations
     getUserId.mockResolvedValue(1);
     checkBabyBelongsToUser.mockResolvedValue(true);
+    pool.query.mockResolvedValue({ rows: [] }); // Default mock for database queries
   });
 
-  // Invalid babyId format tests
-  test('returns 400 for non-numeric babyId', async () => {
-    req.params.babyId = 'abc';
-    await getReminders(req, res);
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(createErrorResponse).toHaveBeenCalledWith(400, 'Invalid babyId format');
-  });
   // Invalid babyId format tests
   test('returns 400 for non-numeric babyId', async () => {
     req.params.babyId = 'abc';
