@@ -9,6 +9,7 @@ const QuizPage = () => {
   const [error, setError] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
+  // FETCH QUIZ QUESTIONS
   const fetchQuiz = async () => {
     setError("");
     setResult(null);
@@ -27,7 +28,15 @@ const QuizPage = () => {
       const data = await res.json();
       console.log(data);
 
-      setQuestions(data.dataQuiz || []);
+      const quizQuestions = data.dataQuiz || [];
+      setQuestions(quizQuestions);
+
+      // Log the correct answer + COUNT
+      quizQuestions.forEach((q, index) => {
+        console.log(
+          `Question ${index + 1}: Correct Answer is ${q.correct_option}`,
+        );
+      });
     } catch (err) {
       console.error(`Error fetching quiz:`, err);
       setError("Error loading quiz. Please try again.");
@@ -38,7 +47,7 @@ const QuizPage = () => {
     setAnswers((prev) => ({ ...prev, [question_id]: selected }));
   };
 
-  // NEW: Local submission that computes the result on the frontend only
+  // SUBMIT QUIZ without API
   const submitQuiz = () => {
     setError("");
     let correctCount = 0;
