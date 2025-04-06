@@ -12,29 +12,33 @@ const pool = require('../../../../database/db');
 // ==>{res} as json { dataQuiz: [...] }
 module.exports = async (req, res) => {
   try {
-    const { category } = req.query;
+    let { category } = req.query;
     if (!category) {
       category = 'ALL';
     }
 
-    // Select 5 random questions for the chosen category
+    // Select 5 random questions for the chosen category + SEND CORRECT ANSWERS
     let result;
     if (category === 'ALL') {
       result = await pool.query(
-        `SELECT question_id, category, question_text, option_a, option_b, option_c, option_d 
-        FROM QuizQuestions 
-        ORDER BY random() 
-        LIMIT 5`
+        `SELECT question_id, category, question_text,
+        option_a, option_b, option_c, option_d,
+        correct_option
+         FROM QuizQuestions 
+         ORDER BY random() 
+         LIMIT 5`
       );
     } else {
-    result = await pool.query(
-      `SELECT question_id, category, question_text, option_a, option_b, option_c, option_d 
-      FROM QuizQuestions
-      WHERE category = $1
-      ORDER BY random()
-      LIMIT 5`,
-     [category]
-    );
+      result = await pool.query(
+        `SELECT question_id, category, question_text,
+        option_a, option_b, option_c, option_d,
+        correct_option
+         FROM QuizQuestions
+         WHERE category = $1
+         ORDER BY random()
+         LIMIT 5`,
+        [category]
+      );
     }
 
     if (result.rows.length > 0) {
