@@ -35,14 +35,7 @@ const QuizPage = () => {
         });
       }
 
-      setQuestions(quizQuestions);
-
-      // Log the correct answer + COUNT
-      quizQuestions.forEach((q, index) => {
-        console.log(
-          `Question ${index + 1}: Correct Answer is ${q.correct_option}`,
-        );
-      });
+      setQuestions(data.dataQuiz || []);
     } catch (err) {
       console.error(`Error fetching quiz:`, err);
       setError("Error loading quiz. Please try again.");
@@ -68,15 +61,16 @@ const QuizPage = () => {
         correctCount++;
       }
     });
-    
+
     setResult({
       total: questions.length,
       correct: correctCount,
-      wrong: wrongQuestions,  // wrong is an array of wrong question IDs
+      wrong: wrongQuestions, // wrong is an array of wrong question IDs
     });
     setSubmitted(true);
   };
 
+  // RENDER PAGE
   return (
     <div className="container mt-5">
       <h2>Interactive Quiz</h2>
@@ -95,6 +89,7 @@ const QuizPage = () => {
           <option value="HYGIENE">HYGIENE</option>
           <option value="PHYSICAL ACTIVITIES">PHYSICAL ACTIVITIES</option>
           <option value="LANGUAGE DEVELOPMENT">LANGUAGE DEVELOPMENT</option>
+          <option value="EMOTIONAL DEVELOPMENT">EMOTIONAL DEVELOPMENT</option>
         </select>
       </div>
 
@@ -103,6 +98,7 @@ const QuizPage = () => {
         {questions.length > 0 ? "Start Another Quiz" : "Start Quiz"}{" "}
       </button>
 
+      {/* Show error if any */}
       {error && <div className="alert alert-danger">{error}</div>}
 
       {/* Display quiz questions if loaded */}
@@ -117,26 +113,31 @@ const QuizPage = () => {
                 className="mb-4"
                 style={
                   noAnswer
-                    ? { borderBottom: "2px solid red" } // highlight question in red if no answer
+                    ? { borderBottom: "2px solid red" } // highlight question in red if no answer was selected
                     : {}
                 }
               >
+                {/* Display question text */}
                 <p>
                   <strong>
-                    {index + 1}. {q.question_text}
+                    {index + 1}. {q.question_text}{" "}
+                    {/* <span style={{ fontSize: "0.8em", color: "#6c757d" }}>
+                      (Question {index + 1}){" "}
+                    </span> */}
                   </strong>
                 </p>
+
                 {/* Display options A, B, C, D */}
                 {["A", "B", "C", "D"].map((opt) => {
-                  let optionText = `${opt}. `;
-                  optionText += q[`option_${opt.toLowerCase()}`];
-
+                  let optionText = `${opt}. ${
+                    q[`option_${opt.toLowerCase()}`]
+                  }`;
                   // Determine styles based on submission and correctness
                   let optionStyle = {};
                   let extraText = "";
                   if (submitted) {
                     if (opt === q.correct_option) {
-                      // Highlight correct answer in green
+                      // Always highlight correct answer in green
                       optionStyle = { backgroundColor: "#d4edda" }; // green background
                       extraText = " CORRECT"; // extra text appended
                     }
@@ -147,11 +148,11 @@ const QuizPage = () => {
                     ) {
                       // Highlight selected wrong answer in red
                       optionStyle = { backgroundColor: "#f8d7da" }; // red background
+                      extraText = " WRONG ANSWER!"; // extra text appended
                     }
                   }
                   return (
                     <div key={opt} className="form-check" style={optionStyle}>
-                      {" "}
                       <input
                         className="form-check-input"
                         type="radio"
@@ -167,14 +168,24 @@ const QuizPage = () => {
                         htmlFor={`q${q.question_id}_${opt}`}
                       >
                         {optionText}
-                        {opt === q.correct_option &&
-                          submitted && ( // append "CORRECT" for correct answer
-                            <span
-                              style={{ marginLeft: "10px", fontWeight: "bold" }}
-                            >
-                              {extraText}
-                            </span>
-                          )}
+                        {submitted && (
+                          <span
+                            style={{
+                              marginLeft: "10px",
+                              fontWeight: "bold",
+                              color:
+                                opt === q.correct_option
+                                  ? "#155724"
+                                  : "#721c24", // green for correct, red for wrong
+                            }}
+                          >
+                            {opt === q.correct_option ? " CORRECT" : ""}
+                            {answers[q.question_id] === opt &&
+                            answers[q.question_id] !== q.correct_option
+                              ? " WRONG ANSWER!"
+                              : ""}
+                          </span>
+                        )}
                       </label>
                     </div>
                   );
@@ -198,204 +209,32 @@ const QuizPage = () => {
         <div className="mt-4">
           <h4>Quiz Results</h4>
           <p>
-            You answered {result.correct} out of {result.total} correctly.
+            <strong>
+              You answered {result.correct} out of {result.total} correctly.
+            </strong>
           </p>
-          {result.wrong.length > 0 && (
-            <p>Review the questions you missed: {result.wrong.join(", ")}</p>
-          )}
+          <p>
+            {/* SHOW THE WRONG QUESTION COUNT (NOT question ID) */}
+            Review the questions you missed:{" "}
+            {result.wrong.map((id, index) => {
+              // find index of wrong questions
+              const questionIndex = questions.findIndex(
+                (q) => q.question_id === id,
+              );
+
+              // if questionIndex is found, display it
+              return questionIndex !== -1 ? (
+                <span key={id}>
+                  {questionIndex + 1}
+                  {index < result.wrong.length - 1 ? ", " : ""}
+                </span>
+              ) : null;
+            })}
+          </p>
         </div>
       )}
     </div>
   );
 };
 
-
-
-
-/**
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- * 
- */ 
-
-  return (
-    <div className="container mt-5">
-      <h2>Interactive Quiz</h2>
-
-      {/* Select Category */}
-      <div className="mb-3">
-        <label htmlFor="categorySelect">Quiz Category:</label>
-        <select
-          id="categorySelect"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className="form-control"
-        >
-//           <option value="ALL">ALL</option>
-//           <option value="SLEEP">SLEEP</option>
-//           <option value="HYGIENE">HYGIENE</option>
-//           <option value="PHYSICAL ACTIVITIES">PHYSICAL ACTIVITIES</option>
-//           <option value="LANGUAGE DEVELOPMENT">LANGUAGE DEVELOPMENT</option>
-//         </select>
-//       </div>
-
-//       {/* Change button text if quiz is loaded */}
-//       <button className="btn btn-primary mb-3" onClick={fetchQuiz}>
-//         {questions.length > 0 ? "Start Another Quiz" : "Start Quiz"}{" "}
-//       </button>
-
-//       {error && <div className="alert alert-danger">{error}</div>}
-
-//       {/* Display quiz questions if loaded */}
-//       {questions.length > 0 && (
-//         <form>
-//           {questions.map((q, index) => {
-//             // Determine if no answer was provided for this question
-//             const noAnswer = submitted && !answers[q.question_id]; // <<<<<<<<<<<<<<<<<<<CHANGE HERE<<<<<<<<<<<<<<<<<<
-//             return (
-//               <div
-//                 key={q.question_id}
-//                 className="mb-4"
-//                 style={
-//                   noAnswer
-//                     ? { borderBottom: "2px solid red" } // highlight question in red if no answer was selected
-//                     : {}
-//                 }
-//               >
-//                 <p>
-//                   <strong>
-//                     {index + 1}. {q.question_text}{" "}
-//                     <span style={{ fontSize: "0.8em", color: "#6c757d" }}>
-//                       (Question {index + 1}){" "}
-//                       {/* <<<<<<<<<<<<<<<<<<<CHANGE HERE<<<<<<<<<<<<<<<<<< */}
-//                     </span>
-//                   </strong>
-//                 </p>
-//                 {/* Display options A, B, C, D */}
-//                 {["A", "B", "C", "D"].map((opt) => {
-//                   let optionText = `${opt}. ${
-//                     q[`option_${opt.toLowerCase()}`]
-//                   }`;
-//                   // Determine styles based on submission and correctness
-//                   let optionStyle = {};
-//                   let extraText = "";
-//                   if (submitted) {
-//                     if (opt === q.correct_option) {
-//                       // Always highlight correct answer in green
-//                       optionStyle = { backgroundColor: "#d4edda" }; // green background
-//                       extraText = " CORRECT"; // extra text appended
-//                     }
-//                     if (
-//                       answers[q.question_id] &&
-//                       answers[q.question_id] === opt &&
-//                       answers[q.question_id] !== q.correct_option
-//                     ) {
-//                       // Highlight selected wrong answer in red
-//                       optionStyle = { backgroundColor: "#f8d7da" }; // red background
-//                       extraText = " WRONG ANSWER!"; // extra text appended <<<<<<<<<<<<<<<<<<<CHANGE HERE<<<<<<<<<<<<<<<<<<
-//                     }
-//                   }
-//                   return (
-//                     <div key={opt} className="form-check" style={optionStyle}>
-//                       <input
-//                         className="form-check-input"
-//                         type="radio"
-//                         name={`question_${q.question_id}`}
-//                         id={`q${q.question_id}_${opt}`}
-//                         value={opt}
-//                         checked={answers[q.question_id] === opt}
-//                         onChange={() => handleOptionChange(q.question_id, opt)}
-//                         disabled={submitted} // disable options after submission
-//                       />
-//                       <label
-//                         className="form-check-label"
-//                         htmlFor={`q${q.question_id}_${opt}`}
-//                       >
-//                         {optionText}
-//                         {submitted && (
-//                           <span
-//                             style={{
-//                               marginLeft: "10px",
-//                               fontWeight: "bold",
-//                               color:
-//                                 opt === q.correct_option
-//                                   ? "#155724"
-//                                   : "#721c24", // green for correct, red for wrong
-//                             }}
-//                           >
-//                             {opt === q.correct_option ? " CORRECT" : ""}
-//                             {answers[q.question_id] === opt &&
-//                             answers[q.question_id] !== q.correct_option
-//                               ? " WRONG ANSWER!"
-//                               : ""}
-//                           </span>
-//                         )}
-//                       </label>
-//                     </div>
-//                   );
-//                 })}
-//               </div>
-//             );
-//           })}
-//           <button
-//             type="button"
-//             className="btn btn-success"
-//             onClick={submitQuiz}
-//             disabled={submitted} // disable submit button after submission
-//           >
-//             Submit Quiz
-//           </button>
-//         </form>
-//       )}
-
-//       {/* Show results */}
-//       {result && (
-//         <div className="mt-4">
-//           <h4>Quiz Results</h4>
-//           <p>
-//             <strong>
-//               You answered {result.correct} out of {result.total} correctly.
-//             </strong>
-//           </p>
-//           <p>
-//             {/* SHOW THE WRONG QUESTION COUNT (NOT question ID) */}
-//             Review the questions you missed:{" "}
-//             {result.wrong.map((id, index) => {
-//               // find index of wrong questions
-//               const questionIndex = questions.findIndex(
-//                 (q) => q.question_id === id,
-//               );
-
-//               // if questionIndex is found, display it
-//               return questionIndex !== -1 ? (
-//                 <span key={id}>
-//                   {questionIndex + 1}
-//                   {index < result.wrong.length - 1 ? ", " : ""}
-//                 </span>
-//               ) : null;
-//             })}
-//           </p>
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default QuizPage;
+export default QuizPage;
