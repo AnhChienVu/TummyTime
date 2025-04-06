@@ -93,7 +93,18 @@ export default function PostDetail({ post_id }) {
       />
       {!isEditing && (
         <div className={styles.textToSpeechContainer}>
-          <TextToSpeech text={post?.content || ""} title={post?.title || ""} />
+          <TextToSpeech
+            text={`${post?.content || ""}\n\n${t("Replies")}:\n${
+              replies?.length > 0
+                ? replies
+                    .map(
+                      (reply, index) => `Reply ${index + 1}: ${reply.content}`,
+                    )
+                    .join("\n\n")
+                : t("No replies")
+            }`}
+            title={post?.title || ""}
+          />
         </div>
       )}
 
