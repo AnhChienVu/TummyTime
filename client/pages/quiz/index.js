@@ -53,11 +53,13 @@ const QuizPage = () => {
     setAnswers((prev) => ({ ...prev, [question_id]: selected }));
   };
 
-  // SUBMIT QUIZ without API
+  // SUBMIT QUIZ locally for Results (not sending to backend)
   const submitQuiz = () => {
     setError("");
     let correctCount = 0;
     const wrongQuestions = [];
+
+    // Check each question's answer
     questions.forEach((q) => {
       const selected = answers[q.question_id];
       if (!selected || selected !== q.correct_option) {
@@ -66,47 +68,14 @@ const QuizPage = () => {
         correctCount++;
       }
     });
+    
     setResult({
       total: questions.length,
       correct: correctCount,
-      wrong: wrongQuestions,
+      wrong: wrongQuestions,  // wrong is an array of wrong question IDs
     });
     setSubmitted(true);
   };
-
-  // const submitQuiz = async () => {
-  //   setError("");
-  //   try {
-  //     // Prepare answers payload as an array
-  //     const payloadAnswers = Object.keys(answers).map((qid) => ({
-  //       question_id: parseInt(qid, 10),
-  //       selected: answers[qid],
-  //     }));
-
-  //     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/quiz`, {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         // Include Authorization header if required:
-  //         // Authorization: `Bearer ${localStorage.getItem('token')}`
-  //       },
-  //       body: JSON.stringify({
-  //         category,
-  //         answers: payloadAnswers,
-  //       }),
-  //     });
-
-  //     if (!res.ok) {
-  //       const errorData = await res.json();
-  //       throw new Error(errorData.error?.message || "Quiz submission failed");
-  //     }
-  //     const data = await res.json();
-  //     setResult(data);
-  //   } catch (err) {
-  //     console.error(err);
-  //     setError("Error submitting quiz.");
-  //   }
-  // };
 
   return (
     <div className="container mt-5">
@@ -240,88 +209,45 @@ const QuizPage = () => {
   );
 };
 
-// // export default QuizPage;
 
-// import React, { useState } from "react";
 
-// const QuizPage = () => {
-//   const [category, setCategory] = useState("ALL");
-//   const [questions, setQuestions] = useState([]);
-//   const [answers, setAnswers] = useState({}); // key: question_id, value: selected option
-//   const [result, setResult] = useState(null);
-//   const [error, setError] = useState("");
-//   const [submitted, setSubmitted] = useState(false);
 
-//   const fetchQuiz = async () => {
-//     setError("");
-//     setResult(null);
-//     setAnswers({});
-//     setSubmitted(false);
+/**
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ */ 
 
-//     try {
-//       const res = await fetch(
-//         `${
-//           process.env.NEXT_PUBLIC_API_URL
-//         }/v1/quiz?category=${encodeURIComponent(category)}`,
-//       );
-//       if (!res.ok) {
-//         throw new Error("Failed to load quiz questions");
-//       }
-//       const data = await res.json();
-//       console.log(data);
+  return (
+    <div className="container mt-5">
+      <h2>Interactive Quiz</h2>
 
-//       // NEW: Log correct answers for each question for developers <<<<<<<<<<<<<<<<<<<CHANGE HERE<<<<<<<<<<<<<<<<<<
-//       if (data.dataQuiz && data.dataQuiz.length > 0) {
-//         data.dataQuiz.forEach((q, index) => {
-//           console.log(`Q${index + 1} Correct Answer: ${q.correct_option}`); // <<<<<<<<<<<<<<<<<<<CHANGE HERE<<<<<<<<<<<<<<<<<<
-//         });
-//       }
-
-//       setQuestions(data.dataQuiz || []);
-//     } catch (err) {
-//       console.error(`Error fetching quiz:`, err);
-//       setError("Error loading quiz. Please try again.");
-//     }
-//   };
-
-//   const handleOptionChange = (question_id, selected) => {
-//     setAnswers((prev) => ({ ...prev, [question_id]: selected }));
-//   };
-
-//   // Local submission that computes the result on the frontend only
-//   const submitQuiz = () => {
-//     setError("");
-//     let correctCount = 0;
-//     const wrongQuestions = [];
-//     questions.forEach((q) => {
-//       const selected = answers[q.question_id];
-//       if (!selected || selected !== q.correct_option) {
-//         wrongQuestions.push(q.question_id);
-//       } else {
-//         correctCount++;
-//       }
-//     });
-//     setResult({
-//       total: questions.length,
-//       correct: correctCount,
-//       wrong: wrongQuestions, // wrong is an array; we'll display its count below <<<<<<<<<<<<<<<<<<<CHANGE HERE<<<<<<<<<<<<<<<<<<
-//     });
-//     setSubmitted(true);
-//   };
-
-//   return (
-//     <div className="container mt-5">
-//       <h2>Interactive Quiz</h2>
-
-//       {/* Select Category */}
-//       <div className="mb-3">
-//         <label htmlFor="categorySelect">Quiz Category:</label>
-//         <select
-//           id="categorySelect"
-//           value={category}
-//           onChange={(e) => setCategory(e.target.value)}
-//           className="form-control"
-//         >
+      {/* Select Category */}
+      <div className="mb-3">
+        <label htmlFor="categorySelect">Quiz Category:</label>
+        <select
+          id="categorySelect"
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          className="form-control"
+        >
 //           <option value="ALL">ALL</option>
 //           <option value="SLEEP">SLEEP</option>
 //           <option value="HYGIENE">HYGIENE</option>
