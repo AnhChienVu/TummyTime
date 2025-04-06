@@ -5,6 +5,7 @@ import { Button } from "react-bootstrap";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import styles from "./HomePageNavBar.module.css";
+import Link from "next/link";
 
 const HomePageNavBar = ({ variant = "default" }) => {
   const router = useRouter();
@@ -21,7 +22,7 @@ const HomePageNavBar = ({ variant = "default" }) => {
 
   return (
     <div className={`${styles.navContainer} ${styles[variant]}`}>
-      <div className={styles.brand}>
+      <Link href="/" className={styles.brand}>
         <Image
           src="/logo.png"
           alt="Tummy Time Logo"
@@ -31,7 +32,7 @@ const HomePageNavBar = ({ variant = "default" }) => {
           priority
         />
         <span className={styles.brandName}>Tummy Time</span>
-      </div>
+      </Link>
       <div className={styles.topNav}>
         <Button
           variant="light"
