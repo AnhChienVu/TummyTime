@@ -38,17 +38,18 @@ display: flex;
 
 .title {
     font-size: 1.5rem;
-    font-weight: bold;
+    font-weight: 600;
     margin-bottom: 1rem;
 }
 
 .submitButton {
-    width: 20%;
-    background-color: #65558F;
+    background-color: #65558F !important;
+    border-color: #65558F !important;
 }
 
 .submitButton:hover {
-    background-color: #4D3D7E;
+    background-color: #534679 !important;
+    border-color: #534679 !important;
 }
 
 .link {
@@ -58,15 +59,30 @@ display: flex;
 }
 
 .microphone {
-    width: 50px;
-    font-size: 1.25rem;
-    background-color: #65558F;
-    color: white;
-    border-radius: 0.25rem;
+    background: none;
+    border: none;
+    color: #65558F;
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 0.5rem;
+    margin-left: 0.5rem;
 }
 
 .microphone:hover {
-    background-color: #4D3D7E;
+    color: #534679;
+}
+
+.microphoneContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.listeningIndicator {
+  font-size: 0.875rem;
+  color: #65558F;
+  font-style: italic;
+  margin-left: 0.5rem;
 }
 
 .postCard {
@@ -103,9 +119,156 @@ display: flex;
 .truncateText {
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
   max-height: 4.5em; /* Approximately 3 lines of text */
   line-height: 1.5em;
+}
+
+.searchInput {
+    padding: 0.5rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+.searchInput:focus {
+    border-color: #65558F;
+    box-shadow: 0 0 0 0.2rem rgba(101, 85, 143, 0.25);
+    outline: none;
+}
+
+.editor {
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.toolbar {
+  padding: 0.5rem;
+  border-bottom: 1px solid #ced4da;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.toolbar button {
+  padding: 0.25rem 0.5rem;
+  border: 1px solid #ced4da;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.toolbar button:hover {
+  background: #f8f9fa;
+}
+
+.toolbar button.isActive {
+  background: #e9ecef;
+  border-color: #dee2e6;
+}
+
+.editor :global(.ProseMirror) {
+  padding: 1rem;
+  min-height: 150px;
+  outline: none;
+}
+
+.editor :global(.ProseMirror p) {
+  margin: 0;
+}
+
+.formActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.rightActions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.leftActions {
+  display: flex;
+  align-items: center;
+}
+
+.postCardText {
+  margin: 1rem 0;
+  max-height: 4.5em;
+  overflow: hidden;
+}
+
+.postCardText :global(.ProseMirror) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.tagList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.tag {
+  background-color: #65558F;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+}
+
+.categoryBadge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  margin-bottom: 0.5rem;
+  background-color: #e9ecef;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  color: #495057;
+}
+
+.noPostsMessage {
+  text-align: center;
+  color: #666;
+  margin: 2rem 0;
+}
+
+.toast {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  min-width: 250px;
+  z-index: 9999;
+  background-color: #fff;
+  border: 2px solid #28a745;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 0.5rem;
+  height: auto;
+  min-height: 0;
+}
+
+.toastHeader {
+  background-color: #fff;
+  color: #000;
+}
+
+.toastBody {
+  color: #000;
+  /* text-align: center; */
+  font-weight: 500;
+  padding: 0;
+  margin: 0;
 }
