@@ -12,8 +12,12 @@ function App({ Component, pageProps }) {
   useEffect(() => {
     const token = localStorage.getItem("token");
 
+    // Add public routes that don't require authentication
+    const publicRoutes = ["/", "/register", "/privacy", "/terms", "/faq"];
+    const isPublicRoute = publicRoutes.includes(router.pathname);
+
     if (!token || isTokenExpired(token)) {
-      if (router.pathname !== "/login") {
+      if (!isPublicRoute && router.pathname !== "/login") {
         router.push("/login?message=Session expired. Please log in again.");
       }
     } else {
