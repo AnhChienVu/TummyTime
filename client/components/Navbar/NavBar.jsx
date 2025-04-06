@@ -31,7 +31,7 @@ function NavBar() {
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="ms-auto">
             <Nav.Link href="#about-us">{t("About Us")}</Nav.Link>
-            <Nav.Link href="/register">FAQ</Nav.Link>
+            <Nav.Link href="/faq">FAQ</Nav.Link>
             {isAuthenticated ? (
               <Nav.Link href="/" onClick={handleLogoutBtn}>{t("Log out")}</Nav.Link>
             ) : (
