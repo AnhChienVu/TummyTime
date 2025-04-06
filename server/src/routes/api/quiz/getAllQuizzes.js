@@ -43,6 +43,9 @@ module.exports = async (req, res) => {
 
     if (result.rows.length > 0) {
       // return ALL ROWS
+
+      // logger.info(result.rows, `Fetched quizzes:`);
+
       res.status(200).send(createSuccessResponse({ dataQuiz: result.rows }));
     } else {
       res.status(404).send(createErrorResponse(404, 'No quiz found'));
