@@ -443,12 +443,15 @@ const QuizPage = () => {
             </strong>
           </p>
           <p>
-            {/* SHOW THE WRONG QUESTION COUNT like 1,2,3,4,5 (NOT question ID) */}
+            {/* SHOW THE WRONG QUESTION COUNT (NOT question ID) */}
             Review the questions you missed:{" "}
             {result.wrong.map((id, index) => {
+              // find index of wrong questions
               const questionIndex = questions.findIndex(
                 (q) => q.question_id === id,
-              ); // <<<<<<<<<<<<<<<<<<<CHANGE HERE<<<<<<<<<<<<<<<<<<
+              );
+
+              // if questionIndex is found, display it
               return questionIndex !== -1 ? (
                 <span key={id}>
                   {questionIndex + 1}
