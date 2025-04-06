@@ -1,4 +1,5 @@
 // pages/index.js
+// This is the home page of the Tummy Time application
 import React from "react";
 import { useEffect, useState } from "react";
 import { Container, Row, Col, Button, Card } from "react-bootstrap";
@@ -13,7 +14,6 @@ import {
   FaLinkedin,
 } from "react-icons/fa";
 import styles from "./index.module.css";
-import Image from "next/image";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import HomePageNavBar from "@/components/Navbar/HomePageNavBar";
