@@ -12,6 +12,7 @@ import {
   Image,
   Badge,
   Form,
+  ListGroup,
 } from "react-bootstrap";
 import styles from "./dashboard.module.css";
 import Link from "next/link";
@@ -21,6 +22,7 @@ import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import MultipleFeedingSchedules from "@/components/MultipleFeedingSchedules/MultipleFeedingSchedules";
 import { useConfetti } from "@/hooks/useConfetti";
 
+// Helper function to calculate the time remaining for an event
 const formatEventDate = (date, time, createdAt) => {
   if (time) {
     // Calculate time elapsed since reminder was created
@@ -73,6 +75,14 @@ const Dashboard = () => {
   const [hiddenReminders, setHiddenReminders] = useState(new Set());
   const [user, setUser] = useState(null);
   const { ConfettiComponent, startConfetti } = useConfetti();
+  const [selectedBabyId, setSelectedBabyId] = useState(null);
+  const [babyStats, setBabyStats] = useState({
+    feedingsToday: 0,
+    milestonesToday: 0,
+    currentWeight: null,
+    currentHeight: null,
+  });
+  const [todayPosts, setTodayPosts] = useState([]);
 
   const handleHideReminder = (reminderId) => {
     setHiddenReminders((prev) => new Set([...prev, reminderId]));
@@ -90,15 +100,12 @@ const Dashboard = () => {
           },
         );
 
-        console.log("Raw response:", response);
-
         // Check if response is ok before parsing JSON
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const result = await response.json();
-        console.log("Parsed result:", result);
 
         if (result.status === "ok" && result.babies?.length > 0) {
           setBabies(result.babies);
@@ -155,7 +162,6 @@ const Dashboard = () => {
         );
 
         const results = await Promise.all(reminderPromises);
-        console.log("results:", results);
 
         // Combine and process all reminders
         const allReminders = results.flatMap((result, index) => {
@@ -195,8 +201,6 @@ const Dashboard = () => {
             return a.babyName.localeCompare(b.babyName);
           });
 
-        console.log("sortedReminders:", sortedReminders);
-
         setUpcomingEvents(sortedReminders);
       } catch (error) {
         console.error("Error fetching upcoming events:", error);
@@ -207,8 +211,9 @@ const Dashboard = () => {
     if (babies.length > 0) {
       fetchUpcomingEvents();
     }
-  }, [babies]);
+  }, [babies, selectedBabyId]);
 
+  // Fetch user information
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -237,6 +242,219 @@ const Dashboard = () => {
     fetchUser();
   }, []);
 
+  // Fetch baby stats
+  useEffect(() => {
+    const fetchBabyStats = async () => {
+      if (!selectedBabyId) return;
+
+      try {
+        // Get feeding schedules
+        const feedingResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${selectedBabyId}/getFeedingSchedules`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
+        );
+
+        let feedingData;
+        if (feedingResponse.status === 404) {
+          // If 404, assume no feeding schedules
+          feedingData = { status: "ok" };
+        } else if (!feedingResponse.ok) {
+          throw new Error("Failed to fetch feeding schedules");
+        } else {
+          feedingData = await feedingResponse.json();
+        }
+
+        const today = new Date().toISOString().split("T")[0]; // Format: YYYY-MM-DD
+
+        // Convert object to array and filter out the "status" key
+        const feedingsArray = Object.entries(feedingData)
+          .filter(([key]) => key !== "status")
+          .map(([_, value]) => value);
+
+        // Count feedings for today
+        const feedingsToday = feedingsArray.filter((feed) => {
+          const feedDate = new Date(feed.date).toISOString().split("T")[0];
+          return feedDate === today;
+        }).length;
+
+        // Update state with feeding count
+        setBabyStats((prevStats) => ({
+          ...prevStats,
+          feedingsToday: feedingsToday,
+        }));
+
+        // Get milestones for selected baby
+        const milestonesResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${selectedBabyId}/milestones`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
+        );
+
+        let milestonesData;
+        if (milestonesResponse.status === 404) {
+          // If 404, assume no milestones
+          milestonesData = { status: "ok", data: [] };
+        } else if (!milestonesResponse.ok) {
+          throw new Error("Failed to fetch milestones");
+        } else {
+          milestonesData = await milestonesResponse.json();
+        }
+
+        // Count today's milestones
+        const milestonesToday =
+          milestonesData.data?.filter((milestone) => {
+            const milestoneDate = new Date(milestone.date)
+              .toISOString()
+              .split("T")[0];
+            return milestoneDate === today;
+          }).length || 0;
+
+        // Update state with milestone count
+        setBabyStats((prevStats) => ({
+          ...prevStats,
+          milestonesToday,
+        }));
+
+        // Get other baby stats
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${selectedBabyId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
+        );
+
+        if (!response.ok) throw new Error("Failed to fetch baby stats");
+
+        const data = await response.json();
+
+        // Get growth stats
+        const growthResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${selectedBabyId}/growth`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
+        );
+
+        let growthData;
+        if (growthResponse.status === 404) {
+          // If 404, set default empty state
+          setBabyStats((prevStats) => ({
+            ...prevStats,
+            currentWeight: null,
+            currentHeight: null,
+          }));
+          return;
+        } else if (!growthResponse.ok) {
+          throw new Error("Failed to fetch growth data");
+        }
+
+        growthData = await growthResponse.json();
+
+        // Get the most recent height and weight entries
+        const latestGrowth = growthData.data?.reduce(
+          (latest, current) => {
+            const currentDate = new Date(current.date);
+
+            // Handle weight update
+            if (
+              current.weight &&
+              (!latest.weightDate || currentDate > latest.weightDate)
+            ) {
+              latest.weight = parseFloat(current.weight);
+              latest.weightDate = currentDate;
+            }
+
+            // Handle height update
+            if (
+              current.height &&
+              (!latest.heightDate || currentDate > latest.heightDate)
+            ) {
+              latest.height = parseFloat(current.height);
+              latest.heightDate = currentDate;
+            }
+
+            return latest;
+          },
+          {
+            weight: null,
+            height: null,
+            weightDate: null,
+            heightDate: null,
+          },
+        ) || { weight: null, height: null };
+
+        // Single state update with all data
+        setBabyStats((prevStats) => {
+          return {
+            ...prevStats,
+            milestonesToday,
+            currentWeight:
+              latestGrowth.weight !== undefined ? latestGrowth.weight : null,
+            currentHeight:
+              latestGrowth.height !== undefined ? latestGrowth.height : null,
+          };
+        });
+      } catch (error) {
+        console.error("Error fetching baby stats:", error);
+      }
+    };
+
+    fetchBabyStats();
+  }, [selectedBabyId]);
+
+  // Set initial selected baby
+  useEffect(() => {
+    if (babies.length > 0 && !selectedBabyId) {
+      setSelectedBabyId(babies[0].baby_id);
+    }
+  }, [babies, selectedBabyId]);
+
+  // Fetch today's posts from the forum
+  useEffect(() => {
+    const fetchTodayPosts = async () => {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/v1/forum/posts`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
+        );
+
+        const { data } = await response.json();
+
+        // Filter for today's posts
+        const today = new Date().toISOString().split("T")[0];
+        const todaysPosts = data
+          .filter((post) => {
+            const postDate = new Date(post.created_at)
+              .toISOString()
+              .split("T")[0];
+            return postDate === today;
+          })
+          .slice(0, 5); // Get only first 5 posts
+
+        setTodayPosts(todaysPosts);
+      } catch (error) {
+        console.error("Error fetching forum posts:", error);
+      }
+    };
+
+    fetchTodayPosts();
+  }, []);
+
   return (
     <Container fluid className={`${styles.container} py-4 px-3 px-md-4`}>
       <h2 className={styles.heading}>
@@ -247,83 +465,126 @@ const Dashboard = () => {
       <VoiceControl />
       <br />
 
-      {/* Main Content - TODO Update Col to be responsive */}
+      {/* Stats Summary */}
       <Col xs={12} className="mb-4">
-        {/* Stats Summary - TODO Update columns to be responsive */}
-        <Row className="mb-4 g-3">
-          <Col xs={6} md={3}>
-            <Card className={styles.statsCard}>
-              <Card.Body className="text-center">
-                <h3 className="mb-1">7</h3>
-                <small className="text-muted">{t("Feedings Today")}</small>
-              </Card.Body>
-            </Card>
-          </Col>
-          <Col xs={6} md={3}>
-            <Card className={styles.statsCard}>
-              <Card.Body className="text-center">
-                <h3 className="mb-1">Enter today milestones here</h3>
-                <small className="text-muted">{t("Milestones Today")}</small>
-              </Card.Body>
-            </Card>
-          </Col>
-          <Col xs={6} md={3}>
-            <Card className={styles.statsCard}>
-              <Card.Body className="text-center">
-                <h3 className="mb-1">15.5 lbs</h3>
-                <small className="text-muted">{t("Current Weight")}</small>
-              </Card.Body>
-            </Card>
-          </Col>
-          <Col xs={6} md={3}>
-            <Card className={styles.statsCard}>
-              <Card.Body className="text-center">
-                <h3 className="mb-1">24.5 in</h3>
-                <small className="text-muted">{t("Current Height")}</small>
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
+        {babies.length > 0 ? (
+          <>
+            {babies.length > 1 ? (
+              <Row className="mb-3">
+                <Col xs={12} md={5}>
+                  <h3 className={`${styles.statsHeading} mb-3`}>
+                    {t("{{name}}'s stats, at a glance", {
+                      name:
+                        babies.find(
+                          (b) =>
+                            b.baby_id.toString() === selectedBabyId?.toString(),
+                        )?.first_name || "",
+                    })}
+                  </h3>
+                  <Form.Select
+                    value={selectedBabyId || ""}
+                    onChange={(e) => {
+                      const newBabyId = e.target.value;
+                      // Reset stats before loading new baby's data
+                      setBabyStats({
+                        feedingsToday: 0,
+                        milestonesToday: 0,
+                        currentWeight: null,
+                        currentHeight: null,
+                      });
+                      setSelectedBabyId(newBabyId);
+                    }}
+                    className={styles.babySelect}
+                  >
+                    {babies.map((baby) => (
+                      <option key={baby.baby_id} value={baby.baby_id}>
+                        {baby.first_name} {baby.last_name}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Col>
+              </Row>
+            ) : (
+              <Row className="mb-3">
+                <Col xs={12} md={5}>
+                  <h3 className={`${styles.statsHeading} mb-3`}>
+                    {t("{{name}}'s stats, at a glance", {
+                      name: babies[0]?.first_name || "",
+                    })}
+                  </h3>
+                </Col>
+              </Row>
+            )}
 
-        {/* Quick Actions section */}
-        <Row className="mb-4">
-          <Col xs={12}>
-            <Card className={styles.quickActionsCard}>
-              <Card.Body>
-                <Card.Title>{t("Quick Actions")}</Card.Title>
-                <div className="d-flex gap-2 flex-wrap">
-                  <Button className={styles.feedButton}>
-                    <i className="fas fa-plus me-2"></i>
-                    {t("Log Feeding")}
-                  </Button>
-                  <Button className={styles.weightButton}>
-                    <i className="fas fa-baby me-2"></i>
-                    {t("Update Weight")}
-                  </Button>
-                  <Button className={styles.heightButton}>
-                    <i className="fas fa-weight me-2"></i>
-                    {t("Update Height")}
-                  </Button>
-                  <Button className={styles.journalButton}>
-                    <i className="fas fa-ruler-vertical me-2"></i>
-                    {t("Access Journal")}
-                  </Button>
-                </div>
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
+            <Row className="mb-4 g-3">
+              <Col xs={6} md={3}>
+                <Card className={styles.statsCard}>
+                  <Card.Body className="text-center">
+                    <h3 className="mb-1">{babyStats.feedingsToday}</h3>
 
+                    <small className="text-muted">
+                      {babyStats.feedingsToday > 1 ||
+                      babyStats.feedingsToday == 0
+                        ? "Feedings"
+                        : "Feeding"}{" "}
+                      Today
+                    </small>
+                  </Card.Body>
+                </Card>
+              </Col>
+              <Col xs={6} md={3}>
+                <Card className={styles.statsCard}>
+                  <Card.Body className="text-center">
+                    <h3 className="mb-1">{babyStats.milestonesToday}</h3>
+                    <small className="text-muted">
+                      {babyStats.milestonesToday > 1 ||
+                      babyStats.milestonesToday == 0
+                        ? "Milestones"
+                        : "Milestone"}{" "}
+                      Today
+                    </small>
+                  </Card.Body>
+                </Card>
+              </Col>
+              <Col xs={6} md={3}>
+                <Card className={styles.statsCard}>
+                  <Card.Body className="text-center">
+                    <h3 className="mb-1">
+                      {babyStats.currentWeight
+                        ? `${babyStats.currentWeight} lbs`
+                        : "-"}
+                    </h3>
+                    <small className="text-muted">{t("Current Weight")}</small>
+                  </Card.Body>
+                </Card>
+              </Col>
+              <Col xs={6} md={3}>
+                <Card className={styles.statsCard}>
+                  <Card.Body className="text-center">
+                    <h3 className="mb-1">
+                      {babyStats.currentHeight
+                        ? `${babyStats.currentHeight} in`
+                        : "-"}
+                    </h3>
+                    <small className="text-muted">{t("Current Height")}</small>
+                  </Card.Body>
+                </Card>
+              </Col>
+            </Row>
+          </>
+        ) : (
+          <p>{t("No babies found")}</p>
+        )}
+        <br />
+        <hr />
+        <br />
         {/* Milestone Alerts */}
         {todayMilestones.length > 0 && (
           <Row className="mb-4">
             <Col xs={12}>
               <Alert variant="info" className={styles.milestoneAlert}>
                 {ConfettiComponent}
-                <Alert.Heading>
-                  <i className="fas fa-star me-2"></i>
-                  {t("Today's Milestones 🎉🎉🎉")}
-                </Alert.Heading>
+                <Alert.Heading>{t("Today's Milestones 🎉🎉🎉")}</Alert.Heading>
                 {todayMilestones.map((milestone) => (
                   <div
                     key={milestone.id}
@@ -348,32 +609,12 @@ const Dashboard = () => {
             </Col>
           </Row>
         )}
-
-        {/* Feeding Schedule and Reminders Row */}
+        {/* Reminders section */}
         <Row className="mb-4">
-          {/* Feeding Schedule Section */}
-          <Col md={6}>
-            <Card className={styles.feedingCard}>
-              <Card.Body>
-                <Card.Title>{t("Feedings")}</Card.Title>
-                <MultipleFeedingSchedules />
-                <div className="mt-3">
-                  <Link
-                    href="/feeding-schedule"
-                    className={styles.viewMoreLink}
-                  >
-                    {t("Manage Schedule")} →
-                  </Link>
-                </div>
-              </Card.Body>
-            </Card>
-          </Col>
-
-          {/* Reminders section */}
-          <Col md={6}>
+          <Col xs={12}>
             <Card className={styles.card}>
               <Card.Body>
-                <Card.Title>{t("Upcoming Reminders")}</Card.Title>
+                <Alert.Heading>{t("🔔 Upcoming Reminders")}</Alert.Heading>
                 <Table responsive borderless hover>
                   <tbody>
                     {upcomingEvents
@@ -386,7 +627,10 @@ const Dashboard = () => {
                             event.created_at,
                           ) === "Overdue";
                         return (
-                          <tr key={event.id}>
+                          <tr
+                            key={event.id}
+                            className={isOverdue ? styles.overdueRow : ""}
+                          >
                             <td className="d-flex justify-content-between align-items-center">
                               <div>
                                 <Badge
@@ -404,7 +648,7 @@ const Dashboard = () => {
                                   bg="secondary"
                                   className="fs-6 py-2 px-3"
                                 >
-                                  👶 {event.babyName}
+                                  👶 <small>{event.babyName}</small>
                                 </Badge>
                                 &nbsp;&nbsp;{event.title}
                               </div>
@@ -435,6 +679,130 @@ const Dashboard = () => {
                 <div className="d-flex mt-2">
                   <Link href="/reminders" className={styles.viewMoreLink}>
                     {t("Manage Reminders")} →
+                  </Link>
+                </div>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+        {/* Feeding Schedule and Reminders Row */}
+        <Row className="mb-4">
+          {/* Feeding Schedule Section */}
+          <Col md={8}>
+            <Card className={styles.feedingCard}>
+              <Card.Body>
+                <Alert.Heading>{t("🍼 Feedings")}</Alert.Heading>
+                <MultipleFeedingSchedules />
+                <div className="mt-3">
+                  <Link
+                    href="/feeding-schedule"
+                    className={styles.viewMoreLink}
+                  >
+                    {t("Manage Feedings")} →
+                  </Link>
+                </div>
+              </Card.Body>
+            </Card>
+          </Col>
+
+          {/* Quick Actions section */}
+          <Col md={4}>
+            <Card className={styles.quickActionsCard}>
+              <Card.Body>
+                <Alert.Heading>{t("Quick Actions")}</Alert.Heading>
+                <div className={styles.quickActionsGrid}>
+                  <Link href="/feeding-schedule" className={styles.actionLink}>
+                    <Button
+                      className={`${styles.actionButton} ${styles.feedButton}`}
+                    >
+                      <i className="fas fa-plus me-2"></i>
+                      {t("Log Feeding")}
+                    </Button>
+                  </Link>
+                  <Link href="/growth" className={styles.actionLink}>
+                    <Button
+                      className={`${styles.actionButton} ${styles.weightButton}`}
+                    >
+                      <i className="fas fa-baby me-2"></i>
+                      {t("Update Weight")}
+                    </Button>
+                  </Link>
+                  <Link href="/growth" className={styles.actionLink}>
+                    <Button
+                      className={`${styles.actionButton} ${styles.heightButton}`}
+                    >
+                      <i className="fas fa-weight me-2"></i>
+                      {t("Update Height")}
+                    </Button>
+                  </Link>
+                  <Link href="/journal" className={styles.actionLink}>
+                    <Button
+                      className={`${styles.actionButton} ${styles.journalButton}`}
+                    >
+                      <i className="fas fa-ruler-vertical me-2"></i>
+                      {t("Access Journal")}
+                    </Button>
+                  </Link>
+                  <Link href="/forum" className={styles.actionLink}>
+                    <Button
+                      className={`${styles.actionButton} ${styles.forumButton}`}
+                    >
+                      <i className="fas fa-plus me-2"></i>
+                      {t("Access Forum")}
+                    </Button>
+                  </Link>
+                </div>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+        <hr /> <br />
+        {/* Latest forum posts section */}
+        <Row className="mb-4">
+          <Col xs={12}>
+            <Card className={styles.card}>
+              <Card.Body>
+                <Alert.Heading>{t("📌 Recent Forum Posts")}</Alert.Heading>
+                {todayPosts.length > 0 ? (
+                  <>
+                    <ListGroup variant="flush">
+                      {todayPosts.map((post) => (
+                        <Link
+                          href={`/forum/post/${post.post_id}`}
+                          key={post.post_id}
+                          className={styles.forumPostLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <ListGroup.Item className={styles.forumPost}>
+                            <div className="d-flex justify-content-between align-items-start">
+                              <div>
+                                <h6 className="mb-1">{post.title}</h6>
+                                <p className="text-muted mb-0 small">
+                                  {new Date(
+                                    post.created_at,
+                                  ).toLocaleTimeString()}{" "}
+                                  • {post.reply_count}{" "}
+                                  {post.reply_count == 1 ? "reply" : "replies"}
+                                </p>
+                              </div>
+                              <Badge bg="primary" pill>
+                                New
+                              </Badge>
+                            </div>
+                          </ListGroup.Item>
+                        </Link>
+                      ))}
+                    </ListGroup>
+                  </>
+                ) : (
+                  <p className="text-center text-muted my-4">
+                    {t("No new posts")}
+                  </p>
+                )}{" "}
+                <div className="mt-3">
+                  <Link href="/forums" className={styles.viewMoreLink}>
+                    {t("View Forum")} →
                   </Link>
                 </div>
               </Card.Body>
