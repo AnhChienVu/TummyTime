@@ -55,6 +55,11 @@ module.exports = async (req, res) => {
     // Get all milestones for babies that belong to the user
     const milestones = await pool.query(query, [userId]);
 
+    // Return empty array for no milestones
+    if (!milestones.rows) {
+      milestones.rows = [];
+    }
+
     const formattedMilestones = milestones.rows.map((milestone) => ({
       ...milestone,
       first_name: milestone.first_name || 'Unknown',
