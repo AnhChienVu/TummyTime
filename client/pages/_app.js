@@ -20,9 +20,8 @@ function App({ Component, pageProps }) {
       if (!isPublicRoute && router.pathname !== "/login") {
         router.push("/login?message=Session expired. Please log in again.");
       }
-    } else {
-      setIsCheckingToken(false);
     }
+    setIsCheckingToken(false);
   }, [router]);
 
   if (isCheckingToken && router.pathname !== "/login") {
