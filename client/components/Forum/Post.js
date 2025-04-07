@@ -1,14 +1,7 @@
 // components/Forum/Post.js
 // This component displays a single post in the forum
 // It includes the post title, content, metadata, and actions (edit, delete)
-import {
-  Card,
-  Button,
-  Form,
-  Modal,
-  Toast,
-  ToastContainer,
-} from "react-bootstrap";
+import { Card, Button, Form, Modal } from "react-bootstrap";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
@@ -24,6 +17,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import useSpeechToText from "@/hooks/useSpeechToText";
 import TextToSpeech from "@/components/TextToSpeech/TextToSpeech";
+import ForumToast from "@/components/Forum/ForumToast";
 
 // Remove debug logging from ViewOnlyEditor
 function ViewOnlyEditor({ content, key }) {
@@ -65,7 +59,7 @@ export function Post({
   isEditing,
   editTitle,
   editContent,
-  editCategory, // Add this prop
+  editCategory,
   onEdit,
   onDelete,
   onSave,
@@ -137,13 +131,6 @@ export function Post({
       setShowDeleteModal(false);
       await onDelete();
       setShowSuccessToast(true);
-
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          setShowSuccessToast(false);
-          resolve();
-        }, 3000);
-      });
     } catch (error) {
       console.error("Error deleting post:", error);
     }
@@ -369,21 +356,12 @@ export function Post({
         </Modal.Footer>
       </Modal>
 
-      <ToastContainer position="bottom-end" className={styles.toastContainer}>
-        <Toast
-          show={showSuccessToast}
-          onClose={() => setShowSuccessToast(false)}
-          bg="success"
-          className={styles.toast}
-        >
-          <Toast.Header closeButton={false}>
-            <strong className="me-auto">{t("Success")}</strong>
-          </Toast.Header>
-          <Toast.Body className="text-white">
-            {t("Post successfully deleted")}
-          </Toast.Body>
-        </Toast>
-      </ToastContainer>
+      <ForumToast
+        show={showSuccessToast}
+        onClose={() => setShowSuccessToast(false)}
+        message={t("Post successfully deleted")}
+        type="success"
+      />
     </>
   );
 }
