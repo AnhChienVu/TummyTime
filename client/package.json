@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "refresh-coupons": "node scripts/refresh-linkmydeals-cache.js"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.7.2",
@@ -21,6 +22,7 @@
     "@tiptap/starter-kit": "^2.11.5",
     "bootstrap": "^5.3.3",
     "date-fns": "^4.1.0",
+    "dotenv": "^16.4.7",
     "i18next": "^24.2.2",
     "jwt-decode": "^4.0.0",
     "next": "15.1.4",
