@@ -97,16 +97,19 @@ function Milestones() {
   );
 
   let toastIdCounter = 1;
-  const showToast = useCallback((message, variant = "success") => {
-    const createToastId = () => {
-      return toastIdCounter++;
-    };
-    const id = createToastId();
-    setToasts((prev) => [...prev, { id, message, variant }]);
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 5000);
-  }, []);
+  const showToast = useCallback(
+    (message, variant = "success") => {
+      const createToastId = () => {
+        return toastIdCounter++;
+      };
+      const id = createToastId();
+      setToasts((prev) => [...prev, { id, message, variant }]);
+      setTimeout(() => {
+        setToasts((prev) => prev.filter((t) => t.id !== id));
+      }, 5000);
+    },
+    [toastIdCounter],
+  );
 
   const removeToast = (id) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
@@ -361,17 +364,17 @@ function Milestones() {
               onSelectEvent={handleEventClick}
             />
           </div>
-          
+
           <BabyCard
             buttons={[
-              { 
-                name: t("View Milestones"), 
-                path: "milestones" 
+              {
+                name: t("View Milestones"),
+                path: "milestones",
               },
-              { 
-                name: t("Add Milestone"), 
-                functionHandler: handleOpenAddMilestoneModal 
-              }
+              {
+                name: t("Add Milestone"),
+                functionHandler: handleOpenAddMilestoneModal,
+              },
             ]}
           />
         </Col>

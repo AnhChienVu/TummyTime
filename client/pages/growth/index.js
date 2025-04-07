@@ -1,7 +1,7 @@
 import React from "react";
 import { Container, Row, Col } from "react-bootstrap";
 import styles from "./growth.module.css";
-import BabyCard from "@/components/BabyCard/BabyCard";
+import BabyCardGrowth from "@/components/BabyCardGrowth/BabyCardGrowth";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
