@@ -188,6 +188,19 @@ const QuizPage = () => {
                     </div>
                   );
                 })}
+
+                {/* IF NO ANSWER SELECTED */}
+                {noAnswer && (
+                  <p
+                    style={{
+                      color: "red",
+                      fontWeight: "bold",
+                      marginTop: "0.5rem",
+                    }}
+                  >
+                    No answer selected
+                  </p>
+                )}
               </div>
             );
           })}
