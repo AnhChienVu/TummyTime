@@ -31,9 +31,8 @@ module.exports.uploadFile = async (req, res) => {
     if (!result.rows[0]) {
       return res.status(404).json(createErrorResponse(404, 'File not found in database'));
     }
-    res.json(createSuccessResponse(result.rows[0]));
 
-    return res.json(createSuccessResponse(profile.rows[0]));
+    return res.json(createSuccessResponse({ file: result.rows[0] }));
   } catch (error) {
     console.error('Error uploading file:', error); // Log the actual error
     return res.status(500).json(createErrorResponse(500, error));

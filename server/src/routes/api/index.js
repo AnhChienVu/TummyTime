@@ -257,4 +257,49 @@ router.delete(
 
 // Testing the authentication middleware
 // router.get('/test', authenticate(), require('./test'));
+
+// ************ /Sharing Doctor - Parent files routes ************
+// Parent upload file for a baby to a doctor
+router.post(
+  '/parent/:parentId/babies/:babyId/doctors/:doctorId/uploadFile',
+  authenticate(),
+  upload.single('document'), // Middleware to handle file upload
+  require('./parent/uploadFile').uploadFile
+);
+
+// Doctor upload file for a baby to a parent
+router.post(
+  '/doctor/:doctorId/babies/:babyId/parent/:parentId/uploadFile',
+  authenticate(),
+  upload.single('document'),
+  require('./doctor/uploadFile').uploadFile
+);
+
+// Doctor get all files sent by all parents to the doctor
+// router.get(
+//   '/doctor/:doctorId/getAllFiles',
+//   authenticate(),
+//   require('./doctor/getAllFiles').getAllFiles
+// );
+
+// Parent get all files sent by a doctor to a baby
+router.get(
+  '/parent/:parentId/doctors/:doctorId/babies/:babyId/getFiles',
+  authenticate(),
+  require('./parent/getFiles').getFiles
+);
+
+// Parent get all files sent to a doctor by a baby
+router.get(
+  '/parent/:parentId/babies/:babyId/doctors/:doctorId/getSentFiles',
+  authenticate(),
+  require('./parent/getSentFiles').getSentFiles
+);
+
+// Download file by document_id, it can be used by both parent and doctor
+router.get(
+  '/documents/:document_id/download',
+  authenticate(),
+  require('./parent/downloadFile').downloadFile
+);
 module.exports = router;
