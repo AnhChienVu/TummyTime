@@ -35,7 +35,6 @@ const fetchGrowthData = async (babyId) => {
 
     if (!res.ok) throw new Error("Failed to fetch growth data");
 
-
     return jsonData.data;
   } catch (err) {
     console.error("Error fetching growth data:", err);

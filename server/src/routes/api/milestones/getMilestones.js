@@ -14,34 +14,28 @@ module.exports.getMilestoneByBabyId = async (req, res) => {
 
     // Input validation
     if (!baby_id) {
-      return res.status(400).json(createErrorResponse(400, 'Baby ID is required'));
-      return res.status(400).json(createErrorResponse(400, 'Baby ID is required'));
+      return res.status(400).json(createErrorResponse(400, 'Baby ID is required')); 
     }
 
     // Validate if id is a valid number
     if (isNaN(baby_id) || parseInt(baby_id) <= 0) {
-      return res.status(400).json(createErrorResponse(400, 'Invalid baby ID format'));
-      return res.status(400).json(createErrorResponse(400, 'Invalid baby ID format'));
+      return res.status(400).json(createErrorResponse(400, 'Invalid baby ID format')); 
     }
 
     // Decode the token to get the user ID
     const authHeader = req.headers.authorization;
     if (!authHeader) {
       logger.error('No authorization header found');
-      return res.status(401).json(createErrorResponse(401, 'No authorization token provided'));
-      logger.error('No authorization header found');
-      return res.status(401).json(createErrorResponse(401, 'No authorization token provided'));
+      return res.status(401).json(createErrorResponse(401, 'No authorization token provided')); 
     }
 
     const userId = await getUserId(authHeader);
     if (!userId) {
       return res.status(404).json({
-        status: 'error',
-        status: 'error',
+        status: 'error', 
         error: {
           code: 404,
-          message: 'User not found',
-          message: 'User not found',
+          message: 'User not found', 
         },
       });
     }
@@ -50,7 +44,7 @@ module.exports.getMilestoneByBabyId = async (req, res) => {
     const hasBabyAccess = await checkBabyBelongsToUser(baby_id, userId);
     if (!hasBabyAccess) {
       return res
-        .status(403)
+        .status(403) 
         .json(createErrorResponse(403, 'Access denied: Baby does not belong to current user')); 
     }
 
@@ -66,19 +60,16 @@ module.exports.getMilestoneByBabyId = async (req, res) => {
 
     if (!result.rows || result.rows.length === 0) {
       return res.status(404).json({
-        status: 'error',
-        status: 'error',
+        status: 'error', 
         error: {
           code: 404,
-          message: 'No milestones found for this baby',
-          message: 'No milestones found for this baby',
+          message: 'No milestones found for this baby', 
         },
       });
     }
 
     return res.status(200).send({
-      status: 'ok',
-      status: 'ok',
+      status: 'ok', 
       data: result.rows, // Send the array as a 'data' property
     });
   } catch (err) {

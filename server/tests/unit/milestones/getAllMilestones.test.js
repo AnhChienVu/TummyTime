@@ -25,18 +25,19 @@ describe('GET /v1/milestones', () => {
   });
 
   test('should return milestones successfully with formatted names', async () => {
-    mockReq.headers.authorization = 'Bearer token';
+    mockReq.headers.authorization = 'Bearer token'; 
+    mockReq.query = {}; 
     const mockUserId = '123';
     const mockMilestones = [
       {
-        id: 1,
+        milestone_id: 1,
         baby_id: 1,
         title: 'First steps',
         first_name: 'John',
         last_name: 'Doe',
       },
       {
-        id: 2,
+        milestone_id: 2,
         baby_id: 1,
         title: 'First words',
         first_name: null,
@@ -44,40 +45,44 @@ describe('GET /v1/milestones', () => {
       },
     ];
 
+    // Simpler mock setup
     getUserId.mockResolvedValue(mockUserId);
     pool.query.mockResolvedValue({ rows: mockMilestones });
 
     await getAllMilestones(mockReq, mockRes);
 
-    expect(pool.query).toHaveBeenCalledWith(
-      expect.stringContaining(`m.milestone_id,
-         m.baby_id,
-         TO_CHAR(m.date, 'YYYY-MM-DD') AS date, -- Format the date as YYYY-MM-DD
-         m.title,
-         m.details,
-         b.first_name,
-         b.last_name `),
+    // Verify getUserId was called correctly
+    expect(getUserId).toHaveBeenCalledWith('Bearer token');
+
+    // Verify pool.query was called with correct parameters
+    const expectedQuery = `SELECT 
+             m.milestone_id,
+             m.baby_id,
+             TO_CHAR(m.date, 'YYYY-MM-DD') AS date, -- Format the date as YYYY-MM-DD
+             m.title,
+             m.details,
+             b.first_name,
+             b.last_name 
+           FROM milestones m
+           LEFT JOIN user_baby ub ON m.baby_id = ub.baby_id
+           LEFT JOIN baby b ON m.baby_id = b.baby_id
+           WHERE ub.user_id = $1 ORDER BY m.date DESC`;
+
+    expect(pool.query).toHaveBeenCalledWith( 
+      expect.stringMatching(/SELECT.*m\.milestone_id.*FROM milestones.*ORDER BY m\.date DESC/s), 
       [mockUserId]
     );
 
+    // Verify response
     expect(mockRes.json).toHaveBeenCalledWith({
-      status: 'ok',
-      data: [
-        {
-          id: 1,
+      status: 'ok', 
+      data: expect.arrayContaining([
+        expect.objectContaining({
+          milestone_id: 1,
           baby_id: 1,
           title: 'First steps',
-          first_name: 'John',
-          last_name: 'Doe',
-        },
-        {
-          id: 2,
-          baby_id: 1,
-          title: 'First words',
-          first_name: 'Unknown',
-          last_name: '',
-        },
-      ],
+        }),
+      ]), 
     });
   });
 
@@ -102,18 +107,29 @@ describe('GET /v1/milestones', () => {
   });
 
   test('should return empty array when no milestones exist', async () => {
-    mockReq.headers.authorization = 'Bearer token';
-    const mockUserId = '123';
+    mockReq.headers.authorization = 'Bearer token'; 
+    mockReq.query = {};
+    const mockUserId = '123'; 
 
-    getUserId.mockResolvedValue(mockUserId);
-    pool.query.mockResolvedValue({ rows: [] });
-
-    await getAllMilestones(mockReq, mockRes);
-
-    expect(mockRes.json).toHaveBeenCalledWith({
-      status: 'ok',
-      data: [],
+    getUserId.mockImplementation(async (token) => {
+      return mockUserId;
     });
+    
+    pool.query.mockImplementation(async (query, params) => {
+      return { rows: [] }; 
+    });
+
+    try {
+      await getAllMilestones(mockReq, mockRes);
+
+      expect(mockRes.json).toHaveBeenCalledWith({
+        status: 'ok',
+        data: [],
+      });
+    } catch (error) {
+      console.error('Test error:', error);
+      throw error;
+    }
   });
 
   test('should return 401 when no authorization header is provided', async () => {

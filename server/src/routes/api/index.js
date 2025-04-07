@@ -1,6 +1,7 @@
 // src/routes/api/index.js
 // Our authentication middleware
 const { authenticate } = require('../../auth');
+const { checkPostOwnership, checkReplyOwnership } = require('../../auth/ownershipCheck');
 /**
  * The main entry-point for the v1 version of the API.
  */
@@ -25,11 +26,12 @@ const { deleteReminders } = require('./baby/reminders/deleteReminders');
 const careServices = require('./careServices/getAllChildcareServices');
 const favoritesHandler = require('./careServices/saveFavorites');
 
-router.post("/login", require("./login"));
+router.post('/login', require('./login'));
 router.post('/signup', require('./signup'));
 
 // ************ /feedingSchedule routes ************
 router.get('/baby/:id/getFeedingSchedules', authenticate(), require('./baby/getFeedingSchedules'));
+router.get('baby/:id/getLatestFeed', authenticate(), require('./baby/getLatestFeed'));
 
 router.put(
   '/baby/:id/updateFeedingSchedule/:mealId',
@@ -133,17 +135,37 @@ router.get('/forum/posts/:post_id', authenticate(), require('./forum/posts/getPo
 
 router.get('/forum/posts', authenticate(), require('./forum/posts/getPosts'));
 
-router.put('/forum/posts/:post_id', authenticate(), require('./forum/posts/putPost'));
+router.put(
+  '/forum/posts/:post_id',
+  authenticate(),
+  checkPostOwnership,
+  require('./forum/posts/putPost')
+);
 
-router.delete('/forum/posts/:post_id', authenticate(), require('./forum/posts/deletePost'));
+router.delete(
+  '/forum/posts/:post_id',
+  authenticate(),
+  checkPostOwnership,
+  require('./forum/posts/deletePost')
+);
 
 router.post('/forum/posts/:post_id/reply', authenticate(), require('./forum/replies/addReply'));
 
 router.get('/forum/posts/:post_id/replies', authenticate(), require('./forum/replies/getReplies'));
 
-router.put('/forum/replies/:reply_id', authenticate(), require('./forum/replies/putReply'));
+router.put(
+  '/forum/replies/:reply_id',
+  authenticate(),
+  checkReplyOwnership,
+  require('./forum/replies/putReply')
+);
 
-router.delete('/forum/replies/:reply_id', authenticate(), require('./forum/replies/deleteReply'));
+router.delete(
+  '/forum/replies/:reply_id',
+  authenticate(),
+  checkReplyOwnership,
+  require('./forum/replies/deleteReply')
+);
 
 // ************ /coupons routes ************
 router.get('/coupons', require('./coupons/getAllCoupons'));
@@ -212,6 +234,26 @@ router.delete('/baby/:babyId/reminders', authenticate(), deleteReminders);
 router.get('/careServices', authenticate(), careServices);
 router.get('/careServices/favorites', favoritesHandler.getFavorites);
 router.post('/careServices/favorites', favoritesHandler.toggleFavorite);
+
+// ************ /profile-picture routes ************
+router.post(
+  '/profile-picture/upload',
+  authenticate(),
+  require('./profilePicture/putProfilePicture')
+);
+
+// Get a profile picture (public access, no authentication required)
+router.get(
+  '/profile-picture/:entityType/:entityId',
+  require('./profilePicture/getProfilePicture.js')
+);
+
+// Delete a profile picture
+router.delete(
+  '/profile-picture/:entityType/:entityId',
+  authenticate(),
+  require('./profilePicture/deleteProfilePicture')
+);
 
 // Testing the authentication middleware
 // router.get('/test', authenticate(), require('./test'));

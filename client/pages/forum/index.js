@@ -2,15 +2,7 @@
 import { useForm } from "react-hook-form";
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import {
-  Container,
-  Form,
-  Button,
-  Row,
-  Col,
-  Card,
-  Image,
-} from "react-bootstrap";
+import { Container, Form, Button, Row, Col, Card } from "react-bootstrap";
 import styles from "./forum.module.css";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
@@ -21,49 +13,120 @@ import {
   faMicrophoneSlash,
 } from "@fortawesome/free-solid-svg-icons";
 import TextToSpeech from "@/components/TextToSpeech/TextToSpeech";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Link from "@tiptap/extension-link";
+import Underline from "@tiptap/extension-underline";
+import CategorySelector from "@/components/ForumCategories/ForumCategories";
+import ForumToast from "@/components/Forum/ForumToast";
+
+// View-only editor for displaying rich text in posts and replies
+function ViewOnlyEditor({ content }) {
+  const [mounted, setMounted] = useState(false);
+
+  const editor = useEditor(
+    {
+      extensions: [
+        StarterKit,
+        Link.configure({
+          openOnClick: true,
+        }),
+        Underline,
+      ],
+      content,
+      editable: false,
+      onCreate: () => setMounted(true),
+    },
+    [content],
+  );
+
+  // Only render editor content after mounting
+  if (!mounted || !editor) {
+    return <div dangerouslySetInnerHTML={{ __html: content }} />;
+  }
+
+  return <EditorContent editor={editor} />;
+}
 
 export default function Forum() {
   const { t } = useTranslation("common");
-  const { register, handleSubmit, reset } = useForm();
+  const { register, handleSubmit, reset, setValue } = useForm();
   const [posts, setPosts] = useState([]);
-  const [filePreview, setFilePreview] = useState(null);
   const [error, setError] = useState("");
   const router = useRouter();
   const [text, setText] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [titleText, setTitleText] = useState("");
+  const [selectedInput, setSelectedInput] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [toastMessage, setToastMessage] = useState(null);
 
-  const { isListening, transcript, startListening, stopListening } =
-    useSpeechToText({
-      continuous: true,
-      interimResults: true,
-      lang: "en-US",
-    });
+  // const { isListening, transcript, startListening, stopListening } =
+  //   useSpeechToText({
+  //     continuous: true,
+  //     interimResults: true,
+  //     lang: "en-US",
+  //   });
 
-  const startStopListening = (e) => {
-    e.preventDefault();
-    if (isListening) {
-      stopVoiceInput();
-    } else {
-      startListening();
-    }
-  };
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Link.configure({
+        openOnClick: false,
+      }),
+      Underline,
+    ],
+    content: "",
+    onCreate: ({ editor }) => {
+      // Initialize with empty content
+      editor.commands.setContent("");
+    },
+    onUpdate: ({ editor }) => {
+      setText(editor.getHTML());
+    },
+    editorProps: {
+      attributes: {
+        class: "main-editor",
+      },
+    },
+  });
 
-  const stopVoiceInput = () => {
-    setText(
-      (preVal) =>
-        preVal +
-        (transcript.length ? (preVal.length ? " " : "") + transcript : ""),
-    );
-    stopListening();
+  //// Speech recognition
+  // const startStopListening = (e, inputType) => {
+  //   e.preventDefault();
+  //   if (isListening) {
+  //     stopVoiceInput(inputType);
+  //   } else {
+  //     setSelectedInput(inputType);
+  //     startListening();
+  //   }
+  // };
+
+  // const stopVoiceInput = (inputType) => {
+  //   if (transcript) {
+  //     if (inputType === "title") {
+  //       const newTitle = titleText + " " + transcript.trim();
+  //       setTitleText(newTitle);
+  //       setValue("title", newTitle);
+  //     } else if (inputType === "content" && editor) {
+  //       // Insert text at current cursor position instead of setting entire content
+  //       editor.commands.insertContent(transcript.trim());
+  //     }
+  //   }
+  //   stopListening();
+  //   setSelectedInput(null);
+  // };
+
+  const handleTitleChange = (e) => {
+    setTitleText(e.target.value);
+    setValue("title", e.target.value);
   };
 
   const fetchPosts = async () => {
     if (typeof window === "undefined") return;
 
     const token = localStorage.getItem("token");
-    if (!token) {
-      logger.error("No token found");
-      return;
-    }
+    if (!token) return;
 
     try {
       const postsResponse = await fetch(
@@ -78,18 +141,11 @@ export default function Forum() {
       if (postsResponse.ok) {
         const response = await postsResponse.json();
         if (response.status === "ok" && Array.isArray(response.data)) {
-          console.log(response.data);
           setPosts(response.data);
-        } else {
-          setError("Invalid posts data format:", response);
         }
       }
     } catch (error) {
-      setError("Error details:", {
-        message: error.message,
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-      });
+      setError("Failed to fetch posts");
     }
   };
 
@@ -99,10 +155,13 @@ export default function Forum() {
 
   const onSubmit = async (data) => {
     try {
-      if (data.content.trim() === "") return;
+      const editorContent = editor?.getHTML() || "";
+      if (!editorContent.trim()) return;
 
       const postData = {
-        ...data,
+        title: data.title.trim(),
+        content: editorContent.trim(),
+        category: selectedCategory || null,
         date: new Date().toISOString(),
       };
 
@@ -118,87 +177,182 @@ export default function Forum() {
         },
       );
 
-      if (res.ok) {
-        // Clear the form
+      if (res.status === 201) {
+        // Clear form
         reset();
-        // Fetch updated posts
+        editor?.commands.setContent("");
+        setTitleText("");
+        setSelectedCategory("");
+
+        // Show success toast
+        setToastMessage({
+          type: "success",
+          message: t("Post created successfully!"),
+        });
+
+        // Hide toast after 5 seconds
+        setTimeout(() => {
+          setToastMessage(null);
+        }, 5000);
+
+        // Update posts state and fetch fresh data
         await fetchPosts();
       } else {
-        setError("Failed to add post: ", res);
+        const errorText = await res.text();
+        setToastMessage({
+          type: "error",
+          message: t("Failed to add post: ") + errorText,
+        });
       }
     } catch (error) {
-      console.error("Error creating post:", error);
+      setToastMessage({
+        type: "error",
+        message: t("Error creating post: ") + error.message,
+      });
     }
   };
 
-  // // For image preview
-  // const handleFileChange = (e) => {
-  //   const file = e.target.files[0];
-  //   if (file) {
-  //     setFilePreview(URL.createObjectURL(file));
-  //   } else {
-  //     setFilePreview(null);
-  //   }
-  // };
+  const filteredPosts = posts.filter((post) => {
+    const matchesSearch =
+      post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      post.display_name.toLowerCase().includes(searchQuery.toLowerCase());
+
+    return matchesSearch;
+  });
 
   return (
     <Container className={styles.container} fluid>
       <div className={styles.formContainer}>
-        <p className={styles.title}>{t("Community Forum")}</p>
+        <div className={styles.title}>{t("Community Forum")}</div>
         <Form onSubmit={handleSubmit(onSubmit)} className="mb-4">
           <Row className="mb-3">
-            <Col>
+            <Col className="d-flex align-items-center">
               <Form.Control
                 type="text"
                 placeholder={t("Title")}
                 required
                 {...register("title")}
+                onChange={handleTitleChange}
+                // value={
+                //   isListening && selectedInput === "title"
+                //     ? titleText + (transcript || "")
+                //     : titleText
+                // }
+                value={titleText}
+                className="flex-grow-1"
               />
-            </Col>
-          </Row>
-          <Row className="mb-3">
-            <Col>
-              <Form.Control
-                as="textarea"
-                rows={3}
-                placeholder={t("Write your thoughts here...")}
-                required
-                {...register("content")}
-                disabled={isListening}
-                value={
-                  isListening
-                    ? text + (transcript.length ? transcript : "")
-                    : text
-                }
-                onChange={(e) => {
-                  setText(e.target.value);
-                }}
-              />
-            </Col>
-            <TextToSpeech text={text} />
-          </Row>
-          {filePreview && (
-            <Row className="mb-3">
-              <Col>
-                <Image
-                  src={filePreview}
-                  alt="Preview"
-                  style={{ maxWidth: "50%" }}
+              {/* <button
+                onClick={(e) => startStopListening(e, "title")}
+                className={styles.microphone}
+              >
+                <FontAwesomeIcon
+                  icon={
+                    isListening && selectedInput === "title"
+                      ? faMicrophoneSlash
+                      : faMicrophone
+                  }
                 />
-              </Col>
-            </Row>
-          )}
+              </button> */}
+              {/* {isListening && selectedInput === "title" && (
+                <span className={styles.listeningIndicator}>
+                  {t("Listening...")}
+                </span>
+              )} */}
+            </Col>
+          </Row>
           <Row className="mb-3">
-            {/* <Col md={4}>
-              <Form.Control
-                type="file"
-                accept="image/*"
-                {...register("image")}
-                onChange={handleFileChange}
+            <Col md={6}>
+              <Form.Label>{t("Category (optional)")}</Form.Label>
+              <CategorySelector
+                selectedCategory={selectedCategory}
+                setCategory={setSelectedCategory}
               />
             </Col>
-            <Col md={4}></Col> */}
-            <Col md={6}>
+          </Row>
+          <div className={styles.editor}>
+            <div className={styles.toolbar}>
+              <button
+                type="button"
+                onClick={() => editor.chain().focus().toggleBold().run()}
+                className={editor?.isActive("bold") ? styles.isActive : ""}
+              >
+                Bold
+              </button>
+              <button
+                type="button"
+                onClick={() => editor.chain().focus().toggleItalic().run()}
+                className={editor?.isActive("italic") ? styles.isActive : ""}
+              >
+                Italic
+              </button>
+              <button
+                type="button"
+                onClick={() => editor.chain().focus().toggleUnderline().run()}
+                className={editor?.isActive("underline") ? styles.isActive : ""}
+              >
+                Underline
+              </button>
+              <button
+                type="button"
+                onClick={() => editor.chain().focus().toggleBulletList().run()}
+                className={
+                  editor?.isActive("bulletList") ? styles.isActive : ""
+                }
+              >
+                Bullet List
+              </button>
+              <button
+                type="button"
+                onClick={() => editor.chain().focus().toggleOrderedList().run()}
+                className={
+                  editor?.isActive("orderedList") ? styles.isActive : ""
+                }
+              >
+                Ordered List
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const url = window.prompt("Enter the URL:");
+                  if (url) {
+                    editor.chain().focus().setLink({ href: url }).run();
+                  }
+                }}
+                className={editor?.isActive("link") ? styles.isActive : ""}
+              >
+                Link
+              </button>
+            </div>
+            <EditorContent editor={editor} />
+          </div>
+          <div className={styles.formActions}>
+            <div className={styles.leftActions}>
+              <TextToSpeech
+                text={editor?.getHTML() || ""}
+                title={titleText || ""}
+              />
+            </div>
+            <div className={styles.rightActions}>
+              {/* <div className={styles.microphoneContainer}>
+                <button
+                  onClick={(e) => startStopListening(e, "content")}
+                  className={styles.microphone}
+                >
+                  <FontAwesomeIcon
+                    icon={
+                      isListening && selectedInput === "content"
+                        ? faMicrophoneSlash
+                        : faMicrophone
+                    }
+                  />
+                </button>
+                {isListening && selectedInput === "content" && (
+                  <span className={styles.listeningIndicator}>
+                    {t("Listening...")}
+                  </span>
+                )}
+              </div> */}
               <Button
                 variant="primary"
                 type="submit"
@@ -206,82 +360,95 @@ export default function Forum() {
               >
                 {t("Post")}
               </Button>
-            </Col>
-            <Col md={6}>
-              <button
-                onClick={(e) => startStopListening(e)}
-                className={styles.microphone}
-              >
-                <FontAwesomeIcon
-                  icon={isListening ? faMicrophoneSlash : faMicrophone}
-                />
-              </button>
-            </Col>
-          </Row>
+            </div>
+          </div>
         </Form>
 
         <hr />
 
+        {/* Search for a post */}
+        <Row className="mb-3">
+          <Col>
+            <Form.Control
+              type="text"
+              placeholder={t("Search posts by title, content, or author")}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={styles.searchInput}
+            />
+          </Col>
+        </Row>
+        {searchQuery && (
+          <Button
+            variant="outline-secondary"
+            size="sm"
+            onClick={() => {
+              setSearchQuery("");
+            }}
+            className="mt-2 mb-3"
+          >
+            {t("Clear search")}
+          </Button>
+        )}
+
         {/* Display saved journal posts */}
-        <p className={styles.title}>{t("Latest Posts")}</p>
+        <div className={styles.title}>{t("Latest Posts")}</div>
         <div className={styles.postsSection}>
-          {Array.isArray(posts) && posts.length > 0 ? (
-            [...posts]
+          {Array.isArray(filteredPosts) && filteredPosts.length > 0 ? (
+            [...filteredPosts]
               .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
               .map((post, idx) => (
                 <div key={idx}>
-                  <div
-                    key={post.post_id}
-                    onClick={() => router.push(`/forum/post/${post.post_id}`)}
-                    style={{ cursor: "pointer" }}
-                  >
-                    <Card className={styles.postCard}>
-                      <Card.Body>
+                  <Card className={styles.postCard}>
+                    <Card.Body>
+                      <div
+                        onClick={() =>
+                          router.push(`/forum/post/${post.post_id}`)
+                        }
+                        style={{ cursor: "pointer" }}
+                      >
+                        {post.category && (
+                          <div className={styles.categoryBadge}>
+                            {post.category}
+                          </div>
+                        )}
                         <Card.Title className={styles.postCardTitle}>
                           {post.title}
                         </Card.Title>
-                        <Card.Text
+                        <div
                           className={`${styles.postCardText} ${styles.truncateText}`}
                         >
-                          {post.content}
-                        </Card.Text>
+                          <ViewOnlyEditor
+                            key={post.post_id}
+                            content={post.content}
+                          />
+                        </div>
                         <div className={styles.postMetadata}>
                           <small>
-                            Posted:{" "}
+                            Posted by: {post.display_name} on{" "}
                             {new Date(post.created_at).toLocaleDateString()} at{" "}
                             {new Date(post.created_at).toLocaleTimeString()}
                           </small>
                           <small>Replies: {post.reply_count}</small>
                         </div>
-                        {post.replies && post.replies.length > 0 && (
-                          <div className={styles.replies}>
-                            <h6>Replies:</h6>
-                            {post.replies.map((reply) => (
-                              <div
-                                key={reply.reply_id}
-                                className={styles.reply}
-                              >
-                                <p>{reply.content}</p>
-                                <small>
-                                  {new Date(
-                                    reply.created_at,
-                                  ).toLocaleDateString()}
-                                </small>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </Card.Body>
-                    </Card>
-                  </div>
-                  <TextToSpeech text={post.content} />
+                      </div>
+                      <div onClick={(e) => e.stopPropagation()}>
+                        <TextToSpeech text={post.content} title={post.title} />
+                      </div>
+                    </Card.Body>
+                  </Card>
                 </div>
               ))
           ) : (
-            <p>{t("No posts found")}</p>
+            <div className={styles.noPostsMessage}>{t("No posts found")}</div>
           )}
         </div>
       </div>
+      <ForumToast
+        message={toastMessage?.message}
+        type={toastMessage?.type}
+        onClose={() => setToastMessage(null)}
+      />
     </Container>
   );
 }

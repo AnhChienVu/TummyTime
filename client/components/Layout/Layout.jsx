@@ -1,16 +1,25 @@
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 import NavBar from "../Navbar/NavBar";
 import Footer from "../Footer/Footer";
 import Sidebar from "../Sidebar/Sidebar";
 import styles from "./Layout.module.css";
 import { Container } from "react-bootstrap";
 import DoctorSidebar from "../DoctorSidebar/DoctorSidebar";
-import TipsNotificationPopup from "../tipsNotificationPopup/tipsNotificationPopup";
-import TokenExpirationNotification from "../TokenExpirationNotification/TokenExpirationNotification";
+import TipsNotificationPopup from "../tipsNotificationPopup/tipsNotificationPopup"; 
+import TokenExpirationNotification from "../TokenExpirationNotification/TokenExpirationNotification"; 
+import dynamic from 'next/dynamic';
+
+const ChatBot = dynamic(
+  () => import('../ChatBot/ChatBot'),
+  { ssr: false }
+); 
 
 export default function Layout({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState("");
+  const router = useRouter();
+  const isHomePage = router.pathname === "/"; // Hide the side bar on home page
 
   // State to simulate token expiration (by deleting the token)
   const [tokenExpired, setTokenExpired] = useState(false);
@@ -32,10 +41,10 @@ export default function Layout({ children }) {
 
   return (
     <>
-      <NavBar />
+      {!isHomePage && <NavBar />}
       <TipsNotificationPopup />
       <Container fluid className={styles.container}>
-        {isAuthenticated ? (
+        {!isHomePage && isAuthenticated ? (
           userRole === "Parent" ? (
             <Sidebar />
           ) : (
@@ -43,10 +52,12 @@ export default function Layout({ children }) {
           )
         ) : null}
         <main className={styles.main}>{children}</main>
-      </Container>
+      </Container> 
+      <ChatBot/>
+          
+      {/* under Footer is the function to simulate token expiration */}
       <Footer onSimulateExpire={handleSimulateExpire} />{" "}
-      {/* Pass the function to simulate token expiration */}
-      <TokenExpirationNotification show={tokenExpired} />
+      <TokenExpirationNotification show={tokenExpired} /> 
     </>
   );
 }
