@@ -56,7 +56,8 @@ describe("getExportCSV endpoint", () => {
     req.headers.authorization = "Bearer validtoken";
     getUserId.mockResolvedValue("1");
     // First pool.query call for baby profiles returns empty array.
-    pool.query.mockResolvedValueOnce({ rows: [] });
+    pool.query.mockResolvedValueOnce({ rows: [{ count: "0" }] });
+
     await getExportCSV(req, res);
     expect(res.status).toHaveBeenCalledWith(404);
     expect(createErrorResponse).toHaveBeenCalledWith(404, "No baby profiles found for this user");
