@@ -12,7 +12,7 @@ import {
 import { format, setDate } from "date-fns";
 import { FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
 import styles from "./milestones.module.css";
-import BabyCardMilestone from "@/components/BabyCardMilestone/BabyCardMilestone";
+import BabyCard from "@/components/BabyCard/BabyCard";
 import { AiOutlineInfoCircle } from "react-icons/ai";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
@@ -96,8 +96,8 @@ function Milestones() {
     </div>
   );
 
+  let toastIdCounter = 1;
   const showToast = useCallback((message, variant = "success") => {
-    let toastIdCounter = 1;
     const createToastId = () => {
       return toastIdCounter++;
     };
@@ -195,8 +195,6 @@ function Milestones() {
     if (!validateInputs()) {
       return;
     }
-    console.log("Selected Date:", selectedDate);
-    console.log("Formatted Date:", selectedDate.toISOString().split("T")[0]);
 
     try {
       const res = await fetch(
@@ -210,7 +208,7 @@ function Milestones() {
           body: JSON.stringify({
             title,
             details,
-            date: selectedDate.toISOString().split("T")[0], // Format date as YYYY-MM-DD in UTC
+            date: format(new Date(selectedDate.toDateString()), "yyyy-MM-dd"),
           }),
         },
       );
@@ -246,19 +244,12 @@ function Milestones() {
       );
       const data = await res.json();
       if (data.status === "ok") {
-        const formattedMilestones = data.data.map((milestone) => {
-          console.log("Milestone Date:", milestone.date);
-          // Parse the date as a local date
-          const [year, month, day] = milestone.date.split("-");
-          const localDate = new Date(year, month - 1, day); // Month is 0-indexed in JavaScript
-          return {
-            title: `${milestone.first_name} ${milestone.last_name}: ${milestone.title}`,
-            start: localDate, // Use the parsed local date
-            end: localDate, // Use the same date for start and end
-            details: milestone.details,
-          };
-        });
-        console.log("Formatted Milestones:", formattedMilestones);
+        const formattedMilestones = data.data.map((milestone) => ({
+          title: `${milestone.first_name} ${milestone.last_name}: ${milestone.title}`,
+          start: new Date(milestone.date),
+          end: new Date(milestone.date),
+          details: milestone.details,
+        }));
         setMilestones(formattedMilestones);
       }
     } catch (error) {
@@ -325,56 +316,64 @@ function Milestones() {
 
   return (
     <Container className={styles.container} fluid>
-      {/* Add ToastContainer at the top level */}
       <ToastContainer toasts={toasts} removeToast={removeToast} />
 
       <Row>
         <Col>
           <h1>{t("Milestones")}</h1>
-          <Col>
-            <div className={styles.calendarWrapper}>
-              <Calendar
-                localizer={localizer}
-                events={milestones}
-                startAccessor="start"
-                endAccessor="end"
-                views={["month"]}
-                tooltipAccessor="details"
-                date={currentDate}
-                onNavigate={(date) => setCurrentDate(date)}
-                defaultView="month"
-                messages={{
-                  today: t("Today"),
-                  previous: t("Back"),
-                  next: t("Next"),
-                  month: t("Month"),
-                }}
-                eventPropGetter={(event) => ({
+          <div className={styles.calendarWrapper}>
+            <Calendar
+              localizer={localizer}
+              events={milestones}
+              startAccessor="start"
+              endAccessor="end"
+              views={["month"]}
+              tooltipAccessor="details"
+              date={currentDate}
+              onNavigate={(date) => setCurrentDate(date)}
+              defaultView="month"
+              messages={{
+                today: t("Today"),
+                previous: t("Back"),
+                next: t("Next"),
+                month: t("Month"),
+              }}
+              eventPropGetter={(event) => ({
+                style: {
+                  backgroundColor: "#007bff",
+                },
+              })}
+              dayPropGetter={(date) => {
+                const isToday =
+                  format(date, "yyyy-MM-dd") ===
+                  format(new Date(), "yyyy-MM-dd");
+                const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+                return {
                   style: {
-                    backgroundColor: "#007bff",
+                    backgroundColor: isToday
+                      ? "#f756566c"
+                      : isWeekend
+                      ? "#f8f9fa"
+                      : "white",
                   },
-                })}
-                dayPropGetter={(date) => {
-                  const isToday =
-                    format(date, "yyyy-MM-dd") ===
-                    format(new Date(), "yyyy-MM-dd");
-                  const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-                  return {
-                    style: {
-                      backgroundColor: isToday
-                        ? "#f756566c" // background for today
-                        : isWeekend
-                        ? "#f8f9fa"
-                        : "white",
-                    },
-                  };
-                }}
-                onSelectEvent={handleEventClick}
-                popup
-              />
-            </div>
-          </Col>
-          <BabyCardMilestone addMilestoneBtn={handleOpenAddMilestoneModal} />
+                };
+              }}
+              onSelectEvent={handleEventClick}
+            />
+          </div>
+          
+          <BabyCard
+            buttons={[
+              { 
+                name: t("View Milestones"), 
+                path: "milestones" 
+              },
+              { 
+                name: t("Add Milestone"), 
+                functionHandler: handleOpenAddMilestoneModal 
+              }
+            ]}
+          />
         </Col>
       </Row>
 

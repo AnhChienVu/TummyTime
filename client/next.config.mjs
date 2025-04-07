@@ -5,7 +5,18 @@ const nextConfig = {
   i18n,
   reactStrictMode: true,
   images: {
-    domains: ["useprd-cdn-s.care.com"], // Add the external domain here
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+      {
+        protocol: 'http',
+        hostname: '**',
+      }
+    ],
+    // For images that might have issues with optimization
+    unoptimized: true
   },
 };
 export default nextConfig;
