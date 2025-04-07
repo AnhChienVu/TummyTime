@@ -14,6 +14,9 @@ jest.mock("../../../src/utils/response");
 jest.mock("../../../src/utils/userIdHelper");
 jest.mock("html-pdf");
 
+// Suppress console.log from DB connection
+jest.spyOn(console, "log").mockImplementation(() => { }); 
+
 describe("getExportPDF endpoint", () => {
   let req, res;
 
@@ -37,6 +40,14 @@ describe("getExportPDF endpoint", () => {
       send: jest.fn(),
     };
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+  
+  afterAll(() => {
+    jest.restoreAllMocks();
   });
 
   test("should return 401 if no authorization header provided", async () => {
@@ -81,13 +92,20 @@ describe("getExportPDF endpoint", () => {
           created_at: "2020-01-01T00:00:00Z",
         },
       ],
-    });
-    
-    pool.query.mockResolvedValueOnce({ rows: [] }); // Growth
-    pool.query.mockResolvedValueOnce({ rows: [] }); // Milestones
-    pool.query.mockResolvedValueOnce({ rows: [] }); // Feeding
-    pool.query.mockResolvedValueOnce({ rows: [] }); // Stool
-    
+    });// babyProfilesResult
+
+    // 3. Growth check query returns count 0
+    pool.query.mockResolvedValueOnce({ rows: [{ count: "0" }] }); // Growth check
+
+    // 4. Milestones check query returns count 0
+    pool.query.mockResolvedValueOnce({ rows: [{ count: "0" }] }); // Milestones check
+
+    // 5. Feeding check query returns count 0
+    pool.query.mockResolvedValueOnce({ rows: [{ count: "0" }] }); // Feeding check
+
+    // 6. Stool check query returns count 0
+    pool.query.mockResolvedValueOnce({ rows: [{ count: "0" }] }); // Stool check
+
     // Insert export record returns an inserted row
     pool.query.mockResolvedValueOnce({
       rows: [
@@ -100,30 +118,31 @@ describe("getExportPDF endpoint", () => {
       ],
     });
 
-    // Mock pdf.create().toBuffer to simulate successful PDF conversion
+
+    // 8. Mock pdf.create().toBuffer to simulate successful PDF conversion
     const fakeBuffer = Buffer.from("PDF CONTENT");
     pdf.create.mockReturnValue({
-      toBuffer: (callback) => callback(null, fakeBuffer),
+      toBuffer: (callback) => callback(null, fakeBuffer), 
     });
 
     await getExportPDF(req, res);
 
-    // Verify PDF headers were set
+    // Verify PDF headers were set.
     expect(res.setHeader).toHaveBeenCalledWith("Content-Type", "application/pdf");
     expect(res.setHeader).toHaveBeenCalledWith(
       "Content-Disposition",
       expect.stringContaining("ExportedBabyData")
     );
-    // Verify that pdf.create was called
+    // Verify that pdf.create was called.
     expect(pdf.create).toHaveBeenCalled();
-    // Verify buffer was sent
+    // Verify buffer was sent.
     expect(res.send).toHaveBeenCalledWith(fakeBuffer);
   });
 
   test("should return 500 on database error", async () => {
     req.headers.authorization = "Bearer validtoken";
     getUserId.mockResolvedValue("1");
-    // Simulate an error on the baby profiles query
+    // Simulate an error on the baby profiles query.
     pool.query.mockRejectedValue(new Error("DB error"));
     await getExportPDF(req, res);
     expect(res.status).toHaveBeenCalledWith(500);
