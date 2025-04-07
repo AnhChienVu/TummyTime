@@ -37,10 +37,11 @@ const TokenExpirationNotification = ({ show, onClose }) => {
       }}
     >
       <p style={{ marginBottom: "1rem" }}>
-        Your session has expired. Please{" "}
+        Your session has expired. Please login again to continue
+        {/* {" "}
         <a href="/login" style={{ fontWeight: "bold" }}>
           login again
-        </a>
+        </a> */}
         .
       </p>
 
