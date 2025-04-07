@@ -141,6 +141,14 @@ function Sidebar() {
         >
           {t("Childcare Services")}
         </Nav.Link>
+        <Nav.Link
+          as={Link}
+          href="/chat"
+          locale={locale}
+          className={styles.navlink}
+        >
+          {t("Ask Tummy AI")}
+        </Nav.Link>
       </Nav>
     </Col>
   );
