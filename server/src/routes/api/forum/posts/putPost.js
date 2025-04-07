@@ -9,7 +9,7 @@ const { getUserId } = require('../../../../utils/userIdHelper');
 module.exports = async (req, res) => {
   try {
     const { post_id } = req.params;
-    const { title, content } = req.body;
+    const { title, content, category } = req.body;
 
     // Validate request body
     if (!title || !content) {
@@ -49,13 +49,19 @@ module.exports = async (req, res) => {
     const updateQuery = `
       UPDATE forumpost 
       SET title = $1, 
-          content = $2, 
+          content = $2,
+          category = $3,
           updated_at = CURRENT_TIMESTAMP 
-      WHERE post_id = $3 
-      RETURNING post_id, title, content, updated_at
+      WHERE post_id = $4 
+      RETURNING post_id, title, content, category, updated_at
     `;
 
-    const result = await pool.query(updateQuery, [title, content, post_id]);
+    const result = await pool.query(updateQuery, [
+      title,
+      content,
+      category || null, // Handle null case for category
+      post_id,
+    ]);
 
     return res.status(200).json({
       status: 'ok',

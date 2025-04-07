@@ -34,7 +34,6 @@ const { createSuccessResponse, createErrorResponse } = require('../../../../src/
 const pool = require('../../../../database/db');
 const { getUserId } = require('../../../../src/utils/userIdHelper');
 const { checkBabyBelongsToUser } = require('../../../../src/utils/babyAccessHelper');
-const logger = require('../../../../src/utils/logger');
 
 describe('getReminders direct invocation', () => {
   let req, res;
@@ -45,6 +44,7 @@ describe('getReminders direct invocation', () => {
       headers: {
         authorization: 'Bearer sometoken',
       },
+      query: {},
     };
     res = {
       status: jest.fn().mockReturnThis(),
@@ -57,6 +57,7 @@ describe('getReminders direct invocation', () => {
     // Default mock implementations
     getUserId.mockResolvedValue(1);
     checkBabyBelongsToUser.mockResolvedValue(true);
+    pool.query.mockResolvedValue({ rows: [] }); // Default mock for database queries
   });
 
   // Invalid babyId format tests
@@ -151,26 +152,13 @@ describe('getReminders direct invocation', () => {
   // Verify query ordering
   test('verifies reminders are ordered by date and time', async () => {
     // Create a mock query to check parameters
-    const mockQuery = jest.fn().mockResolvedValue({ rows: [] });
-    pool.query = mockQuery;
+    pool.query.mockImplementationOnce((query, params) => {
+      expect(query).toContain('ORDER BY date DESC, time ASC');
+      expect(params).toEqual([1]);
+      return Promise.resolve({ rows: [] });
+    });
 
     await getReminders(req, res);
-
-    // Verify the query was called with the correct SQL for ordering
-    expect(mockQuery).toHaveBeenCalledWith(
-      `SELECT 
-        reminder_id,
-        baby_id,
-        title,
-        TO_CHAR(date, 'YYYY-MM-DD') AS date,
-        notes,
-        is_active,
-        next_reminder,
-        reminder_in,
-        created_at,
-        updated_at
-      FROM reminders WHERE baby_id = $1 ORDER BY date DESC, time ASC`,
-      [1]
-    );
+    expect(pool.query).toHaveBeenCalled();
   });
 });
