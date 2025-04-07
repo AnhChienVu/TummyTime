@@ -23,15 +23,12 @@ module.exports.getReminders = async (req, res) => {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
       logger.error('No authorization header found');
-      return res.status(401).json(createErrorResponse(401, 'No authorization token provided'));
-      logger.error('No authorization header found');
-      return res.status(401).json(createErrorResponse(401, 'No authorization token provided'));
+      return res.status(401).json(createErrorResponse(401, 'No authorization token provided'));  
     }
 
     const userId = await getUserId(authHeader);
     if (!userId) {
-      return res.status(404).json(createErrorResponse(404, 'User not found'));
-      return res.status(404).json(createErrorResponse(404, 'User not found'));
+      return res.status(404).json(createErrorResponse(404, 'User not found')); 
     }
 
     // Check if the baby belongs to the user
@@ -39,10 +36,7 @@ module.exports.getReminders = async (req, res) => {
     if (!hasBabyAccess) {
       return res
         .status(403)
-        .json(createErrorResponse(403, 'Access denied: Baby does not belong to current user'));
-      return res
-        .status(403)
-        .json(createErrorResponse(403, 'Access denied: Baby does not belong to current user'));
+        .json(createErrorResponse(403, 'Access denied: Baby does not belong to current user')); 
     }
 
     // Use different queries based on whether we want upcoming reminders
@@ -89,9 +83,9 @@ module.exports.getReminders = async (req, res) => {
     }
 
     logger.info(`Found ${result.rows.length} reminders for babyId=${numericBabyId}`);
-    return res.status(200).json(createSuccessResponse(result.rows));
-  } catch (error) {
-    logger.error('Unexpected error in getReminders:', error);
+    return res.status(200).json(createSuccessResponse(result.rows)); 
+  } catch (dbError) {
+    logger.error('Database error in getReminders:', dbError); 
     return res.status(500).json(createErrorResponse(500, 'Internal server error'));
   }
 };

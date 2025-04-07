@@ -20,14 +20,14 @@ export default function Login() {
     email: "",
     password: "",
     general: ""
-  });
+  }); 
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [formErrors, setFormErrors] = useState({
     email: "",
     password: "",
     general: ""
-  });
+  }); 
 
   const router = useRouter();
 

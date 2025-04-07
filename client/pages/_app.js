@@ -45,7 +45,7 @@ const isTokenExpired = (token) => {
     console.log("Error decoding token:", error);
     return true; // Assume expired if there's an error
   }
-};
+}; 
 
 // Helper function to check if the token is expired
 const isTokenExpired = (token) => {
@@ -58,4 +58,4 @@ const isTokenExpired = (token) => {
     console.log("Error decoding token:", error);
     return true; // Assume expired if there's an error
   }
-};
+}; 
