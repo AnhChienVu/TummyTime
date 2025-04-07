@@ -170,6 +170,9 @@ router.delete(
 // ************ /coupons routes ************
 router.get('/coupons', require('./coupons/getAllCoupons'));
 
+// ************ /quiz routes ************
+router.get('/quiz', require('./quiz/getAllQuizzes'));
+
 // ************ /voiceCommand routes ************
 router.post('/voiceCommand', require('./voiceCommand/processVoiceCommand').processVoiceCommand);
 
