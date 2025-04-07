@@ -45,17 +45,4 @@ const isTokenExpired = (token) => {
     console.log("Error decoding token:", error);
     return true; // Assume expired if there's an error
   }
-}; 
-
-// Helper function to check if the token is expired
-const isTokenExpired = (token) => {
-  try {
-    const { exp } = jwtDecode(token);
-    const currentTime = Math.floor(Date.now() / 1000);
-
-    return exp < currentTime;
-  } catch (error) {
-    console.log("Error decoding token:", error);
-    return true; // Assume expired if there's an error
-  }
-}; 
+};

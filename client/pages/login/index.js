@@ -19,15 +19,8 @@ export default function Login() {
   const [formErrors, setFormErrors] = useState({
     email: "",
     password: "",
-    general: ""
-  }); 
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [formErrors, setFormErrors] = useState({
-    email: "",
-    password: "",
-    general: ""
-  }); 
+    general: "",
+  });
 
   const router = useRouter();
 
@@ -43,7 +36,7 @@ export default function Login() {
     const errors = {
       email: "",
       password: "",
-      general: ""
+      general: "",
     };
 
     // Email validation
@@ -69,13 +62,13 @@ export default function Login() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    
+
     // Reset errors
     setError("");
     setFormErrors({
       email: "",
       password: "",
-      general: ""
+      general: "",
     });
 
     // Validate both empty fields and email format before submission
@@ -83,7 +76,7 @@ export default function Login() {
     const errors = {
       email: "",
       password: "",
-      general: ""
+      general: "",
     };
 
     // Check for empty fields and validate email format
@@ -104,7 +97,7 @@ export default function Login() {
       setFormErrors(errors);
       return;
     }
-    
+
     // Set loading state
     setIsLoading(true);
 
@@ -137,14 +130,14 @@ export default function Login() {
       } else {
         setFormErrors({
           ...formErrors,
-          general: "Email or password is invalid"
+          general: "Email or password is invalid",
         });
         setIsLoading(false);
       }
     } catch (error) {
       setFormErrors({
         ...formErrors,
-        general: "An error occurred. Please try again later."
+        general: "An error occurred. Please try again later.",
       });
       setIsLoading(false);
     }
@@ -162,17 +155,11 @@ export default function Login() {
             {message}{" "}
           </Alert>
         )}
-        <Form
-          className={styles.form}
-          onSubmit={handleSubmit}
-          noValidate
-        >
+        <Form className={styles.form} onSubmit={handleSubmit} noValidate>
           <p className={styles.title}>{t("Welcome back !")}</p>
 
           {formErrors.general && (
-            <div className={styles.errorMessage}>
-              {formErrors.general}
-            </div>
+            <div className={styles.errorMessage}>{formErrors.general}</div>
           )}
 
           <Form.Group className="mb-3" controlId="emailLogin">
@@ -180,14 +167,16 @@ export default function Login() {
               <Form.Control
                 type="email"
                 placeholder={t("Enter email")}
-                className={`${styles.formControl} ${formErrors.email ? styles.inputError : ""}`}
+                className={`${styles.formControl} ${
+                  formErrors.email ? styles.inputError : ""
+                }`}
                 value={email}
                 required
                 onChange={(e) => {
                   setEmail(e.target.value);
                   // Clear email error when user starts typing
                   if (formErrors.email) {
-                    setFormErrors({...formErrors, email: ""});
+                    setFormErrors({ ...formErrors, email: "" });
                   }
                 }}
               />
@@ -205,28 +194,33 @@ export default function Login() {
                 <Form.Control
                   type={showPassword ? "text" : "password"}
                   placeholder={t("Password")}
-                  className={`${styles.formControl} ${formErrors.password ? styles.inputError : ""}`}
+                  className={`${styles.formControl} ${
+                    formErrors.password ? styles.inputError : ""
+                  }`}
                   value={password}
                   required
                   onChange={(e) => {
                     setPassword(e.target.value);
                     // Clear password error when user starts typing
                     if (formErrors.password) {
-                      setFormErrors({...formErrors, password: ""});
+                      setFormErrors({ ...formErrors, password: "" });
                     }
                   }}
                 />
-                <Button 
-                  variant="outline-secondary" 
+                <Button
+                  variant="outline-secondary"
                   onClick={togglePasswordVisibility}
-                  className={`${styles.passwordToggle} ${formErrors.password ? styles.inputError : ""}`}
+                  className={`${styles.passwordToggle} ${
+                    formErrors.password ? styles.inputError : ""
+                  }`}
                 >
                   {showPassword ? "Hide" : "Show"}
                 </Button>
               </InputGroup>
               {formErrors.password && (
                 <div className={styles.inlineErrorMessage}>
-                  <span className={styles.errorIcon}>!</span> {formErrors.password}
+                  <span className={styles.errorIcon}>!</span>{" "}
+                  {formErrors.password}
                 </div>
               )}
             </div>
