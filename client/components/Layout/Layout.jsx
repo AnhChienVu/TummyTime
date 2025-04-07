@@ -6,6 +6,12 @@ import styles from "./Layout.module.css";
 import { Container } from "react-bootstrap";
 import DoctorSidebar from "../DoctorSidebar/DoctorSidebar";
 import TipsNotificationPopup from "../tipsNotificationPopup/tipsNotificationPopup";
+import dynamic from 'next/dynamic';
+
+const ChatBot = dynamic(
+  () => import('../ChatBot/ChatBot'),
+  { ssr: false }
+);
 
 export default function Layout({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -37,6 +43,7 @@ export default function Layout({ children }) {
         ) : null}
         <main className={styles.main}>{children}</main>
       </Container>
+      <ChatBot/>
       <Footer />
     </>
   );
