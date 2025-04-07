@@ -4,7 +4,7 @@ const logger = require('../../../utils/logger');
 const { createErrorResponse } = require('../../../utils/response');
 const pool = require('../../../../database/db');
 const { getUserId } = require('../../../utils/userIdHelper');
-const { checkBabyBelongsToUser } = require('../../../utils/babyAccessHelper');
+const { checkBabyBelongsToUser } = require('../../../utils/babyAccessHelper'); 
 
 // GET /v1/baby/:baby_id/milestones
 // Get all milestones for a baby
@@ -54,7 +54,7 @@ module.exports.getMilestoneByBabyId = async (req, res) => {
         baby_id,
         TO_CHAR(date, 'YYYY-MM-DD') AS date, -- Format the date as YYYY-MM-DD
         title,
-        details FROM milestones WHERE baby_id = $1`,
+        details FROM milestones WHERE baby_id = $1`, 
       [baby_id]
     );
 

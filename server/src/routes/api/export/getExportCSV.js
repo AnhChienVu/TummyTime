@@ -37,10 +37,9 @@ module.exports = async (req, res) => {
     let { startDate, endDate, babyInfo, growthRecords, milestones, feedingSchedule, stoolRecords } = req.query;
 
 
-    // if no date range:
-    // startDate = date of useraccount creation (in format: YYYY-MM-DD)
-    // endDate = today
-    // If startDate not provided, set it to the user's creation date (formatted as YYYY-MM-DD)
+    // if no date range ->Set Default date range: startDate = user account creation date, endDate = today
+    // (formatted as YYYY - MM - DD)
+    // {Requirement} user_id: user is already exist with the token
     if (!startDate) {
       const userResult = await pool.query(
         `SELECT to_char(created_at, 'YYYY-MM-DD') as created_at FROM users WHERE user_id = $1`,
@@ -60,12 +59,15 @@ module.exports = async (req, res) => {
     logger.debug(startDate, `Start Date: `);
     logger.debug(endDate, `End Date: `);
 
+
+
+    // set "undefined" to "true"
     babyInfo = babyInfo === undefined ? "true" : babyInfo;
     growthRecords = growthRecords === undefined ? "true" : growthRecords;
     milestones = milestones === undefined ? "true" : milestones;
     feedingSchedule = feedingSchedule === undefined ? "true" : feedingSchedule;
     stoolRecords = stoolRecords === undefined ? "true" : stoolRecords;
-
+    // convert to boolean
     const includeBabyInfo = babyInfo === "true";
     const includeGrowthRecords = growthRecords === "true";
     const includeMilestones = milestones === "true";
@@ -78,22 +80,32 @@ module.exports = async (req, res) => {
     logger.debug(includeFeedingSchedule, `Include Feeding Schedule: `);
     logger.debug(includeStoolRecords, `Include Stool Records: `);
 
+
     // Query to fetch baby profiles for this user
-    const babyProfilesResult = await pool.query(
-      `SELECT b.* FROM baby b
-       JOIN user_baby ub ON b.baby_id = ub.baby_id
-       JOIN users u ON u.user_id = ub.user_id
-       WHERE u.user_id = $1
-       ORDER BY b.baby_id ASC`,
+    // {Requirement} baby_id: must have at least one baby
+    // {checkingRequirement} check if any baby exist for this user
+    const checkBabyExist = await pool.query(
+      `SELECT COUNT(*) FROM user_baby WHERE user_id = $1`,
       [parseInt(user_id, 10)]
     );
-    const babies = babyProfilesResult.rows;
-    if (babies.length === 0) {
+    if (checkBabyExist.rows[0].count === "0") {
       return res
         .status(404)
         .json(createErrorResponse(404, "No baby profiles found for this user"));
     }
+    logger.debug({ checkBabyExist }, `Checking if any baby exist for this user: `);
+    
+    const babyProfilesResult = await pool.query(
+      `SELECT b.* FROM baby b
+       JOIN user_baby ub ON b.baby_id = ub.baby_id
+       JOIN users u ON u.user_id = ub.user_id
+       WHERE u.user_id = $1 
+       ORDER BY b.baby_id ASC`,
+      [parseInt(user_id, 10)]
+    );
+    const babies = babyProfilesResult.rows;
     logger.debug(babies, `Baby profiles: `);
+
 
 
     // Step2: For each baby, query related data and append CSV sections : baby_info, growth_records, milestones, feeding_schedule, stool_records
@@ -127,82 +139,122 @@ module.exports = async (req, res) => {
       }
 
       // --- Growth Records Section ---
+      // {Requirement} growth: must have at least one growth record
       if (includeGrowthRecords) {
-        const growthResult = await pool.query(
-          "SELECT * FROM growth WHERE baby_id = $1 AND date BETWEEN $2 AND $3 ORDER BY date ASC",
-          [baby.baby_id, startDate, endDate]
+        // {checkingRequirement} growth
+        const checkGrowthExist = await pool.query(
+          `SELECT COUNT(*) FROM growth WHERE baby_id = $1`,
+          [baby.baby_id]
         );
 
-        csvContent += "---------------------------,---------------------------,----------------------\n";
-        csvContent += "Growth Records\n";
-        csvContent += "Growth ID,Date,Weight,Height,Notes\n";
-        if (growthResult.rows.length > 0) {
+        // if no growth record
+        if (checkGrowthExist.rows[0].count === "0") {
+          csvContent += "No growth records found\n";
+        } else {  // at least one growth record
+          const growthResult = await pool.query(
+            "SELECT * FROM growth WHERE baby_id = $1 AND date BETWEEN $2 AND $3 ORDER BY date ASC",
+            [baby.baby_id, startDate, endDate]
+          );
+
+          csvContent += "---------------------------,---------------------------,----------------------\n";
+          csvContent += "Growth Records\n";
+          csvContent += "Growth ID,Date,Weight,Height,Notes\n";
+          
           growthResult.rows.forEach(record => {
             csvContent += `${record.growth_id},${record.date},${record.weight},${record.height},${record.notes || ""}\n`;
           });
-        } else {
-          csvContent += "No growth records found\n";
         }
+
         csvContent += "\n";
       }
 
       // --- Milestones Section ---
+      // {Requirement} milestones: must have at least one milestone
       if (includeMilestones) {
-        const milestonesResult = await pool.query(
-          "SELECT * FROM milestones WHERE baby_id = $1 AND date BETWEEN $2 AND $3 ORDER BY date ASC",
-          [baby.baby_id, startDate, endDate]
+        // {checkingRequirement} milestones
+        const checkMilestoneExist = await pool.query(
+          `SELECT COUNT(*) FROM milestones WHERE baby_id = $1`,
+          [baby.baby_id]
         );
 
-        csvContent += "---------------------------,---------------------------,----------------------\n";
-        csvContent += "Milestones\n";
-        csvContent += "Milestone ID,Date,Title,Details\n";
-        if (milestonesResult.rows.length > 0) {
+        // if no milestone record
+        if (checkMilestoneExist.rows[0].count === "0") {
+          csvContent += "No milestones found\n";
+        } else {  // at least one milestone record
+          const milestonesResult = await pool.query(
+            "SELECT * FROM milestones WHERE baby_id = $1 AND date BETWEEN $2 AND $3 ORDER BY date ASC",
+            [baby.baby_id, startDate, endDate]
+          );
+          
+          csvContent += "---------------------------,---------------------------,----------------------\n";
+          csvContent += "Milestones\n";
+          csvContent += "Milestone ID,Date,Title,Details\n";
+          
           milestonesResult.rows.forEach(milestone => {
             csvContent += `${milestone.milestone_id},${milestone.date},${milestone.title},${milestone.details || ""}\n`;
           });
-        } else {
-          csvContent += "No milestones found\n";
         }
+
         csvContent += "\n";
       }
 
       // --- Feeding Schedule Section ---
+      // {Requirement} feeding: must have at least one feeding schedule
       if (includeFeedingSchedule) {
-        const feedingResult = await pool.query(
-          "SELECT * FROM feedingschedule WHERE baby_id = $1 AND date BETWEEN $2 AND $3 ORDER BY date ASC, time ASC",
-          [baby.baby_id, startDate, endDate]
+        // {checkingRequirement} feeding
+        const checkFeedingExist = await pool.query(
+          `SELECT COUNT(*) FROM feedingschedule WHERE baby_id = $1`,
+          [baby.baby_id]
         );
 
-        csvContent += "---------------------------,---------------------------,----------------------\n";
-        csvContent += "Feeding Schedule\n";
-        csvContent += "Schedule ID,Date,Time,Meal,Amount,Type,Issues,Notes\n";
-        if (feedingResult.rows.length > 0) {
+        // if no feeding schedule record
+        if (checkFeedingExist.rows[0].count === "0") {
+          csvContent += "No feeding schedule records found\n";
+        } else {  // at least one feeding schedule record
+          const feedingResult = await pool.query(
+            "SELECT * FROM feedingschedule WHERE baby_id = $1 AND date BETWEEN $2 AND $3 ORDER BY date ASC, time ASC",
+            [baby.baby_id, startDate, endDate]
+          );
+
+          csvContent += "---------------------------,---------------------------,----------------------\n";
+          csvContent += "Feeding Schedule\n";
+          csvContent += "Schedule ID,Date,Time,Meal,Amount,Type,Issues,Notes\n";
+          
           feedingResult.rows.forEach(feed => {
             csvContent += `${feed.feeding_schedule_id},${feed.date},${feed.time},${feed.meal},${feed.amount},${feed.type},${feed.issues || ""},${feed.notes || ""}\n`;
           });
-        } else {
-          csvContent += "No feeding schedule records found\n";
         }
+
         csvContent += "\n";
       }
 
       // --- Stool Records Section ---
+      // {Requirement} stool: must have at least one stool record
       if (includeStoolRecords) {
-        const stoolResult = await pool.query(
-          "SELECT * FROM stool_entries WHERE baby_id = $1 AND date(timestamp) BETWEEN $2 AND $3 ORDER BY timestamp DESC",
-          [baby.baby_id, startDate, endDate]
+        // {checkingRequirement} stool
+        const checkStoolExist = await pool.query(
+          `SELECT COUNT(*) FROM stool_entries WHERE baby_id = $1`,
+          [baby.baby_id]
         );
 
-        csvContent += "---------------------------,---------------------------,----------------------\n";
-        csvContent += "Stool Records\n";
-        csvContent += "Stool ID,Timestamp,Color,Consistency,Notes\n";
-        if (stoolResult.rows.length > 0) {
+        // if no stool record
+        if (checkStoolExist.rows[0].count === "0") {
+          csvContent += "No stool records found\n";
+        } else {  // at least one stool record
+          const stoolResult = await pool.query(
+            "SELECT * FROM stool_entries WHERE baby_id = $1 AND date BETWEEN $2 AND $3 ORDER BY date ASC",
+            [baby.baby_id, startDate, endDate]
+          );
+
+          csvContent += "---------------------------,---------------------------,----------------------\n";
+          csvContent += "Stool Records\n";
+          csvContent += "Stool ID,Timestamp,Color,Consistency,Notes\n";
+            
           stoolResult.rows.forEach(entry => {
             csvContent += `${entry.stool_id},${entry.timestamp},${entry.color},${entry.consistency},${entry.notes || ""}\n`;
           });
-        } else {
-          csvContent += "No stool records found\n";
         }
+          
         csvContent += "\n";
       }
 
@@ -222,7 +274,7 @@ module.exports = async (req, res) => {
     const fileName = fileNameParts.join("_") + ".csv";
 
     // Insert export record into exporteddocument table
-    const exportDate = new Date().toISOString(); 
+    const exportDate = new Date().toISOString();
     const insertResult = await pool.query(
       "INSERT INTO exporteddocument (file_name, file_format, created_at) VALUES ($1, $2, $3) RETURNING *",
       [fileName, "CSV", exportDate]

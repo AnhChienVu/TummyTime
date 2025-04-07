@@ -15,10 +15,13 @@ const ExportDataPage = () => {
   });
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
-  const [error, setError] = useState(""); // Error message to display to user
+  const [error, setError] = useState(""); // DISPLAY ERROR TO USER
   const [downloadLink, setDownloadLink] = useState("");
   const [downloadFileName, setDownloadFileName] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
+  const [exportFormat, setExportFormat] = useState("csv");
+  // Choose API endpoint based on export format
+  const endpoint = exportFormat === "pdf" ? "/v1/export/pdf" : "/v1/export/csv";
 
   // Fetch user info to set default start date
   useEffect(() => {
@@ -74,7 +77,7 @@ const ExportDataPage = () => {
       const response = await fetch(
         `${
           process.env.NEXT_PUBLIC_API_URL
-        }/v1/export/csv?${queryParams.toString()}`,
+        }${endpoint}?${queryParams.toString()}`,
         {
           method: "GET",
           headers: {
@@ -102,7 +105,7 @@ const ExportDataPage = () => {
 
       // Parse the filename from the header "exportfilename"
       const disposition = response.headers.get("exportfilename");
-      let filename = "download.csv";
+      let filename = exportFormat === "pdf" ? "download.pdf" : "download.csv";
       if (disposition) {
         filename = disposition;
       }
@@ -110,7 +113,7 @@ const ExportDataPage = () => {
 
       // Convert the response to a blob and generate a download URL
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+      const url = window.URL.createObjectURL(blob); // Create a URL for the blob
       setDownloadLink(url);
       setModalVisible(true);
     } catch (error) {
@@ -130,6 +133,7 @@ const ExportDataPage = () => {
     <div className={styles.container}>
       <h1>Export Baby Health Data</h1>
       <div className="card p-4 mt-4">
+        {/* Select Types of Data to Export */}
         <h4>Select Data to Export</h4>
         {Object.keys(selectedOptions).map((option) => (
           <div className="form-check" key={option}>
@@ -151,6 +155,40 @@ const ExportDataPage = () => {
           </div>
         ))}
         <hr />
+
+        {/* Select Export Format */}
+        <h4>Select Export Format</h4>
+        <div className="form-check">
+          <input
+            type="radio"
+            id="csv"
+            name="exportFormat"
+            value="csv"
+            checked={exportFormat === "csv"}
+            onChange={(e) => setExportFormat(e.target.value)}
+            className="form-check-input"
+          />
+          <label htmlFor="csv" className="form-check-label">
+            CSV
+          </label>
+        </div>
+        <div className="form-check">
+          <input
+            type="radio"
+            id="pdf"
+            name="exportFormat"
+            value="pdf"
+            checked={exportFormat === "pdf"}
+            onChange={(e) => setExportFormat(e.target.value)}
+            className="form-check-input"
+          />
+          <label htmlFor="pdf" className="form-check-label">
+            PDF
+          </label>
+        </div>
+        <hr />
+
+        {/* Enter Dates */}
         <h4>Enter Dates</h4>
         <div className="row">
           <div className="col-md-6">
@@ -197,9 +235,9 @@ const ExportDataPage = () => {
                 ></button>
               </div>
               <div className="modal-body">
-                <p>Your CSV export is ready.</p>
+                <p>Your export {exportFormat.toUpperCase()} is ready.</p>
                 <a href={downloadLink} download={downloadFileName}>
-                  Download CSV
+                  Download {exportFormat.toUpperCase()}
                 </a>
               </div>
               <div className="modal-footer">
