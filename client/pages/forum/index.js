@@ -224,7 +224,7 @@ export default function Forum() {
   return (
     <Container className={styles.container} fluid>
       <div className={styles.formContainer}>
-        <div className={styles.title}>{t("Community Forum")}</div>
+        <h1 className={styles.title}>{t("Community Forum")}</h1>
         <Form onSubmit={handleSubmit(onSubmit)} className="mb-4">
           <Row className="mb-3">
             <Col className="d-flex align-items-center">
@@ -392,7 +392,7 @@ export default function Forum() {
         )}
 
         {/* Display saved journal posts */}
-        <div className={styles.title}>{t("Latest Posts")}</div>
+        <h2 className={styles.title}>{t("Latest Posts")}</h2>
         <div className={styles.postsSection}>
           {Array.isArray(filteredPosts) && filteredPosts.length > 0 ? (
             [...filteredPosts]

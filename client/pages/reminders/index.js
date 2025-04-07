@@ -5,21 +5,7 @@ import { useRouter } from "next/router";
 import BabyCard from "../../components/BabyCard/BabyCard";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
-
-const containerStyle = {
-  maxWidth: "1200px",
-  margin: "50px auto",
-  padding: "20px",
-};
-
-const headerStyle = {
-  marginBottom: "20px",
-};
-
-const titleStyle = {
-  fontSize: "2rem",
-  fontWeight: "bold",
-};
+import styles from "./reminders.module.css";
 
 export default function Reminders() {
   const { t } = useTranslation("common");
@@ -42,7 +28,7 @@ export default function Reminders() {
 
   if (loading) {
     return (
-      <Container style={containerStyle}>
+      <Container className={styles.container}>
         <div
           style={{
             display: "flex",
@@ -58,11 +44,11 @@ export default function Reminders() {
   }
 
   return (
-    <Container style={containerStyle}>
+    <Container className={styles.container}>
       <Row>
         <Col>
-          <div style={headerStyle}>
-            <h1 style={titleStyle}>{t("Reminders")}</h1>
+          <div className={styles.header}>
+            <h1>{t("Reminders")}</h1>
           </div>
           <p>{t("Select a baby to view their reminders")}</p>
           <BabyCard

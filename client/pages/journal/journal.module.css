@@ -3,6 +3,7 @@
   max-width: 1200px;
   /* Increase max-width to accommodate sidebar and form */
   margin-left: 50px;
+  padding: 12px;
 }
 
 .formContainer {
@@ -32,12 +33,6 @@
   border-color: #80bdff;
   box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 
-}
-
-.title {
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
 }
 
 .submitButton {
@@ -314,4 +309,15 @@
   opacity: 0.65;
   pointer-events: none;
   background-color: #e9ecef;
+}
+
+.button {
+  background-color: #e8d9ff;
+  color: #4a235a;
+  border: 1px solid #b28ced;
+}
+
+.button:hover {
+  background-color: #dfc9ff;
+  color: #4a235a;
 }

@@ -4,21 +4,7 @@ import { useRouter } from "next/router";
 import BabyCard from "../../components/BabyCard/BabyCard";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
-
-const containerStyle = {
-  maxWidth: "1200px",
-  margin: "50px auto",
-  padding: "20px",
-};
-
-const headerStyle = {
-  marginBottom: "20px",
-};
-
-const titleStyle = {
-  fontSize: "2rem",
-  fontWeight: "bold",
-};
+import styles from "./analysis.module.css";
 
 export default function Analysis() {
   const { t } = useTranslation("common");
@@ -41,7 +27,7 @@ export default function Analysis() {
 
   if (loading) {
     return (
-      <Container style={containerStyle}>
+      <Container className={styles.container}>
         <div
           style={{
             display: "flex",
@@ -57,11 +43,11 @@ export default function Analysis() {
   }
 
   return (
-    <Container style={containerStyle}>
+    <div className={styles.container}>
       <Row>
         <Col>
-          <div style={headerStyle}>
-            <h1 style={titleStyle}>{t("Analysis")}</h1>
+          <div className={styles.header}>
+            <h1 className={styles.title}>{t("Analysis")}</h1>
           </div>
           <p>{t("Select a baby to view their analysis")}</p>
           <BabyCard
@@ -74,7 +60,7 @@ export default function Analysis() {
           />
         </Col>
       </Row>
-    </Container>
+    </div>
   );
 }
 
