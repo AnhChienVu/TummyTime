@@ -22,9 +22,7 @@ const QuizPage = () => {
           process.env.NEXT_PUBLIC_API_URL
         }/v1/quiz?category=${encodeURIComponent(category)}`,
       );
-      if (!res.ok) {
-        throw new Error("Failed to load quiz questions");
-      }
+
       const data = await res.json();
       console.log(data);
 

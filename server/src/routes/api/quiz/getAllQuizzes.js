@@ -16,6 +16,7 @@ module.exports = async (req, res) => {
     if (!category) {
       category = 'ALL';
     }
+    logger.info(category, `Category for quiz:`);
 
     // Select 5 random questions for the chosen category + SEND CORRECT ANSWERS
     let result;
@@ -44,7 +45,7 @@ module.exports = async (req, res) => {
     if (result.rows.length > 0) {
       // return ALL ROWS
 
-      // logger.info(result.rows, `Fetched quizzes:`);
+      logger.info(result.rows, `Fetched quizzes:`);
 
       res.status(200).send(createSuccessResponse({ dataQuiz: result.rows }));
     } else {
