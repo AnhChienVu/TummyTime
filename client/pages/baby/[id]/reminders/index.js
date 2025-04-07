@@ -6,7 +6,10 @@ import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import styles from "./reminders.module.css";
 
 // Context Provider
-import { ReminderProvider, useReminders } from "../../../../context/ReminderContext";
+import {
+  ReminderProvider,
+  useReminders,
+} from "../../../../context/ReminderContext";
 
 // Components
 import Header from "../../../../components/Reminders/Header";
@@ -58,11 +61,11 @@ const RemindersPage = () => {
   const { id } = router.query;
 
   return (
-    <Container className={styles.container}>
+    <div className={styles.container}>
       <ReminderProvider babyId={id}>
         <RemindersPageContent />
       </ReminderProvider>
-    </Container>
+    </div>
   );
 };
 

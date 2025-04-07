@@ -521,7 +521,7 @@ export default function Journal() {
     <>
       <Container className={styles.container} fluid>
         <div className={styles.formContainer}>
-          <p className={styles.title}>{t("My Journal")}</p>
+          <h1 className={styles.title}>{t("My Journal")}</h1>
           {/* Create journal entry modal */}
           <Form onSubmit={handleSubmit(onSubmit)} className="mb-4">
             <Row className="mb-3">
@@ -684,7 +684,7 @@ export default function Journal() {
           <hr />
 
           {/* Display saved journal entries */}
-          <p className={styles.title}>{t("Journal Entries")}</p>
+          <h1 className={styles.title}>{t("Journal Entries")}</h1>
           <Form.Group className="mb-3">
             {/* search bar */}
             <div className="d-flex">
@@ -1115,7 +1115,7 @@ export default function Journal() {
                     });
                     setIsEditing(true);
                   }}
-                  className="me-2"
+                  className={`${styles.button} me-2`}
                 >
                   {t("Edit Entry")}
                 </Button>

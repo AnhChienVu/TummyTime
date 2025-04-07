@@ -1,6 +1,7 @@
 // src/routes/api/index.js
 // Our authentication middleware
 const { authenticate } = require('../../auth');
+const { checkPostOwnership, checkReplyOwnership } = require('../../auth/ownershipCheck');
 /**
  * The main entry-point for the v1 version of the API.
  */
@@ -35,6 +36,7 @@ router.post('/signup', require('./signup'));
 
 // ************ /feedingSchedule routes ************
 router.get('/baby/:id/getFeedingSchedules', authenticate(), require('./baby/getFeedingSchedules'));
+router.get('baby/:id/getLatestFeed', authenticate(), require('./baby/getLatestFeed'));
 
 router.put(
   '/baby/:id/updateFeedingSchedule/:mealId',
@@ -138,17 +140,37 @@ router.get('/forum/posts/:post_id', authenticate(), require('./forum/posts/getPo
 
 router.get('/forum/posts', authenticate(), require('./forum/posts/getPosts'));
 
-router.put('/forum/posts/:post_id', authenticate(), require('./forum/posts/putPost'));
+router.put(
+  '/forum/posts/:post_id',
+  authenticate(),
+  checkPostOwnership,
+  require('./forum/posts/putPost')
+);
 
-router.delete('/forum/posts/:post_id', authenticate(), require('./forum/posts/deletePost'));
+router.delete(
+  '/forum/posts/:post_id',
+  authenticate(),
+  checkPostOwnership,
+  require('./forum/posts/deletePost')
+);
 
 router.post('/forum/posts/:post_id/reply', authenticate(), require('./forum/replies/addReply'));
 
 router.get('/forum/posts/:post_id/replies', authenticate(), require('./forum/replies/getReplies'));
 
-router.put('/forum/replies/:reply_id', authenticate(), require('./forum/replies/putReply'));
+router.put(
+  '/forum/replies/:reply_id',
+  authenticate(),
+  checkReplyOwnership,
+  require('./forum/replies/putReply')
+);
 
-router.delete('/forum/replies/:reply_id', authenticate(), require('./forum/replies/deleteReply'));
+router.delete(
+  '/forum/replies/:reply_id',
+  authenticate(),
+  checkReplyOwnership,
+  require('./forum/replies/deleteReply')
+);
 
 // ************ /coupons routes ************
 router.get('/coupons', require('./coupons/getAllCoupons'));
@@ -213,48 +235,26 @@ router.get('/careServices', authenticate(), careServices);
 router.get('/careServices/favorites', favoritesHandler.getFavorites);
 router.post('/careServices/favorites', favoritesHandler.toggleFavorite);
 
-// ************ /Sharing Doctor - Parent files routes ************
-// Parent upload file for a baby to a doctor
+// ************ /profile-picture routes ************
 router.post(
-  '/parent/:parentId/babies/:babyId/doctors/:doctorId/uploadFile',
+  '/profile-picture/upload',
   authenticate(),
-  upload.single('document'), // Middleware to handle file upload
-  require('./parent/uploadFile').uploadFile
+  require('./profilePicture/putProfilePicture')
 );
 
-// Doctor upload file for a baby to a parent
-router.post(
-  '/doctor/:doctorId/babies/:babyId/parent/:parentId/uploadFile',
-  authenticate(),
-  upload.single('document'),
-  require('./doctor/uploadFile').uploadFile
-);
-
-// Doctor get all files sent by all parents to the doctor
+// Get a profile picture (public access, no authentication required)
 router.get(
-  '/doctor/:doctorId/getAllFiles',
-  authenticate(),
-  require('./doctor/getAllFiles').getAllFiles
+  '/profile-picture/:entityType/:entityId',
+  require('./profilePicture/getProfilePicture.js')
 );
 
-// Parent get all files sent by a doctor to a baby
-router.get(
-  '/parent/:parentId/doctors/:doctorId/babies/:babyId/getFiles',
+// Delete a profile picture
+router.delete(
+  '/profile-picture/:entityType/:entityId',
   authenticate(),
-  require('./parent/getFiles').getFiles
+  require('./profilePicture/deleteProfilePicture')
 );
 
-// Parent get all files sent to a doctor by a baby
-router.get(
-  '/parent/:parentId/babies/:babyId/doctors/:doctorId/getSentFiles',
-  authenticate(),
-  require('./parent/getSentFiles').getSentFiles
-);
-
-// Download file by document_id, it can be used by both parent and doctor
-router.get(
-  '/documents/:document_id/download',
-  authenticate(),
-  require('./parent/downloadFile').downloadFile
-);
+// Testing the authentication middleware
+// router.get('/test', authenticate(), require('./test'));
 module.exports = router;

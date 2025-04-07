@@ -1,6 +1,7 @@
 .container {
   max-width: 1200px;
   margin-left: 50px;
+  padding: 12px;
 }
 
 /* Toast messages at top-center */
@@ -61,8 +62,6 @@
   margin-bottom: 24px;
 }
 .title {
-  font-size: 24px;
-  font-weight: bold;
   margin: 0;
 }
 .headerActions {
@@ -331,4 +330,169 @@
 .btnSave:hover {
   background-color: #dfc9ff;
   color: #30103b;
+}
+
+/* Enhanced reminder container styling */
+.reminderContainer {
+  border: 1px solid #d8c8f0;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  padding: 16px;
+  margin-top: 16px;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+/* Reminder section title */
+.reminderSectionTitle {
+  color: #674ea7;
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.reminderIcon {
+  margin-right: 8px;
+  color: #674ea7;
+}
+
+/* Formatting for reminder preview */
+.reminderPreview {
+  border: 1px solid #e2e2e2;
+  border-radius: 6px;
+  padding: 12px;
+  margin-top: 12px;
+  background-color: white;
+}
+
+.reminderPreviewTitle {
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.reminderPreviewItem {
+  margin-bottom: 4px;
+  display: flex;
+}
+
+.reminderPreviewLabel {
+  font-weight: 600;
+  min-width: 60px;
+  color: #666;
+}
+
+.reminderPreviewValue {
+  flex: 1;
+}
+
+/* Button styling for time presets */
+.timePresetButton {
+  background-color: white;
+  border: 1px solid #d8c8f0;
+  color: #674ea7;
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.timePresetButton:hover {
+  background-color: #f5eefc;
+}
+
+.timePresetButtonActive {
+  background-color: #674ea7;
+  color: white;
+  border: 1px solid #674ea7;
+}
+
+/* Format reminder notes in reminders table with proper spacing */
+.reminderNotes {
+  white-space: pre-line;
+}
+
+/* Tables for reminders */
+.remindersTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0;
+}
+
+.remindersTable thead th {
+  text-align: left;
+  font-weight: 600;
+  color: #555;
+  padding: 12px 16px;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+}
+
+.remindersTable tbody td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f5f5f5;
+  vertical-align: middle;
+  font-size: 14px;
+  color: #333;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+
+  .headerActions {
+    flex-wrap: wrap;
+  }
+
+  .timeRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .amPmSegment {
+    margin-top: 8px;
+  }
+
+  .mealsTable thead {
+    display: none;
+  }
+
+  .mealsTable,
+  .mealsTable tbody,
+  .mealsTable tr,
+  .mealsTable td {
+    display: block;
+    width: 100%;
+  }
+
+  .mealsTable tr {
+    margin-bottom: 16px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+  }
+
+  .mealsTable td {
+    text-align: left;
+    padding: 8px 0;
+    border: none;
+  }
+
+  .actionCell {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+
+  .reminderPreviewItem {
+    flex-direction: column;
+  }
+
+  .reminderPreviewLabel {
+    margin-bottom: 4px;
+  }
 }

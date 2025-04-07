@@ -10,12 +10,12 @@ const Header = () => {
     reminders,
     handleShowAddModal,
     toggleDeleteMode,
-    handleShowDeleteModal
+    handleShowDeleteModal,
   } = useReminders();
 
   return (
     <div className={styles.headerRow}>
-      <h1 className={styles.title}>{t("Reminders")}</h1>
+      <h2 className={styles.title}>{t("Reminders")}</h2>
       <div className={styles.headerActions}>
         <Button
           variant="light"
