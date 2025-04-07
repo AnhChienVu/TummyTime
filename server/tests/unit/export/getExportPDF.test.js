@@ -148,4 +148,119 @@ describe("getExportPDF endpoint", () => {
     expect(res.status).toHaveBeenCalledWith(500);
     expect(createErrorResponse).toHaveBeenCalledWith(500, "Internal server error");
   });
+
+
+  // Test default date handling: when startDate is missing, it should fetch from user creation date.
+  test("should set default startDate from user creation if not provided", async () => {
+    req.headers.authorization = "Bearer validtoken";
+    // No startDate in query.
+    delete req.query.startDate;
+    // Mock user creation date query:
+    pool.query.mockResolvedValueOnce({ rows: [{ created_at: "2022-12-01" }] }); // for default startDate
+
+    // Next, simulate that baby exists:
+    pool.query.mockResolvedValueOnce({ rows: [{ count: "1" }] });
+    // Then, query baby profiles returns one baby.
+    pool.query.mockResolvedValueOnce({
+      rows: [
+        {
+          baby_id: 1,
+          first_name: "Emma",
+          last_name: "Smith",
+          birthdate: "2020-01-01",
+          gender: "F",
+          weight: 3.2,
+          created_at: "2020-01-01T00:00:00Z",
+        },
+      ],
+    });
+    // For sections, return empty arrays.
+    pool.query.mockResolvedValueOnce({ rows: [] }); // Growth
+    pool.query.mockResolvedValueOnce({ rows: [] }); // Milestones
+    pool.query.mockResolvedValueOnce({ rows: [] }); // Feeding
+    pool.query.mockResolvedValueOnce({ rows: [] }); // Stool
+    // Insert export record returns a row.
+    pool.query.mockResolvedValueOnce({
+      rows: [
+        {
+          document_id: 1,
+          file_name: "ExportedBabyData_Info_Growth_Milestones_Feeding_Stool_from2022-12-01_to" + new Date().toISOString().split("T")[0] + ".csv",
+          file_format: "CSV",
+          created_at: "2023-01-31",
+        },
+      ],
+    });
+
+    getUserId.mockResolvedValue("1");
+
+    await getExportCSV(req, res);
+
+    // Check that CSV headers were set
+    expect(res.setHeader).toHaveBeenCalledWith("Content-Type", "text/csv");
+    expect(res.send).toHaveBeenCalled(); 
+    expect(res.send.mock.calls[0][0]).toMatch(/Baby Information/);
+  });
+
+  // Test that each section appears in CSV when data is present.
+  test("should include sections with data if present", async () => {
+    req.headers.authorization = "Bearer validtoken";
+    req.query.startDate = "2023-01-01";
+    req.query.endDate = "2023-01-31";
+    getUserId.mockResolvedValue("1");
+
+    // Baby profiles query returns one baby.
+    pool.query.mockResolvedValueOnce({
+      rows: [
+        {
+          baby_id: 1,
+          first_name: "Emma",
+          last_name: "Smith",
+          birthdate: "2020-01-01",
+          gender: "F",
+          weight: 3.2,
+          created_at: "2020-01-01T00:00:00Z",
+        },
+      ],
+    });
+    // For growth records, return some data.
+    pool.query.mockResolvedValueOnce({ rows: [{ growth_id: 101, date: "2023-01-15", weight: 3.5, height: 50, notes: "Good growth" }] });
+    // For milestones, return some data.
+    pool.query.mockResolvedValueOnce({ rows: [{ milestone_id: 201, date: "2023-01-10", title: "First Smile", details: "Smiled for the first time" }] });
+    // For feeding schedule, return some data.
+    pool.query.mockResolvedValueOnce({ rows: [{ feeding_schedule_id: 301, date: "2023-01-20", time: "08:00:00", meal: "Breakfast", amount: 100, type: "Formula", issues: "", notes: "" }] });
+    // For stool records, return some data.
+    pool.query.mockResolvedValueOnce({ rows: [{ stool_id: 401, timestamp: "2023-01-25T08:00:00Z", color: "Brown", consistency: "Seedy", notes: "" }] });
+    // Insert export record returns a row.
+    pool.query.mockResolvedValueOnce({
+      rows: [
+        {
+          document_id: 1,
+          file_name: expect.stringContaining("ExportedBabyData"),
+          file_format: "CSV",
+          created_at: "2023-01-31",
+        },
+      ],
+    });
+
+    await getExportCSV(req, res);
+
+    const csvContent = res.send.mock.calls[0][0];
+    // Check that CSV contains each section header.
+    expect(csvContent).toMatch(/Baby Information/);
+    expect(csvContent).toMatch(/Growth Records/);
+    expect(csvContent).toMatch(/Milestones/);
+    expect(csvContent).toMatch(/Feeding Schedule/);
+    expect(csvContent).toMatch(/Stool Records/);
+  });
+
+  // Test proper error handling for database errors in any section.
+  test("should return 500 on database error in section queries", async () => {
+    req.headers.authorization = "Bearer validtoken";
+    getUserId.mockResolvedValue("1");
+    // Simulate error on baby profiles query.
+    pool.query.mockRejectedValue(new Error("DB error"));
+    await getExportCSV(req, res);
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(createErrorResponse).toHaveBeenCalledWith(500, "Internal server error");
+  }); 
 });
