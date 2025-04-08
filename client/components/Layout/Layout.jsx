@@ -11,6 +11,7 @@ import BackButton from "../BackButton/BackButton";
 import dynamic from "next/dynamic";
 
 const ChatBot = dynamic(() => import("../ChatBot/ChatBot"), { ssr: false });
+const GlobalReminderPopup = dynamic(() => import("../Reminders/GlobalPopup"), { ssr: false });
 
 export default function Layout({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -34,6 +35,7 @@ export default function Layout({ children }) {
     <>
       {!isHomePage && <NavBar />}
       <TipsNotificationPopup />
+      {isAuthenticated && <GlobalReminderPopup />}
       <Container fluid className={styles.container}>
         {!isHomePage && isAuthenticated ? (
           userRole === "Parent" ? (
