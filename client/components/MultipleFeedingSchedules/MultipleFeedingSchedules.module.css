@@ -42,3 +42,10 @@
 .customAccordion :global(.accordion-button:hover) {
   background-color: #c4a7e3;
 }
+
+.statusMessage {
+  text-align: center;
+  padding: 1rem;
+  color: #666;
+  font-size: 1.1rem;
+}

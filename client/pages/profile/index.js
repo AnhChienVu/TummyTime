@@ -55,6 +55,13 @@ function ProfilePage() {
           },
         );
 
+        // Handle 404 specifically, so that the app doesn't crash if no babies are found
+        if (res.status === 404) {
+          console.log("No babies found");
+          setBabyProfiles([]);
+          return;
+        }
+
         if (!res.ok) {
           const errorData = await res.json();
           throw new Error(errorData.message || `Error ${res.status}`);
@@ -66,6 +73,7 @@ function ProfilePage() {
       } catch (error) {
         console.error("Error fetching baby profiles:", error);
         setError(t("Failed to fetch baby profiles. Please try again."));
+        setBabyProfiles([]);
       }
     }
 

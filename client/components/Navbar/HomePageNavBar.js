@@ -37,7 +37,10 @@ const HomePageNavBar = ({ variant = "default" }) => {
         <Button
           variant="light"
           className="mx-2"
-          onClick={() => router.push("/register")}
+          onClick={() =>
+            (window.location.href =
+              "https://us-east-26an90qfwo.auth.us-east-2.amazoncognito.com/signup?client_id=aiir77i4edaaitkoi3l132an0&redirect_uri=https%3A%2F%2Fteam-06-prj-666-winter-2025.vercel.app%2Flogin&response_type=code&scope=openid")
+          }
         >
           Get Started
         </Button>
