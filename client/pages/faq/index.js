@@ -13,7 +13,9 @@ const FAQCategory = ({ title, questions }) => {
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <h2>{title}</h2>
-        <span className={styles.expandIcon}>{isExpanded ? "−" : "+"}</span>
+        <span className={styles.expandIcon}>
+          &nbsp;{isExpanded ? "−" : "+"}
+        </span>
       </div>
       {isExpanded && (
         <div className={styles.questionsList}>

@@ -1,3 +1,4 @@
+// pages/privacy/index.js
 import React, { useState } from "react";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import HomePageNavBar from "@/components/Navbar/HomePageNavBar";
