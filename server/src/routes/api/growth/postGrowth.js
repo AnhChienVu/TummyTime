@@ -16,6 +16,38 @@ module.exports.createGrowth = async (req, res) => {
       return res.status(400).send(createErrorResponse(400, `baby_id is required`)); // 400 Bad Request
     }
 
+    // Decode the token to get the user ID
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({
+        status: "error",
+        error: {
+          message: "No authorization token provided",
+        },
+      });
+    }
+
+    const user_id = await getUserId(authHeader);
+    if (!user_id) {
+      return res.status(404).json({
+        status: "error",
+        error: {
+          message: "User not found",
+        },
+      });
+    }
+
+   // {CHECK OWNERSHIP of BABY}
+    // Verify user has access to this baby
+    const hasAccess = await checkBabyBelongsToUser(babyId, user_id);
+    if (!hasAccess) {
+      return res
+        .status(403)
+        .json(
+          createErrorResponse("Not authorized to access this baby profile")
+        );
+    }
+
     const result = await pool.query(
       'INSERT INTO growth (baby_id, date, height, weight, notes) VALUES ($1, $2, $3, $4, $5) RETURNING *',
       [babyId, date, height, weight, notes]

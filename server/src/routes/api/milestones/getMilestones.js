@@ -9,9 +9,9 @@ const { checkBabyBelongsToUser } = require('../../../utils/babyAccessHelper');
 // GET /v1/baby/:baby_id/milestones
 // Get all milestones for a baby
 module.exports.getMilestoneByBabyId = async (req, res) => {
+  const { baby_id } = req.params;
+  
   try {
-    const { baby_id } = req.params;
-
     // Input validation
     if (!baby_id) {
       return res.status(400).json(createErrorResponse(400, 'Baby ID is required'));
@@ -40,6 +40,8 @@ module.exports.getMilestoneByBabyId = async (req, res) => {
       });
     }
 
+    // {CHECK OWNERSHIP of BABY}
+    // Verify user has access to this baby
     // Check baby ownership using the utility function
     const hasBabyAccess = await checkBabyBelongsToUser(baby_id, userId);
     if (!hasBabyAccess) {

@@ -35,6 +35,8 @@ module.exports.getAllGrowth = async (req, res) => {
       return createErrorResponse(res, 404, 'User not found');
     }
 
+    // {CHECK OWNERSHIP of BABY}
+    // Verify user has access to this baby
     // Check baby ownership using the utility function
     const hasBabyAccess = await checkBabyBelongsToUser(babyId, userId);
     if (!hasBabyAccess) {
