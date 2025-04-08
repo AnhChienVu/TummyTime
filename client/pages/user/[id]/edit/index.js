@@ -89,7 +89,7 @@ export default function EditUserProfile() {
         fetchUserProfile(id);
       }
     }
-  }, [router.isReady, router.query, setValue, fetchUserProfile]);
+  }, [router.isReady, router.query, setValue, t]);
 
   const submitForm = async (data) => {
     if (!user || !user.user_id) {

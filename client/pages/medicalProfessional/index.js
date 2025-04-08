@@ -161,12 +161,42 @@ function MedicalProfessional() {
       if (data.status === "ok") {
         setDocuments(data.files);
         setSelectedBaby(babyId);
+        setSelectedDoctor(doctorId);
         setShowSendModal(true);
       } else {
         console.error("Failed to fetch sent files:", data);
       }
     } catch (error) {
       console.log("Error sending files:", error);
+    }
+  };
+
+  const sendNewDocument = async (file) => {
+    const formData = new FormData();
+    formData.append("document", file);
+
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/v1/parent/${localStorage.getItem(
+          "userId",
+        )}/babies/${selectedBaby}/doctors/${selectedDoctor}/uploadFile`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: formData,
+        },
+      );
+      const data = await res.json();
+      if (data.status === "ok") {
+        alert("File sent successfully");
+        setShowSendModal(false);
+      } else {
+        alert("Failed to send file");
+      }
+    } catch (error) {
+      console.error("Error sending file:", error.message);
     }
   };
 
@@ -269,7 +299,7 @@ function MedicalProfessional() {
         show={showSendModal}
         handleClose={() => setShowSendModal(false)}
         documents={documents}
-        onSendNewDocument={() => console.log("Send new document")}
+        onSendNewDocument={sendNewDocument}
         purpose="getSentFilesFromParent"
       />
     </div>

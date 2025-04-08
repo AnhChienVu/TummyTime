@@ -19,6 +19,15 @@ function DoctorSidebar() {
         >
           {t("Dashboard")}
         </Nav.Link>
+
+        <Nav.Link
+          as={Link}
+          href={`/doctor/healthDocuments`}
+          locale={locale}
+          className={styles.navlink}
+        >
+          {t("Health Records")}
+        </Nav.Link>
       </Nav>
     </Col>
   );
