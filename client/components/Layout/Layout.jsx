@@ -7,18 +7,22 @@ import styles from "./Layout.module.css";
 import { Container } from "react-bootstrap";
 import DoctorSidebar from "../DoctorSidebar/DoctorSidebar";
 import TipsNotificationPopup from "../tipsNotificationPopup/tipsNotificationPopup";
-import dynamic from 'next/dynamic';
+import TokenExpirationNotification from "../TokenExpirationNotification/TokenExpirationNotification";
+import dynamic from "next/dynamic";
 
-const ChatBot = dynamic(
-  () => import('../ChatBot/ChatBot'),
-  { ssr: false }
-);
+const ChatBot = dynamic(() => import("../ChatBot/ChatBot"), { ssr: false });
 
 export default function Layout({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState("");
   const router = useRouter();
   const isHomePage = router.pathname === "/"; // Hide the side bar on home page
+
+  // State to simulate token expiration (by deleting the token)
+  const [tokenExpired, setTokenExpired] = useState(false);
+  const handleSimulateExpire = () => {
+    setTokenExpired(true);
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -46,8 +50,10 @@ export default function Layout({ children }) {
         ) : null}
         <main className={styles.main}>{children}</main>
       </Container>
-      <ChatBot/>
-      <Footer />
+      <ChatBot />
+      {/* Under FOOTER is Button to simulate token expiration */}
+      <Footer onSimulateExpire={handleSimulateExpire} />{" "}
+      <TokenExpirationNotification show={tokenExpired} />
     </>
   );
 }
