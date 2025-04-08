@@ -94,7 +94,7 @@ const SendDocumentsModal = ({
         )}
 
         {documents.length > 0 ? (
-          <ul>
+          <ul className={styles.fileList}>
             {documents.map((doc) => (
               <li key={doc.document_id} className={styles.fileItem}>
                 <p className={styles.fileName}>{doc.filename}</p>
