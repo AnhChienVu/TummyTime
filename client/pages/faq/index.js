@@ -1,3 +1,4 @@
+// pages/faq/index.js
 import { useState } from "react";
 import HomePageNavBar from "@/components/Navbar/HomePageNavBar";
 import styles from "./faq.module.css";
@@ -184,7 +185,7 @@ const FAQ = () => {
         <footer className={styles.footer}>
           <p>
             Can&apos;t find what you&apos;re looking for?
-            <a href="mailto:privacy@tummytime.com" className={styles.link}>
+            <a href="mailto:support@tummytime.com" className={styles.link}>
               Contact Support
             </a>
           </p>
