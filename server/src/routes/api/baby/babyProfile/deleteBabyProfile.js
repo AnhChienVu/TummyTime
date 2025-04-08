@@ -35,6 +35,7 @@ module.exports = async (req, res) => {
         .json(createErrorResponse("Invalid baby ID format"));
     }
 
+    // {CHECK OWNERSHIP of BABY}
     // Verify user has access to this baby using the helper function
     const hasAccess = await checkBabyBelongsToUser(baby_id, user_id);
     if (!hasAccess) {

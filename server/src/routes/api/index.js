@@ -6,9 +6,14 @@ const { checkPostOwnership, checkReplyOwnership } = require('../../auth/ownershi
  * The main entry-point for the v1 version of the API.
  */
 const express = require('express');
+const multer = require('multer');
 
 // Create a router on which to mount our API endpoints
 const router = express.Router();
+
+// Configure Multer for in-memory storage
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
 // Import all of stool API endpoints
 const { getStoolEntries } = require('./baby/stool/getStool');
@@ -111,6 +116,12 @@ router.get('/babies', authenticate(), require('./baby/babyProfile/getAllBabyProf
 
 router.get('/baby/:baby_id', authenticate(), require('./baby/babyProfile/getBabyProfile'));
 
+router.get(
+  '/doctor/:doctor_id/baby/:baby_id/profile',
+  authenticate(),
+  require('./baby/babyProfile/getBabyProfileByDoctor')
+);
+
 router.put('/baby/:baby_id', authenticate(), require('./baby/babyProfile/putBabyProfile'));
 
 router.delete('/baby/:baby_id', authenticate(), require('./baby/babyProfile/deleteBabyProfile'));
@@ -168,6 +179,9 @@ router.delete(
 // ************ /coupons routes ************
 router.get('/coupons', require('./coupons/getAllCoupons'));
 
+// ************ /quiz routes ************
+router.get('/quiz', require('./quiz/getAllQuizzes'));
+
 // ************ /voiceCommand routes ************
 router.post('/voiceCommand', require('./voiceCommand/processVoiceCommand').processVoiceCommand);
 
@@ -209,6 +223,8 @@ router.get(
 
 // ************ /export routes ************
 router.get('/export/csv', require('./export/getExportCSV'));
+
+router.get('/export/pdf', require('./export/getExportPDF'));
 
 // ************ /reminders routes ************
 // GET /baby/:babyId/reminders - Get all reminders for a baby
@@ -255,4 +271,56 @@ router.delete(
 
 // Testing the authentication middleware
 // router.get('/test', authenticate(), require('./test'));
+
+// ************ /Sharing Doctor - Parent files routes ************
+// Parent upload file for a baby to a doctor
+router.post(
+  '/parent/:parentId/babies/:babyId/doctors/:doctorId/uploadFile',
+  authenticate(),
+  upload.single('document'), // Middleware to handle file upload
+  require('./parent/uploadFile').uploadFile
+);
+
+// Doctor upload file for a baby to a parent
+router.post(
+  '/doctor/:doctorId/babies/:babyId/parent/:parentId/uploadFile',
+  authenticate(),
+  upload.single('document'),
+  require('./doctor/uploadFile').uploadFile
+);
+
+// Doctor get all files sent by all parents to the doctor
+router.get(
+  '/doctor/:doctorId/getAllFiles',
+  authenticate(),
+  require('./doctor/getAllFiles').getAllFiles
+);
+
+// Doctor get all sent files to parents
+router.get(
+  '/doctor/:doctorId/getSentFiles',
+  authenticate(),
+  require('./doctor/getSentFiles').getSentFiles
+);
+
+// Parent get all files sent by a doctor to a baby
+router.get(
+  '/parent/:parentId/doctors/:doctorId/babies/:babyId/getFiles',
+  authenticate(),
+  require('./parent/getFiles').getFiles
+);
+
+// Parent get all files sent to a doctor by a baby
+router.get(
+  '/parent/:parentId/babies/:babyId/doctors/:doctorId/getSentFiles',
+  authenticate(),
+  require('./parent/getSentFiles').getSentFiles
+);
+
+// Download file by document_id, it can be used by both parent and doctor
+router.get(
+  '/documents/:document_id/download',
+  authenticate(),
+  require('./parent/downloadFile').downloadFile
+);
 module.exports = router;

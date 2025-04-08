@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { FaEdit, FaTrashAlt, FaRulerCombined, FaWeight } from "react-icons/fa";
-import { Modal, Button, Table } from "react-bootstrap";
+import { Modal, Button, Table, Alert } from "react-bootstrap";
 import { format, parseISO, set } from "date-fns";
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -25,10 +25,10 @@ const fetchGrowthData = async (babyId) => {
     );
 
     const jsonData = await res.json();
-    console.log(
-      `Fetched growth data for baby ${babyId} from ${process.env.NEXT_PUBLIC_API_URL}/baby/${babyId}/growth/ is:`,
-      jsonData,
-    );
+    // console.log(
+    //   `Fetched growth data for baby ${babyId} from ${process.env.NEXT_PUBLIC_API_URL}/baby/${babyId}/growth/ is:`,
+    //   jsonData,
+    // );
 
     // if Not Found, return empty array
     if (!res.ok && res.status === 404) return [];
@@ -96,31 +96,6 @@ const deleteGrowthRecord = async (babyId, recordId) => {
     console.error("Error deleting growth record:", err);
   }
 };
-
-// const mockAPI = () => {
-//   return Promise.resolve([
-//     {
-//       date: "2024-10-29",
-//       height: "18 in",
-//       weight: "23 lbs",
-//       notes: "Monthly check-up",
-//     },
-//     {
-//       date: "2024-09-29",
-//       height: "16 in",
-//       weight: "20 lbs",
-//       notes: "Healthy growth",
-//     },
-//     {
-//       date: "2024-08-29",
-//       height: "14 in",
-//       weight: "18 lbs",
-//       notes: "Started crawling",
-//     },
-//     { date: "2024-07-29", height: "12 in", weight: "16 lbs", notes: "" },
-//     { date: "2024-06-29", height: "10 in", weight: "14 lbs", notes: "" },
-//   ]);
-// };
 
 const CustomStatsCard = ({
   label,
@@ -485,6 +460,16 @@ const Growth = () => {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
+          {validationErrors.height && (
+            <Alert variant="danger">
+              Height is required and less than 999.99.
+            </Alert>
+          )}
+          {validationErrors.weight && (
+            <Alert variant="danger">
+              Weight is required and less than 999.
+            </Alert>
+          )}
           <div className="mb-3">
             <label>Date</label>
             <input
@@ -508,14 +493,8 @@ const Growth = () => {
               }
               style={{
                 borderColor: validationErrors.height ? "red" : "",
-                backgroundColor: validationErrors.height ? "#ffe5e5" : "",
               }}
             />
-            {validationErrors.height && (
-              <small style={{ color: "red" }}>
-                Height is required and less than 999.99.
-              </small>
-            )}
           </div>
           <div className="mb-3">
             <label>Weight</label>
@@ -529,14 +508,8 @@ const Growth = () => {
               }
               style={{
                 borderColor: validationErrors.weight ? "red" : "",
-                backgroundColor: validationErrors.weight ? "#ffe5e5" : "",
               }}
             />
-            {validationErrors.weight && (
-              <small style={{ color: "red" }}>
-                Weight is required and less than 999.
-              </small>
-            )}
           </div>
           <div className="mb-3">
             <label>Notes</label>
@@ -554,7 +527,7 @@ const Growth = () => {
           <Button variant="secondary" onClick={() => setShowModal(false)}>
             Cancel
           </Button>
-          <Button variant="primary" onClick={handleSave}>
+          <Button className={styles.button} onClick={handleSave}>
             Save
           </Button>
         </Modal.Footer>

@@ -1,7 +1,8 @@
-import { Button, Form, Modal } from "react-bootstrap";
+import { Button, Form, Modal, Alert } from "react-bootstrap";
 import { useTranslation } from "next-i18next";
 import { useReminders } from "../../context/ReminderContext";
 import styles from "../../pages/baby/[id]/reminders/reminders.module.css";
+import styles2 from "./AddReminderModal.module.css";
 import { constructTimeString } from "../../utils/reminderUtil";
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -14,6 +15,7 @@ import IncompatibleBrowserModal from "@/components/IncompatibleBrowserModal";
 
 const EditReminderModal = () => {
   const { t } = useTranslation("common");
+  const [error, setError] = useState(null);
   const {
     showEditModal,
     handleCloseEditModal,
@@ -86,25 +88,31 @@ const EditReminderModal = () => {
   };
 
   const onSubmit = async () => {
+    setError(null);
+
     if (!title.trim()) {
-      showTitleRequired();
+      setError("Please enter a title");
+      // showTitleRequired();
       return;
     }
 
     let hours = parseInt(time.hours);
     if (isNaN(hours) || hours < 1 || hours > 12) {
-      showToast("Please enter a valid hour (1-12)", "error");
+      setError("Please enter a valid hour (1-12)");
+      // showToast("Please enter a valid hour (1-12)", "error");
       return;
     }
 
     let minutes = parseInt(time.minutes);
     if (isNaN(minutes) || minutes < 0 || minutes > 59) {
-      showToast("Please enter valid minutes (0-59)", "error");
+      setError("Please enter valid minutes (0-59)");
+      // showToast("Please enter valid minutes (0-59)", "error");
       return;
     }
 
     if (!reminderDate) {
-      showToast("Please select a date", "error");
+      setError("Please select a date");
+      // showToast("Please select a date", "error");
       return;
     }
 
@@ -135,6 +143,7 @@ const EditReminderModal = () => {
           <Modal.Title>{t("Edit Reminder")}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
+          {error && <Alert variant="danger">{error}</Alert>}
           <Form>
             <Form.Group className="mb-3">
               <Form.Label>{t("Title")}</Form.Label>
@@ -148,6 +157,7 @@ const EditReminderModal = () => {
                   }
                   onChange={(e) => setTitle(e.target.value)}
                   disabled={isListening && currentInputField === "title"}
+                  isInvalid={!!error}
                 />
                 <Button
                   variant="link"
@@ -176,6 +186,7 @@ const EditReminderModal = () => {
                 type="date"
                 value={reminderDate}
                 onChange={(e) => setReminderDate(e.target.value)}
+                isInvalid={!!error}
               />
             </Form.Group>
 
@@ -306,10 +317,7 @@ const EditReminderModal = () => {
           >
             {t("Cancel")}
           </Button>
-          <Button
-            className={title.trim() ? styles.btnSave : styles.btnDisabled}
-            onClick={title.trim() ? onSubmit : showTitleRequired}
-          >
+          <Button className={styles2.btn} onClick={onSubmit}>
             {t("Update")}
           </Button>
         </Modal.Footer>

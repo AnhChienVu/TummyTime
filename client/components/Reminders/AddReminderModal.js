@@ -1,11 +1,15 @@
-import { Button, Form, Modal } from "react-bootstrap";
+import { Button, Form, Modal, Alert } from "react-bootstrap";
 import { useTranslation } from "next-i18next";
 import { useReminders } from "../../context/ReminderContext";
 import styles from "../../pages/baby/[id]/reminders/reminders.module.css";
+import styles2 from "./AddReminderModal.module.css";
 import { constructTimeString } from "../../utils/reminderUtil";
 import { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMicrophone, faMicrophoneSlash } from "@fortawesome/free-solid-svg-icons";
+import {
+  faMicrophone,
+  faMicrophoneSlash,
+} from "@fortawesome/free-solid-svg-icons";
 import useSpeechToText from "@/hooks/useSpeechToText";
 import IncompatibleBrowserModal from "@/components/IncompatibleBrowserModal";
 
@@ -28,7 +32,7 @@ const AddReminderModal = () => {
     setReminderIn,
     handleAddReminder,
     showTitleRequired,
-    showToast
+    showToast,
   } = useReminders();
 
   // Speech to text related states and hooks
@@ -41,12 +45,14 @@ const AddReminderModal = () => {
     resetTranscript,
     showIncompatibleModal,
     setShowIncompatibleModal,
-    browserSupportsSpeechRecognition
+    browserSupportsSpeechRecognition,
   } = useSpeechToText({
     continuous: true,
     interimResults: true,
     lang: "en-US",
   });
+
+  const [error, setError] = useState(null);
 
   // Handle voice input for different fields
   const handleVoiceInput = (fieldName) => {
@@ -68,34 +74,44 @@ const AddReminderModal = () => {
   const stopVoiceInput = () => {
     // Add transcript content to the appropriate field
     if (currentInputField === "title") {
-      setTitle(title + (transcript.length ? (title.length ? " " : "") + transcript : ""));
+      setTitle(
+        title +
+          (transcript.length ? (title.length ? " " : "") + transcript : ""),
+      );
     } else if (currentInputField === "note") {
-      setNote(note + (transcript.length ? (note.length ? " " : "") + transcript : ""));
+      setNote(
+        note + (transcript.length ? (note.length ? " " : "") + transcript : ""),
+      );
     }
     stopListening();
     setCurrentInputField(null);
   };
 
   const onSubmit = async () => {
+    setError(null);
     if (!title.trim()) {
-      showTitleRequired();
+      setError("Please enter a title");
+      // showTitleRequired();
       return;
     }
 
     let hours = parseInt(time.hours);
     if (isNaN(hours) || hours < 1 || hours > 12) {
-      showToast("Please enter a valid hour (1-12)", "error");
+      setError("Please enter a valid hour (1-12)");
+      // showToast("Please enter a valid hour (1-12)", "error");
       return;
     }
 
     let minutes = parseInt(time.minutes);
     if (isNaN(minutes) || minutes < 0 || minutes > 59) {
-      showToast("Please enter valid minutes (0-59)", "error");
+      setError("Please enter a valid minutes (0-59)");
+      // showToast("Please enter valid minutes (0-59)", "error");
       return;
     }
 
     if (!reminderDate) {
-      showToast("Please select a date", "error");
+      setError("Please select a date");
+      // showToast("Please select a date", "error");
       return;
     }
 
@@ -116,11 +132,17 @@ const AddReminderModal = () => {
 
   return (
     <>
-      <Modal show={showAddModal} onHide={handleCloseAddModal} centered className={showIncompatibleModal ? styles.modalBlur : ""}>
+      <Modal
+        show={showAddModal}
+        onHide={handleCloseAddModal}
+        centered
+        className={showIncompatibleModal ? styles.modalBlur : ""}
+      >
         <Modal.Header closeButton>
           <Modal.Title>{t("Add a reminder")}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
+          {error && <Alert variant="danger">{error}</Alert>}
           <Form>
             <Form.Group className="mb-3">
               <Form.Label>{t("Title")}</Form.Label>
@@ -128,9 +150,14 @@ const AddReminderModal = () => {
                 <Form.Control
                   type="text"
                   placeholder={t("Title")}
-                  value={isListening && currentInputField === "title" ? title + " " + transcript : title}
+                  value={
+                    isListening && currentInputField === "title"
+                      ? title + " " + transcript
+                      : title
+                  }
                   onChange={(e) => setTitle(e.target.value)}
                   disabled={isListening && currentInputField === "title"}
+                  isInvalid={!!error}
                 />
                 <Button
                   variant="link"
@@ -138,8 +165,16 @@ const AddReminderModal = () => {
                   onClick={() => handleVoiceInput("title")}
                 >
                   <FontAwesomeIcon
-                    icon={isListening && currentInputField === "title" ? faMicrophoneSlash : faMicrophone}
-                    className={isListening && currentInputField === "title" ? "text-danger" : "text-primary"}
+                    icon={
+                      isListening && currentInputField === "title"
+                        ? faMicrophoneSlash
+                        : faMicrophone
+                    }
+                    className={
+                      isListening && currentInputField === "title"
+                        ? "text-danger"
+                        : "text-primary"
+                    }
                   />
                 </Button>
               </div>
@@ -151,6 +186,7 @@ const AddReminderModal = () => {
                 type="date"
                 value={reminderDate}
                 onChange={(e) => setReminderDate(e.target.value)}
+                isInvalid={!!error}
               />
             </Form.Group>
 
@@ -218,7 +254,11 @@ const AddReminderModal = () => {
                   as="textarea"
                   rows={3}
                   placeholder={t("Leave a note")}
-                  value={isListening && currentInputField === "note" ? note + " " + transcript : note}
+                  value={
+                    isListening && currentInputField === "note"
+                      ? note + " " + transcript
+                      : note
+                  }
                   onChange={(e) => setNote(e.target.value)}
                   disabled={isListening && currentInputField === "note"}
                 />
@@ -228,8 +268,16 @@ const AddReminderModal = () => {
                   onClick={() => handleVoiceInput("note")}
                 >
                   <FontAwesomeIcon
-                    icon={isListening && currentInputField === "note" ? faMicrophoneSlash : faMicrophone}
-                    className={isListening && currentInputField === "note" ? "text-danger" : "text-primary"}
+                    icon={
+                      isListening && currentInputField === "note"
+                        ? faMicrophoneSlash
+                        : faMicrophone
+                    }
+                    className={
+                      isListening && currentInputField === "note"
+                        ? "text-danger"
+                        : "text-primary"
+                    }
                   />
                 </Button>
               </div>
@@ -263,17 +311,10 @@ const AddReminderModal = () => {
           </Form>
         </Modal.Body>
         <Modal.Footer>
-          <Button
-            variant="light"
-            className={styles.btnCancel}
-            onClick={handleCloseAddModal}
-          >
+          <Button variant="secondary" onClick={handleCloseAddModal}>
             {t("Cancel")}
           </Button>
-          <Button
-            className={title.trim() ? styles.btnSave : styles.btnDisabled}
-            onClick={title.trim() ? onSubmit : showTitleRequired}
-          >
+          <Button className={styles2.btn} onClick={onSubmit}>
             {t("Add")}
           </Button>
         </Modal.Footer>

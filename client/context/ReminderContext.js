@@ -12,6 +12,8 @@ import { findNextDueReminder } from "../utils/reminderUtil";
 const ReminderContext = createContext();
 
 export const useReminders = () => useContext(ReminderContext);
+export const REMINDER_COMPLETED_EVENT = 'reminderCompleted';
+export const REMINDER_UPDATED_EVENT = 'reminderUpdated';
 
 export const ReminderProvider = ({ children, babyId }) => {
   const router = useRouter();
@@ -40,6 +42,28 @@ export const ReminderProvider = ({ children, babyId }) => {
 
   const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_URL}/v1`;
 
+  useEffect(() => {
+    const handleReminderCompleted = (event) => {
+      console.log("Reminder completed event received:", event.detail);
+      fetchReminders(); // Refresh the reminders list
+    };
+  
+    const handleReminderUpdated = (event) => {
+      console.log("Reminder updated event received:", event.detail);
+      fetchReminders(); // Refresh the reminders list
+    };
+  
+    // Add event listeners
+    window.addEventListener(REMINDER_COMPLETED_EVENT, handleReminderCompleted);
+    window.addEventListener(REMINDER_UPDATED_EVENT, handleReminderUpdated);
+    
+    // Clean up listeners on unmount
+    return () => {
+      window.removeEventListener(REMINDER_COMPLETED_EVENT, handleReminderCompleted);
+      window.removeEventListener(REMINDER_UPDATED_EVENT, handleReminderUpdated);
+    };
+  }, []);
+  
   useEffect(() => {
     if (!babyId) return;
     fetchReminders();

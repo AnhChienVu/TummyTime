@@ -9,7 +9,7 @@ import {
   Col,
   Alert,
 } from "react-bootstrap";
-import { format } from "date-fns";
+import { format, setDate } from "date-fns";
 import { FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
 import styles from "./milestones.module.css";
 import BabyCard from "@/components/BabyCard/BabyCard";
@@ -97,16 +97,19 @@ function Milestones() {
   );
 
   let toastIdCounter = 1;
-  const showToast = useCallback((message, variant = "success") => {
-    const createToastId = () => {
-      return toastIdCounter++;
-    };
-    const id = createToastId();
-    setToasts((prev) => [...prev, { id, message, variant }]);
-    setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id));
-    }, 5000);
-  }, []);
+  const showToast = useCallback(
+    (message, variant = "success") => {
+      const createToastId = () => {
+        return toastIdCounter++;
+      };
+      const id = createToastId();
+      setToasts((prev) => [...prev, { id, message, variant }]);
+      setTimeout(() => {
+        setToasts((prev) => prev.filter((t) => t.id !== id));
+      }, 5000);
+    },
+    [toastIdCounter],
+  );
 
   const removeToast = (id) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
@@ -119,34 +122,40 @@ function Milestones() {
     setTitleError("");
     setDetailsError("");
     setDateError("");
+    setNewModalError("");
 
     // Check for empty title
     if (!title.trim()) {
       setTitleError(t("Title is required"));
+      setNewModalError(t("Title is required"));
       isValid = false;
     }
 
     // Check for empty details
     if (!details.trim()) {
       setDetailsError(t("Details are required"));
+      setNewModalError(t("Details are required"));
       isValid = false;
     }
 
     // Validate title length (max 255 characters)
     if (title.length > 255) {
       setTitleError(t("Title must be less than 255 characters."));
+      setNewModalError(t("Title must be less than 255 characters."));
       isValid = false;
     }
 
     // Validate details length (max 255 characters)
     if (details.length > 255) {
       setDetailsError(t("Details must be less than 255 characters."));
+      setNewModalError(t("Details must be less than 255 characters."));
       isValid = false;
     }
 
     // Validate date
     if (!selectedDate) {
       setDateError(t("Please select a date."));
+      setNewModalError(t("Please select a date."));
       isValid = false;
     } else {
       const selectedDateTime = new Date(selectedDate);
@@ -154,6 +163,7 @@ function Milestones() {
       // Check if date is valid
       if (isNaN(selectedDateTime.getTime())) {
         setDateError(t("Invalid date format."));
+        setNewModalError(t("Invalid date format."));
         isValid = false;
       }
 
@@ -162,6 +172,7 @@ function Milestones() {
       fiveYearsFromNow.setFullYear(fiveYearsFromNow.getFullYear() + 5);
       if (selectedDateTime > fiveYearsFromNow) {
         setDateError(t("Date cannot be more than 5 years in the future."));
+        setNewModalError(t("Date cannot be more than 5 years in the future."));
         isValid = false;
       }
 
@@ -170,6 +181,8 @@ function Milestones() {
       fiftyYearsAgo.setFullYear(fiftyYearsAgo.getFullYear() - 50);
       if (selectedDateTime < fiftyYearsAgo) {
         setDateError(t("Date cannot be more than 50 years in the past."));
+        setNewModalError(t("Date cannot be more than 50 years in the past."));
+
         isValid = false;
       }
     }
@@ -351,17 +364,17 @@ function Milestones() {
               onSelectEvent={handleEventClick}
             />
           </div>
-          
+
           <BabyCard
             buttons={[
-              { 
-                name: t("View Milestones"), 
-                path: "milestones" 
+              {
+                name: t("View Milestones"),
+                path: "milestones",
               },
-              { 
-                name: t("Add Milestone"), 
-                functionHandler: handleOpenAddMilestoneModal 
-              }
+              {
+                name: t("Add Milestone"),
+                functionHandler: handleOpenAddMilestoneModal,
+              },
             ]}
           />
         </Col>
@@ -402,9 +415,6 @@ function Milestones() {
                   )}
                 </Button>
               </div>
-              <Form.Control.Feedback type="invalid">
-                {titleError}
-              </Form.Control.Feedback>
               <Form.Text className="text-muted">
                 {`${title.length}/255 ${t("characters")}`}
               </Form.Text>
@@ -423,9 +433,6 @@ function Milestones() {
                 }}
                 isInvalid={!!dateError}
               />
-              <Form.Control.Feedback type="invalid">
-                {dateError}
-              </Form.Control.Feedback>
             </Form.Group>
 
             <Form.Group className="mb-3" controlId="details">
@@ -451,9 +458,6 @@ function Milestones() {
                   )}
                 </Button>
               </div>
-              <Form.Control.Feedback type="invalid">
-                {detailsError}
-              </Form.Control.Feedback>
               <Form.Text className="text-muted">
                 {`${details.length}/255 ${t("characters")}`}
               </Form.Text>

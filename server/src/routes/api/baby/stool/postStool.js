@@ -63,6 +63,8 @@ module.exports.createStoolEntry = async (req, res) => {
       return res.status(404).json(createErrorResponse(404, 'Baby not found'));
     }
 
+   // {CHECK OWNERSHIP of BABY}
+    // Verify user has access to this baby 
     // Check user ownership in user_baby table to ensure the user is authorized.
     const ownershipRes = await pool.query(
       'SELECT user_id, baby_id FROM user_baby WHERE user_id=$1 AND baby_id=$2',

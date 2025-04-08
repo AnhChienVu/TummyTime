@@ -29,6 +29,8 @@ describe("POST /v1/baby", () => {
       last_name: "Doe",
       gender: "male",
       weight: "3.5",
+      birthdate: "2023-01-01",
+      height: "50",
     };
 
     const mockUserId = 1;
@@ -69,6 +71,8 @@ describe("POST /v1/baby", () => {
       last_name: "Doe",
       gender: "male",
       weight: "3.5",
+      birthdate: "2023-01-01",
+      height: "50",
     };
 
     createErrorResponse.mockImplementation((status, message) => ({
@@ -91,6 +95,8 @@ describe("POST /v1/baby", () => {
       last_name: "Doe",
       gender: "male",
       weight: "3.5",
+      birthdate: "2023-01-01",
+      height: "50",
     };
 
     getUserId.mockResolvedValue(1);

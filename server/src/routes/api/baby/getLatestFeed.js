@@ -39,7 +39,8 @@ module.exports = async (req, res) => {
       return res.status(404).json(createErrorResponse(404, "User not found"));
     }
 
-    // Check baby ownership using the utility function
+   // {CHECK OWNERSHIP of BABY}
+    // Verify user has access to this baby
     const hasBabyAccess = await checkBabyBelongsToUser(id, userId);
     if (!hasBabyAccess) {
       return res

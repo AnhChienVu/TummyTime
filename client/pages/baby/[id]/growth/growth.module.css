@@ -150,3 +150,14 @@
   border: none !important;
   color: white !important;
 }
+
+.button {
+  background-color: #e8d9ff;
+  color: #4a235a;
+  border: 1px solid #b28ced;
+}
+
+.button:hover {
+  background-color: #dfc9ff;
+  color: #4a235a;
+}

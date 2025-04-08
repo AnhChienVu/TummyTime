@@ -1,12 +1,20 @@
 // client/pages/user/[id]/edit/index.js
 import { useState, useEffect } from "react";
-import { Row, Col, Container, Button, Modal, Form, Alert } from "react-bootstrap";
+import {
+  Row,
+  Col,
+  Container,
+  Button,
+  Modal,
+  Form,
+  Alert,
+} from "react-bootstrap";
 import styles from "./user.module.css";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/router";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
-import ProfilePictureManager from '@/components/ProfilePicture/ProfilePictureManager';
+import ProfilePictureManager from "@/components/ProfilePicture/ProfilePictureManager";
 
 export default function EditUserProfile() {
   const { t, i18n } = useTranslation("common");
@@ -31,6 +39,34 @@ export default function EditUserProfile() {
   const [formSuccess, setFormSuccess] = useState(null);
 
   useEffect(() => {
+    const fetchUserProfile = async (userId) => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL}/v1/user/${userId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
+        );
+
+        if (res.ok) {
+          const userData = await res.json();
+          setUser(userData);
+          setValue("first_name", userData?.first_name);
+          setValue("last_name", userData?.last_name);
+          setValue("email", userData?.email);
+          setValue("role", userData?.role);
+        } else {
+          console.error("Failed to fetch user profile");
+          setFormError(t("Failed to load user profile. Please try again."));
+        }
+      } catch (error) {
+        console.error("Error fetching user profile:", error);
+        setFormError(t("Failed to load user profile. Please try again."));
+      }
+    };
+
     if (router.isReady) {
       const { id } = router.query;
       const locale = router.query?.locale;
@@ -53,35 +89,7 @@ export default function EditUserProfile() {
         fetchUserProfile(id);
       }
     }
-  }, [router.isReady, router.query, setValue]);
-
-  const fetchUserProfile = async (userId) => {
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/v1/user/${userId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-
-      if (res.ok) {
-        const userData = await res.json();
-        setUser(userData);
-        setValue("first_name", userData?.first_name);
-        setValue("last_name", userData?.last_name);
-        setValue("email", userData?.email);
-        setValue("role", userData?.role);
-      } else {
-        console.error("Failed to fetch user profile");
-        setFormError(t("Failed to load user profile. Please try again."));
-      }
-    } catch (error) {
-      console.error("Error fetching user profile:", error);
-      setFormError(t("Failed to load user profile. Please try again."));
-    }
-  };
+  }, [router.isReady, router.query, setValue, t]);
 
   const submitForm = async (data) => {
     if (!user || !user.user_id) {
@@ -93,10 +101,10 @@ export default function EditUserProfile() {
     try {
       setFormError(null);
       setFormSuccess(null);
-      
+
       // Add created_at key
       data.created_at = new Date().toISOString();
-      
+
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/v1/user/${user.user_id}`,
         {
@@ -112,13 +120,13 @@ export default function EditUserProfile() {
       if (res.ok) {
         const updatedUser = await res.json();
         setFormSuccess(t("User information updated successfully!"));
-        
+
         // Update local user state
         setUser({
           ...user,
-          ...data
+          ...data,
         });
-        
+
         // Redirect after a short delay
         setTimeout(() => {
           router.push("/profile");
@@ -142,7 +150,7 @@ export default function EditUserProfile() {
 
     try {
       setFormError(null);
-      
+
       // Deleting User
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/v1/user/${user.user_id}`,
@@ -153,14 +161,14 @@ export default function EditUserProfile() {
           },
         },
       );
-      
+
       const data = await res.json();
-      
+
       if (data.status === "ok") {
         // Clear user data from localStorage
         localStorage.removeItem("userId");
         localStorage.removeItem("token");
-        
+
         // Show success message and redirect
         setFormSuccess(t("User deleted successfully!"));
         setTimeout(() => {
@@ -169,7 +177,7 @@ export default function EditUserProfile() {
       } else {
         setFormError(t("Error deleting user information. Please try again."));
       }
-      
+
       setShowDeleteModal(false);
     } catch (err) {
       console.error(`Error deleting user: `, err);
@@ -183,7 +191,7 @@ export default function EditUserProfile() {
     // Update local user state with new image URL
     setUser({
       ...user,
-      profile_picture_url: newUrl
+      profile_picture_url: newUrl,
     });
   };
 
@@ -205,13 +213,13 @@ export default function EditUserProfile() {
             {formError}
           </Alert>
         )}
-        
+
         {formSuccess && (
           <Alert variant="success" className="mb-3">
             {formSuccess}
           </Alert>
         )}
-        
+
         <div className="text-center mb-4">
           <ProfilePictureManager
             entityType="user"
@@ -221,7 +229,7 @@ export default function EditUserProfile() {
             size={150}
           />
         </div>
-        
+
         <Form onSubmit={handleSubmit(submitForm)}>
           {/* Title */}
           <p className={styles.title}>{t("Edit Your User Information")}</p>
@@ -350,7 +358,9 @@ export default function EditUserProfile() {
           </Modal.Header>
           <Modal.Body>
             <h5>{t("Are you sure you want to delete your profile?")}</h5>
-            <p>{t("This action cannot be undone. All your data will be lost.")}</p>
+            <p>
+              {t("This action cannot be undone. All your data will be lost.")}
+            </p>
           </Modal.Body>
           <Modal.Footer>
             {/* Cancel Button */}

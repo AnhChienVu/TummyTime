@@ -1,12 +1,12 @@
-const { getUserById } = require("../../../src/routes/api/user/getUser");
-const pool = require("../../../database/db");
-const { getUserId } = require("../../../src/utils/userIdHelper");
+const { getUser } = require('../../../src/routes/api/user/getUser');
+const pool = require('../../../database/db');
+const { getUserId } = require('../../../src/utils/userIdHelper');
 
 // Mock the required dependencies
-jest.mock("../../../database/db");
-jest.mock("../../../src/utils/userIdHelper");
+jest.mock('../../../database/db');
+jest.mock('../../../src/utils/userIdHelper');
 
-describe("getUserById", () => {
+describe('getUser', () => {
   let mockReq;
   let mockRes;
 
@@ -25,84 +25,84 @@ describe("getUserById", () => {
     jest.clearAllMocks();
   });
 
-  test("should return 401 if no authorization header is present", async () => {
-    await getUserById(mockReq, mockRes);
+  test('should return 401 if no authorization header is present', async () => {
+    await getUser(mockReq, mockRes);
 
     expect(mockRes.status).toHaveBeenCalledWith(401);
     expect(mockRes.json).toHaveBeenCalledWith({
-      status: "error",
+      status: 'error',
       error: {
         code: 401,
-        message: "No authorization token provided",
+        message: 'No authorization token provided',
       },
     });
   });
 
-  test("should return 404 if user ID is not found", async () => {
-    mockReq.headers.authorization = "Bearer token";
+  test('should return 404 if user ID is not found', async () => {
+    mockReq.headers.authorization = 'Bearer token';
     getUserId.mockResolvedValue(null);
 
-    await getUserById(mockReq, mockRes);
+    await getUser(mockReq, mockRes);
 
     expect(mockRes.status).toHaveBeenCalledWith(404);
     expect(mockRes.json).toHaveBeenCalledWith({
-      status: "error",
+      status: 'error',
       error: {
         code: 404,
-        message: "User not found",
+        message: 'User not found',
       },
     });
   });
 
-  test("should return 404 if user profile is not found", async () => {
-    mockReq.headers.authorization = "Bearer token";
-    getUserId.mockResolvedValue("123");
+  test('should return 404 if user profile is not found', async () => {
+    mockReq.headers.authorization = 'Bearer token';
+    getUserId.mockResolvedValue('123');
     pool.query.mockResolvedValue({ rows: [] });
 
-    await getUserById(mockReq, mockRes);
+    await getUser(mockReq, mockRes);
 
     expect(mockRes.status).toHaveBeenCalledWith(404);
     expect(mockRes.json).toHaveBeenCalledWith({
-      status: "error",
+      status: 'error',
       error: {
         code: 404,
-        message: "User profile not found",
+        message: 'User profile not found',
       },
     });
   });
 
-  test("should return user profile if found", async () => {
+  test('should return user profile if found', async () => {
     const mockUser = {
-      user_id: "123",
-      username: "testuser",
-      email: "test@example.com",
+      user_id: '123',
+      username: 'testuser',
+      email: 'test@example.com',
     };
 
-    mockReq.headers.authorization = "Bearer token";
-    getUserId.mockResolvedValue("123");
+    mockReq.headers.authorization = 'Bearer token';
+    getUserId.mockResolvedValue('123');
     pool.query.mockResolvedValue({ rows: [mockUser] });
 
-    await getUserById(mockReq, mockRes);
+    await getUser(mockReq, mockRes);
 
     expect(mockRes.json).toHaveBeenCalledWith({
-      status: "ok",
+      status: 'ok',
       ...mockUser,
     });
   });
 
-  test("should return 500 if database query fails", async () => {
-    mockReq.headers.authorization = "Bearer token";
-    getUserId.mockResolvedValue("123");
-    pool.query.mockRejectedValue(new Error("Database error"));
+  test('should return 500 if database query fails', async () => {
+    mockReq.headers.authorization = 'Bearer token';
+    getUserId.mockResolvedValue('123');
+    pool.query.mockRejectedValue(new Error('Database error'));
 
-    await getUserById(mockReq, mockRes);
+    await getUser(mockReq, mockRes);
 
     expect(mockRes.status).toHaveBeenCalledWith(500);
     expect(mockRes.json).toHaveBeenCalledWith({
-      status: "error",
+      status: 'error',
       error: {
         code: 500,
-        message: "Internal server error",
+        message: 'Internal server error',
       },
     });
   });
