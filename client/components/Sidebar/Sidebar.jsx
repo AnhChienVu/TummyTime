@@ -92,6 +92,7 @@ function Sidebar() {
         >
           {t("Coupons")}
         </Nav.Link>
+
         <Nav.Link
           as={Link}
           href="/tips"
@@ -100,6 +101,16 @@ function Sidebar() {
         >
           {t("Curated Tips")}
         </Nav.Link>
+
+        <Nav.Link
+          as={Link}
+          href="/quiz"
+          locale={locale}
+          className={styles.navlink}
+        >
+          {t("Quiz")}
+        </Nav.Link>
+
         <Nav.Link
           as={Link}
           href="/settings"
@@ -116,7 +127,7 @@ function Sidebar() {
         >
           {t("Export")}
         </Nav.Link>
-        
+
         <Nav.Link
           as={Link}
           href="/medicalProfessional"
