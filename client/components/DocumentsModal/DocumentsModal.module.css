@@ -1,3 +1,7 @@
+.documentList {
+    padding: 0px;
+}
+
 .documentItem {
     display: flex;
     flex-direction: row;
@@ -5,7 +9,14 @@
     justify-content: space-between;
     padding: 10px;
     border-bottom: 1px solid #ccc;
-    font-size: 1.2rem
+    font-size: 1.2rem;
+    box-sizing: border-box;
+}
+
+.fileName {
+    padding: 10px;
+    max-width: 70%;
+    overflow: hidden;
 }
 
 .downloadButton {
