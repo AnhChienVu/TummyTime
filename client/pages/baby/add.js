@@ -104,33 +104,38 @@ export default function AddBaby() {
 
           {/* NEW: Add DOB and Height fields */}
           <Row className="mb-3">
-            <Col>
+            <Col md={6}>
               <Form.Group>
                 <Form.Label>{t("Date of Birth")}</Form.Label>
-                {/* default value is 20 years ago */}
                 <Form.Control
-                  name="birthdate"
+                  {...register("birthdate", {
+                    required: true,
+                    // Validation:
+                    validate: (value) => {
+                      const today = new Date();
+                      const birthDate = new Date(value);
+                      return (
+                        birthDate <= today && // not in the future
+                        birthDate >= new Date(today.getFullYear() - 50, 0, 1) // not earlier than 50 years ago
+                      );
+                    },
+                  })}
                   type="date"
-                  placeholder={t("Enter date of birth")}
-                  {...register("birthdate")}
                   required
-                  defaultValue={new Date(
-                    new Date().setFullYear(new Date().getFullYear() - 20),
-                  )
-                    .toISOString()
-                    .slice(0, 10)}
                 />
               </Form.Group>
             </Col>
-            <Col>
+            <Col md={6}>
               <Form.Group>
-                <Form.Label>{t("Height (cm)")}</Form.Label>
+                <Form.Label>{t("Height")} (cm)</Form.Label>
                 <Form.Control
-                  name="height"
+                  {...register("height", {
+                    required: true,
+                    min: 5, // min height: 5cm
+                    max: 200, // max height: 2meters
+                  })}
                   type="number"
                   placeholder={t("Enter height in cm")}
-                  min={5}
-                  {...register("height")}
                   required
                 />
               </Form.Group>
