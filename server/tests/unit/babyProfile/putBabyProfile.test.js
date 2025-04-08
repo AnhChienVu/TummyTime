@@ -32,6 +32,8 @@ describe("PUT /v1/baby/:baby_id", () => {
       last_name: "Doe",
       gender: "M",
       weight: 3.5,
+      birthdate: "2023-01-01",
+      height: 50,
     },
   };
 
