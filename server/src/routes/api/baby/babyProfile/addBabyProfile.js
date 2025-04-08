@@ -10,7 +10,7 @@ const { getUserId } = require("../../../../utils/userIdHelper");
 // Add a new baby profile
 module.exports = async (req, res) => {
   try {
-    const { first_name, last_name, gender, weight } = req.body;
+    const { first_name, last_name, gender, weight, birthdate, height } = req.body;
 
     // Decode the token to get the user ID
     const authHeader = req.headers.authorization;
@@ -22,8 +22,10 @@ module.exports = async (req, res) => {
     const user_id = await getUserId(authHeader); // Get user ID from the token
 
     const newBaby = await pool.query(
-      "INSERT INTO Baby (first_name, last_name, gender, weight) VALUES ($1, $2, $3, $4) RETURNING *",
-      [first_name, last_name, gender, weight]
+      `INSERT INTO Baby (first_name, last_name, gender, weight, birthdate, height)
+    ) VALUES ($1, $2, $3, $4, $5, $6)
+     RETURNING * `,
+      [first_name, last_name, gender, weight, birthdate, height]
     );
 
     await pool.query(
