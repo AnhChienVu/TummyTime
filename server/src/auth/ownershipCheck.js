@@ -15,7 +15,7 @@ async function checkPostOwnership(req, res, next) {
       return res.status(404).json({ message: 'Post not found' });
     }
 
-    if (result.rows[0].user_id !== userId) {
+    if (Number(result.rows[0].user_id) !== Number(userId)) {
       return res.status(403).json({ message: 'Not authorized to modify this post' });
     }
 
@@ -39,7 +39,7 @@ async function checkReplyOwnership(req, res, next) {
       return res.status(404).json({ message: 'Reply not found' });
     }
 
-    if (result.rows[0].user_id !== userId) {
+    if (Number(result.rows[0].user_id) !== Number(userId)) {
       return res.status(403).json({ message: 'Not authorized to modify this reply' });
     }
 
