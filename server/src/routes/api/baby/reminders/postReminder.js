@@ -41,7 +41,8 @@ module.exports.createReminder = async (req, res) => {
       return res.status(404).json(createErrorResponse(404, "User not found"));
     }
 
-    // Check if the baby belongs to the user
+   // {CHECK OWNERSHIP of BABY}
+    // Verify user has access to this baby 
     const hasBabyAccess = await checkBabyBelongsToUser(numericBabyId, userId);
     if (!hasBabyAccess) {
       return res.status(403).json(createErrorResponse(403, "Access denied: Baby does not belong to current user"));

@@ -4,6 +4,8 @@
 const logger = require('../../../utils/logger');
 const { createSuccessResponse, createErrorResponse } = require('../../../utils/response');
 const pool = require('../../../../database/db');
+const { getUserId } = require('../../../utils/userIdHelper');
+const { checkBabyBelongsToUser } = require('../../../utils/babyAccessHelper');
 
 // POST /baby/[:babyId]/growth - Create a new Growth record for a specific baby [:babyId]
 module.exports.createGrowth = async (req, res) => {

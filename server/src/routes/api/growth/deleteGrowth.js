@@ -4,11 +4,13 @@
 const logger = require('../../../utils/logger');
 const { createSuccessResponse, createErrorResponse } = require('../../../utils/response');
 const pool = require('../../../../database/db');
+const { getUserId } = require('../../../utils/userIdHelper');
+const { checkBabyBelongsToUser } = require('../../../utils/babyAccessHelper');
 
 // DELETE /baby/:babyId/growth/:growthId - Delete a Growth record by growthId
 module.exports.deleteGrowthById = async (req, res) => {
   const { growthId } = req.params; 
-  const { baby_id } = req.params;
+  const { baby_id } = req.params.babyId;
 
   try {
     // Decode the token to get the user ID

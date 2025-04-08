@@ -4,12 +4,14 @@
 const logger = require('../../../utils/logger');
 const { createSuccessResponse, createErrorResponse } = require('../../../utils/response');
 const pool = require('../../../../database/db');
+const { getUserId } = require('../../../utils/userIdHelper');
+const { checkBabyBelongsToUser } = require('../../../utils/babyAccessHelper');
 
 // PUT /baby/:babyId/growth/[:growthId] - Update a Growth record by [:growthId]
 module.exports.updateGrowthById = async (req, res) => {
   const { growthId } = req.params;
   const { date, height, weight, notes } = req.body;
-  const baby_id = req.params.baby_id;
+  const baby_id = req.params.babyId;
 
   logger.info(
     `In PUT /baby/:babyId/growth/:growthId, Updating growth record with growthId ${growthId}`
