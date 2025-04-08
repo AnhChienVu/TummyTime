@@ -1,12 +1,20 @@
 // client/pages/baby/[id]/profile/index.js
 import { useForm } from "react-hook-form";
-import { Row, Col, Form, Button, Container, Modal, Alert } from "react-bootstrap";
+import {
+  Row,
+  Col,
+  Form,
+  Button,
+  Container,
+  Modal,
+  Alert,
+} from "react-bootstrap";
 import { useRouter } from "next/router";
 import styles from "./profile.module.css";
 import { useState, useEffect } from "react";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
-import ProfilePictureManager from '@/components/ProfilePicture/ProfilePictureManager';
+import ProfilePictureManager from "@/components/ProfilePicture/ProfilePictureManager";
 
 export default function BabyProfile({ baby_id }) {
   const { t } = useTranslation("common");
@@ -20,7 +28,7 @@ export default function BabyProfile({ baby_id }) {
   const [isLoading, setIsLoading] = useState(true);
   const [formError, setFormError] = useState(null);
 
-  // Get the baby profile information
+  // GET the baby profile information
   useEffect(() => {
     const fetchBabyProfile = async () => {
       if (baby_id) {
@@ -32,7 +40,7 @@ export default function BabyProfile({ baby_id }) {
               headers: {
                 Authorization: `Bearer ${localStorage.getItem("token")}`,
               },
-            }
+            },
           );
 
           if (!res.ok) {
@@ -41,7 +49,7 @@ export default function BabyProfile({ baby_id }) {
 
           const data = await res.json();
           const babyData = data.data || data;
-          
+
           // If profile_picture_url is missing in the API response, fetch it
           if (!babyData.profile_picture_url) {
             try {
@@ -51,31 +59,36 @@ export default function BabyProfile({ baby_id }) {
                   headers: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`,
                   },
-                }
+                },
               );
-              
+
               if (fullProfileRes.ok) {
                 const fullProfileData = await fullProfileRes.json();
-                const matchingBaby = fullProfileData.babies?.find(b => 
-                  b.baby_id.toString() === baby_id.toString()
+                const matchingBaby = fullProfileData.babies?.find(
+                  (b) => b.baby_id.toString() === baby_id.toString(),
                 );
-                
+
                 if (matchingBaby && matchingBaby.profile_picture_url) {
-                  babyData.profile_picture_url = matchingBaby.profile_picture_url;
+                  babyData.profile_picture_url =
+                    matchingBaby.profile_picture_url;
                 }
               }
             } catch (error) {
               console.error("Error fetching full baby profile:", error);
             }
           }
-          
+
           setBaby(babyData);
-          
+
           // Form field setup
           setValue("first_name", babyData.first_name);
           setValue("last_name", babyData.last_name);
           setValue("gender", babyData.gender);
           setValue("weight", babyData.weight);
+
+          setValue("birthdate", babyData.birthdate ? babyData.birthdate : "");
+          setValue("height", babyData.height ? babyData.height : "");
+
           setOriginalData(babyData);
         } catch (error) {
           console.error("Error fetching baby profile:", error);
@@ -91,9 +104,9 @@ export default function BabyProfile({ baby_id }) {
 
   // Handle profile picture update
   const handleProfilePictureUpdate = (newUrl) => {
-    setBaby(prev => ({
+    setBaby((prev) => ({
       ...prev,
-      profile_picture_url: newUrl
+      profile_picture_url: newUrl,
     }));
   };
 
@@ -104,7 +117,9 @@ export default function BabyProfile({ baby_id }) {
       formValues.first_name !== originalData.first_name ||
       formValues.last_name !== originalData.last_name ||
       formValues.gender !== originalData.gender ||
-      formValues.weight !== originalData.weight
+      formValues.weight !== originalData.weight ||
+      formValues.birthdate !== originalData.birthdate ||
+      formValues.height !== originalData.height
     );
   };
 
@@ -125,11 +140,13 @@ export default function BabyProfile({ baby_id }) {
           }),
         },
       );
-      
+
       if (!res.ok) {
         throw new Error(`Failed to update baby profile: ${res.status}`);
       }
-      
+
+      // Show success message then redirect
+      alert(t("Baby profile updated successfully."));
       router.push("/profile");
     } catch (error) {
       console.error("Error updating baby profile:", error);
@@ -156,11 +173,11 @@ export default function BabyProfile({ baby_id }) {
           },
         },
       );
-      
+
       if (!res.ok) {
         throw new Error(`Failed to delete baby profile: ${res.status}`);
       }
-      
+
       setShowDeleteModal(false);
       router.push("/profile");
     } catch (error) {
@@ -198,13 +215,13 @@ export default function BabyProfile({ baby_id }) {
     <div className="d-flex">
       <Container className="py-4">
         <h2>{t("Edit Baby Profile")}</h2>
-        
+
         {formError && (
           <Alert variant="danger" className="mb-3">
             {formError}
           </Alert>
         )}
-        
+
         <Form onSubmit={handleSubmit(onSubmit)}>
           {/* Profile Picture Manager */}
           <div className={styles.profilePictureContainer}>
@@ -216,7 +233,7 @@ export default function BabyProfile({ baby_id }) {
               size={120}
             />
           </div>
-          
+
           {/* Form fields */}
           <Row>
             <Col md={6}>
@@ -241,7 +258,9 @@ export default function BabyProfile({ baby_id }) {
               <Form.Group className="mb-3">
                 <Form.Label>{t("Gender")}</Form.Label>
                 <Form.Select {...register("gender")} required>
-                  <option value="" disabled>{t("Select Gender")}</option>
+                  <option value="" disabled>
+                    {t("Select Gender")}
+                  </option>
                   <option value="boy">{t("Boy")}</option>
                   <option value="girl">{t("Girl")}</option>
                 </Form.Select>
@@ -261,7 +280,47 @@ export default function BabyProfile({ baby_id }) {
               </Form.Group>
             </Col>
           </Row>
-          
+
+          {/* NEW: Add DOB and Height fields */}
+          <Row>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>{t("Date of Birth")}</Form.Label>
+                <Form.Control
+                  {...register("birthdate", {
+                    required: true,
+                    // Validation:
+                    validate: (value) => {
+                      const today = new Date();
+                      const birthDate = new Date(value);
+                      return (
+                        birthDate <= today && // not in the future
+                        birthDate >= new Date(today.getFullYear() - 50, 0, 1) // not earlier than 50 years ago
+                      );
+                    },
+                  })}
+                  type="date"
+                  required
+                />
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className="mb-3">
+                <Form.Label>{t("Height")} (cm)</Form.Label>
+                <Form.Control
+                  {...register("height", {
+                    required: true,
+                    min: 5, // min height: 5cm
+                    max: 200, // max height: 2meters
+                  })}
+                  type="number"
+                  placeholder={t("Enter height in cm")}
+                  required
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+
           <div className="d-flex">
             <Button
               type="submit"
@@ -270,8 +329,8 @@ export default function BabyProfile({ baby_id }) {
             >
               {t("Save Changes")}
             </Button>
-            <Button 
-              onClick={handleDeleteClick} 
+            <Button
+              onClick={handleDeleteClick}
               className={styles.deleteButton}
               variant="outline-danger"
             >
@@ -290,7 +349,9 @@ export default function BabyProfile({ baby_id }) {
             <Form.Check
               type="checkbox"
               id="delete-confirm"
-              label={t("I understand that this action cannot be undone and all data will be permanently deleted")}
+              label={t(
+                "I understand that this action cannot be undone and all data will be permanently deleted",
+              )}
               checked={deleteConfirmed}
               onChange={(e) => setDeleteConfirmed(e.target.checked)}
               className="mb-3"
