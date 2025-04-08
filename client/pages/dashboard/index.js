@@ -801,7 +801,7 @@ const Dashboard = () => {
                   </p>
                 )}{" "}
                 <div className="mt-3">
-                  <Link href="/forums" className={styles.viewMoreLink}>
+                  <Link href="/forum" className={styles.viewMoreLink}>
                     {t("View Forum")} →
                   </Link>
                 </div>

@@ -12,6 +12,8 @@ export function useReplies(post_id) {
   const [deleteReplyConfirmed, setDeleteReplyConfirmed] = useState(false);
   const [replyToDelete, setReplyToDelete] = useState(null);
   const [shouldRefresh, setShouldRefresh] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
 
   const handleStartReplyEdit = (reply) => {
     if (!reply) return;
@@ -86,8 +88,21 @@ export function useReplies(post_id) {
 
       if (response.ok) {
         setReplyContent(""); // Clear the reply input
-        // Perform a hard refresh of the page
-        window.location.reload();
+
+        // Show success message and wait before refresh
+        const showToastAndRefresh = async () => {
+          // Set a success flag that the component can use to show toast
+          setToastMessage("Reply posted successfully!");
+          setShowToast(true);
+
+          // Wait for 1.5 seconds
+          await new Promise((resolve) => setTimeout(resolve, 1500));
+
+          // Refresh the page
+          window.location.reload();
+        };
+
+        showToastAndRefresh();
       } else {
         const errorData = await response.json();
         setError(errorData.message || "Failed to post reply");
@@ -215,5 +230,9 @@ export function useReplies(post_id) {
     handleStartReplyDelete,
     handleCancelReplyEdit,
     fetchReplies,
+    showToast,
+    toastMessage,
+    setShowToast,
+    setToastMessage,
   };
 }

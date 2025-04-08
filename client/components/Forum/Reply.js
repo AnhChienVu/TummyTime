@@ -4,17 +4,11 @@
 //  - Editing existing replies
 //  - Deleting replies
 //  - Showing metadata about the reply
-import {
-  Card,
-  Button,
-  Form,
-  Modal,
-  Toast,
-  ToastContainer,
-} from "react-bootstrap";
+import { Card, Button, Form, Modal } from "react-bootstrap";
 import { useState } from "react";
 import styles from "./Reply.module.css";
 import { useTranslation } from "next-i18next";
+import ForumToast from "@/components/Forum/ForumToast";
 
 export function Reply({
   reply,
@@ -29,6 +23,7 @@ export function Reply({
   const { t } = useTranslation("common");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
 
   const handleContentChange = (e) => {
     setEditContent && setEditContent(e.target.value);
@@ -38,10 +33,28 @@ export function Reply({
     setShowDeleteModal(true);
   };
 
-  const handleDeleteConfirm = async () => {
-    setShowDeleteModal(false);
-    await onDelete(reply.reply_id);
+  const showToast = (message) => {
+    setToastMessage(message);
     setShowSuccessToast(true);
+  };
+
+  const handleSave = async () => {
+    try {
+      await onSave();
+      showToast(t("Reply has been saved!"));
+    } catch (error) {
+      showToast(t("Error saving reply"));
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    try {
+      setShowDeleteModal(false);
+      await onDelete(reply.reply_id);
+      showToast(t("Reply has been deleted!"));
+    } catch (error) {
+      showToast(t("Error deleting reply"));
+    }
   };
 
   const handleDeleteCancel = () => {
@@ -92,7 +105,7 @@ export function Reply({
                 <Button
                   variant="outline-primary"
                   size="sm"
-                  onClick={onSave}
+                  onClick={handleSave}
                   className={styles.editActionButton}
                 >
                   {t("Save")}
@@ -150,23 +163,12 @@ export function Reply({
         </Modal.Footer>
       </Modal>
 
-      <ToastContainer position="bottom-end" className={styles.toastContainer}>
-        <Toast
-          show={showSuccessToast}
-          onClose={() => setShowSuccessToast(false)}
-          delay={3000}
-          autohide
-          bg="success"
-          className={styles.toast}
-        >
-          <Toast.Header closeButton={false}>
-            <strong className="me-auto">{t("Success")}</strong>
-          </Toast.Header>
-          <Toast.Body className="text-white">
-            {t("Reply has been deleted!")}
-          </Toast.Body>
-        </Toast>
-      </ToastContainer>
+      <ForumToast
+        show={showSuccessToast}
+        onClose={() => setShowSuccessToast(false)}
+        message={toastMessage}
+        type={"success"}
+      />
     </>
   );
 }
