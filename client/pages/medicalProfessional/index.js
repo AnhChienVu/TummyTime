@@ -137,6 +137,8 @@ function MedicalProfessional() {
         setFiles(data.files);
         setShowFilesModal(true);
       } else {
+        setFiles([]);
+        setShowFilesModal(true);
         console.error("Failed to fetch files:", data);
       }
     } catch (error) {
@@ -164,6 +166,10 @@ function MedicalProfessional() {
         setSelectedDoctor(doctorId);
         setShowSendModal(true);
       } else {
+        setDocuments([]);
+        setSelectedBaby(babyId);
+        setSelectedDoctor(doctorId);
+        setShowSendModal(true);
         console.error("Failed to fetch sent files:", data);
       }
     } catch (error) {
