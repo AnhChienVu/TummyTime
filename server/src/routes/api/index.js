@@ -6,14 +6,9 @@ const { checkPostOwnership, checkReplyOwnership } = require('../../auth/ownershi
  * The main entry-point for the v1 version of the API.
  */
 const express = require('express');
-const multer = require('multer');
 
 // Create a router on which to mount our API endpoints
 const router = express.Router();
-
-// Configure Multer for in-memory storage
-const storage = multer.memoryStorage();
-const upload = multer({ storage });
 
 // Import all of stool API endpoints
 const { getStoolEntries } = require('./baby/stool/getStool');
