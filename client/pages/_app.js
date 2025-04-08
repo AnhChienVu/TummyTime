@@ -5,6 +5,7 @@ import { appWithTranslation } from "next-i18next";
 import { jwtDecode } from "jwt-decode";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { NotificationProvider } from "@/context/NotificationContext";
 
 function App({ Component, pageProps }) {
   const router = useRouter();
@@ -29,7 +30,11 @@ function App({ Component, pageProps }) {
   }
 
   const getLayout = Component.getLayout || ((page) => <Layout>{page}</Layout>);
-  return getLayout(<Component {...pageProps} />);
+  return (
+    <NotificationProvider>
+      {getLayout(<Component {...pageProps} />)}
+    </NotificationProvider>
+  );
 }
 
 export default appWithTranslation(App);
