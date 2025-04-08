@@ -1,4 +1,4 @@
-// src/routes/api/user/getUser.js
+// src/routes/api/user/getUserById.js
 const { createSuccessResponse, createErrorResponse } = require('../../../utils/response');
 const pool = require('../../../../database/db');
 const { getUserId } = require('../../../utils/userIdHelper');
@@ -7,7 +7,8 @@ const { getUserId } = require('../../../utils/userIdHelper');
  * route: GET /user/:id
  * GET an existing user
  */
-module.exports.getUser = async (req, res) => {
+module.exports.getUserById = async (req, res) => {
+  const { id } = req.params;
   try {
     // Decode the token to get the user ID
     const authHeader = req.headers.authorization;
@@ -21,7 +22,7 @@ module.exports.getUser = async (req, res) => {
     }
 
     // Get the user's profile from the database
-    const profile = await pool.query('SELECT * FROM users WHERE user_id = $1', [userId]);
+    const profile = await pool.query('SELECT * FROM users WHERE user_id = $1', [id]);
 
     // Check if profile exists and has data
     if (!profile || !profile.rows || profile.rows.length === 0) {
