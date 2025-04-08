@@ -20,6 +20,8 @@ export default function AddBaby() {
       first_name: "",
       last_name: "",
       weight: "",
+      birthdate: "",
+      height: "",
     },
   });
 
@@ -94,6 +96,33 @@ export default function AddBaby() {
                   placeholder={t("Weight at birth (lb)")}
                   min={5}
                   {...register("weight")}
+                  required
+                />
+              </Form.Group>
+            </Col>
+          </Row>
+
+          {/* NEW: Add DOB and Height fields */}
+          <Row className="mb-3">
+            <Col>
+              <Form.Group>
+                <Form.Control
+                  name="birthdate"
+                  type="date"
+                  placeholder={t("Date of Birth")}
+                  {...register("birthdate")}
+                  required
+                />
+              </Form.Group>
+            </Col>
+            <Col>
+              <Form.Group>
+                <Form.Control
+                  name="height"
+                  type="number"
+                  placeholder={t("Enter height in cm")}
+                  min={5}
+                  {...register("height")}
                   required
                 />
               </Form.Group>
