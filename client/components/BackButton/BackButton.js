@@ -9,7 +9,7 @@ const BackButton = () => {
   return (
     <div style={{ margin: "1rem" }}>
       <Button variant="outline-secondary" onClick={() => router.back()}>
-        Back
+        Go Back
       </Button>
     </div>
   );
