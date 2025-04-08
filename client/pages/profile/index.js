@@ -6,7 +6,7 @@ import styles from "./profile.module.css";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import Link from "next/link";
-import ProfilePictureManager from '@/components/ProfilePicture/ProfilePictureManager';
+import ProfilePictureManager from "@/components/ProfilePicture/ProfilePictureManager";
 
 function ProfilePage() {
   const { t, i18n } = useTranslation("common");
@@ -27,12 +27,12 @@ function ProfilePage() {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
-        
+
         if (!res.ok) {
           const errorData = await res.json();
           throw new Error(errorData.message || `Error ${res.status}`);
         }
-        
+
         const data = await res.json();
         setProfile(data);
       } catch (error) {
@@ -54,18 +54,26 @@ function ProfilePage() {
             },
           },
         );
-        
+
+        // Handle 404 specifically, so that the app doesn't crash if no babies are found
+        if (res.status === 404) {
+          console.log("No babies found");
+          setBabyProfiles([]);
+          return;
+        }
+
         if (!res.ok) {
           const errorData = await res.json();
           throw new Error(errorData.message || `Error ${res.status}`);
         }
-        
+
         const data = await res.json();
         // Direct access to the babies array
         setBabyProfiles(data.babies || []);
       } catch (error) {
         console.error("Error fetching baby profiles:", error);
         setError(t("Failed to fetch baby profiles. Please try again."));
+        setBabyProfiles([]);
       }
     }
 
@@ -75,7 +83,7 @@ function ProfilePage() {
 
   const handleEditButton = () => {
     if (!profile) return;
-    
+
     router.push({
       pathname: `/user/${profile.user_id}/edit`,
       query: { profile: JSON.stringify(profile), locale },
@@ -117,7 +125,7 @@ function ProfilePage() {
           {error}
         </Alert>
       )}
-      
+
       {/* Profile Section */}
       <Row className="mb-4">
         <Col>
@@ -153,7 +161,7 @@ function ProfilePage() {
               </Button>
             </Card.Body>
           </Card>
-          
+
           <div className="d-flex justify-content-between align-items-center mb-3">
             <h2>{t("Baby Profiles")}</h2>
             <Link href={`/baby/add`} locale={locale}>
@@ -188,7 +196,7 @@ function ProfilePage() {
                         readOnly={true}
                       />
                     </div>
-                    
+
                     <div className="flex-grow-1">
                       <Card.Title>
                         {baby.first_name} {baby.last_name}
