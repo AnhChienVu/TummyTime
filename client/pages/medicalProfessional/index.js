@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import styles from "./medicalProfessional.module.css";
 import Image from "next/image";
 import BabyListModal from "@/components/BabyListModal/BabyListModal";
+import SendDocumentsModal from "@/components/SendDocumentsModal/SendDocumentModal";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
@@ -12,6 +13,13 @@ function MedicalProfessional() {
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   const [babies, setBabies] = useState([]);
   const [assignedBabies, setAssignedBabies] = useState({});
+  const [showFilesModal, setShowFilesModal] = useState(false);
+  const [files, setFiles] = useState([]);
+
+  // States for getting send files from parent to a doctor for a baby
+  const [showSendModal, setShowSendModal] = useState(false);
+  const [documents, setDocuments] = useState([]);
+  const [selectedBaby, setSelectedBaby] = useState(null);
 
   useEffect(() => {
     const fetchMedicalProfessional = async () => {
@@ -111,6 +119,57 @@ function MedicalProfessional() {
     }
   };
 
+  const getFiles = async (babyId, doctorId) => {
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/v1/parent/${localStorage.getItem(
+          "userId",
+        )}/doctors/${doctorId}/babies/${babyId}/getFiles`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
+
+      const data = await res.json();
+      if (data.status === "ok") {
+        setFiles(data.files);
+        setShowFilesModal(true);
+      } else {
+        console.error("Failed to fetch files:", data);
+      }
+    } catch (error) {
+      console.error("Error fetching files:", error);
+    }
+  };
+
+  const getSentFiles = async (babyId, doctorId) => {
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/v1/parent/${localStorage.getItem(
+          "userId",
+        )}/babies/${babyId}/doctors/${doctorId}/getSentFiles`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
+      );
+
+      const data = await res.json();
+      if (data.status === "ok") {
+        setDocuments(data.files);
+        setSelectedBaby(babyId);
+        setShowSendModal(true);
+      } else {
+        console.error("Failed to fetch sent files:", data);
+      }
+    } catch (error) {
+      console.log("Error sending files:", error);
+    }
+  };
+
   return (
     <div className={styles.container}>
       {medicalProfessional && (
@@ -157,8 +216,25 @@ function MedicalProfessional() {
                         <p className={styles.babyName}>
                           {t("Baby")}: {baby.first_name} {baby.last_name}
                         </p>
-                        <button className={styles.button}>
+                        <button
+                          className={styles.button}
+                          onClick={() =>
+                            getFiles(baby.baby_id, medicalProfessional.user_id)
+                          }
+                        >
                           {t("Health Documents")}
+                        </button>
+
+                        <button
+                          className={styles.button}
+                          onClick={() =>
+                            getSentFiles(
+                              baby.baby_id,
+                              medicalProfessional.user_id,
+                            )
+                          }
+                        >
+                          {t("Send Documents")}
                         </button>
                       </div>
                     ))
@@ -179,6 +255,22 @@ function MedicalProfessional() {
         handleClose={() => setShowModal(false)}
         babies={babies}
         onSelectBaby={handleSelectBaby}
+      />
+
+      <SendDocumentsModal
+        show={showFilesModal}
+        handleClose={() => setShowFilesModal(false)}
+        documents={files}
+        onSendNewDocument={() => console.log("Send new document")}
+        purpose="getSentFilesFromDoctor"
+      />
+
+      <SendDocumentsModal
+        show={showSendModal}
+        handleClose={() => setShowSendModal(false)}
+        documents={documents}
+        onSendNewDocument={() => console.log("Send new document")}
+        purpose="getSentFilesFromParent"
       />
     </div>
   );
