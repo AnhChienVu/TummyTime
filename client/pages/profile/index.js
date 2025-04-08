@@ -71,7 +71,7 @@ function ProfilePage() {
 
     fetchProfile();
     fetchBabyProfiles();
-  }); // Run only once on mount
+  }, [t]); // Run only once on mount
 
   const handleEditButton = () => {
     if (!profile) return;
