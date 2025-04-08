@@ -23,6 +23,9 @@ module.exports = async (req, res) => {
       return res.status(401).json(createErrorResponse("Invalid user ID"));
     }
 
+    // {CHECK OWNERSHIP of BABY}
+    // Verify user has access to this baby: DONE
+
     const babyProfiles = await pool.query(
       `SELECT b.* FROM baby b
       JOIN user_baby ub ON b.baby_id = ub.baby_id

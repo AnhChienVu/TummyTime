@@ -59,7 +59,9 @@ module.exports.updateStoolEntry = async (req, res) => {
     }
     const localUserId = userResult.rows[0].user_id;
     logger.info(`Mapped email=${userEmail} to local user_id=${localUserId}`);
-
+    
+   // {CHECK OWNERSHIP of BABY}
+    // Verify user has access to this baby 
     // Check user ownership in user_baby table to ensure the user is authorized.
     const ownershipRes = await pool.query(
       'SELECT * FROM user_baby WHERE user_id = $1 AND baby_id = $2',

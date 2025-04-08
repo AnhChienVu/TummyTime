@@ -80,8 +80,9 @@ module.exports = async (req, res) => {
         },
       });
     }
-
-    // Check baby ownership using the utility function
+    
+   // {CHECK OWNERSHIP of BABY}
+    // Verify user has access to this baby 
     const hasBabyAccess = await checkBabyBelongsToUser(baby_id, user_id);
     if (!hasBabyAccess) {
       return res.status(403).json({
