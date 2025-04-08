@@ -35,7 +35,7 @@ const AboutUs = () => {
           <h2 className="text-center mb-3">Our Mission</h2>
           <p className="text-center">
             Our mission is to empower parents with innovative tools and reliable
-            insights to help monitor their baby's health and development. We
+            insights to help monitor their baby&#39;s health and development. We
             strive to build an engaging and supportive platform that combines
             cutting-edge technology with compassionate care.
           </p>
