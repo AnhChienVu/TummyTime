@@ -20,8 +20,8 @@ export default function AddBaby() {
       first_name: "",
       last_name: "",
       weight: "",
-      birthdate: "",
-      height: "",
+      // birthdate: "",
+      // height: "",
     },
   });
 
@@ -103,7 +103,7 @@ export default function AddBaby() {
           </Row>
 
           {/* NEW: Add DOB and Height fields */}
-          <Row className="mb-3">
+          {/* <Row className="mb-3">
             <Col md={6}>
               <Form.Group>
                 <Form.Label>{t("Date of Birth")}</Form.Label>
@@ -140,7 +140,7 @@ export default function AddBaby() {
                 />
               </Form.Group>
             </Col>
-          </Row>
+          </Row> */}
 
           <Row className="mb-3">
             <Col>
