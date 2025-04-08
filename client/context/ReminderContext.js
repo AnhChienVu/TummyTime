@@ -103,6 +103,42 @@ export const ReminderProvider = ({ children, babyId }) => {
     }
   };
 
+  // Helper function to create next reminder data
+  const createNextReminderData = (originalReminder) => {
+    // Parse the reminder_in value to get hours
+    const hoursMatch = originalReminder.reminder_in.match(/(\d+(\.\d+)?)/);
+    const hoursToAdd = hoursMatch ? parseFloat(hoursMatch[1]) : 1.5;
+    
+    // Parse original time
+    const [hours, minutes] = originalReminder.time.split(':').map(Number);
+    
+    // Create a date object with the original date and time
+    const originalDate = new Date(originalReminder.date);
+    originalDate.setHours(hours, minutes, 0, 0);
+    
+    // Calculate new time by adding hours - using milliseconds for precision
+    const nextReminderDate = new Date(originalDate);
+    const millisecondsToAdd = hoursToAdd * 60 * 60 * 1000; // convert hours to milliseconds
+    nextReminderDate.setTime(nextReminderDate.getTime() + millisecondsToAdd);
+    
+    // Format time for new reminder (24 hour format for API)
+    const nextHours = nextReminderDate.getHours().toString().padStart(2, '0');
+    const nextMinutes = nextReminderDate.getMinutes().toString().padStart(2, '0');
+    const formattedTime = `${nextHours}:${nextMinutes}`;
+    
+    // Create new reminder with same details but updated time
+    return {
+      title: originalReminder.title,
+      time: formattedTime,
+      date: nextReminderDate.toISOString().split('T')[0],
+      notes: originalReminder.notes || originalReminder.note || "",
+      is_active: true,
+      next_reminder: originalReminder.next_reminder,
+      reminder_in: originalReminder.reminder_in,
+      baby_id: parseInt(babyId)
+    };
+  };
+
   const resetForm = () => {
     setTitle("");
     setNote("");
@@ -221,7 +257,21 @@ export const ReminderProvider = ({ children, babyId }) => {
 
   const handleAddReminder = async (formData) => {
     try {
-      await addReminder(babyId, formData, API_BASE_URL);
+      // Add the initial reminder
+      const response = await addReminder(babyId, formData, API_BASE_URL);
+      
+      // If next reminder is enabled, create it immediately
+      if (formData.next_reminder && formData.reminder_in) {
+        console.log(`Creating next reminder in ${formData.reminder_in}`);
+        
+        // Create the next reminder data
+        const nextReminderData = createNextReminderData(formData);
+        
+        // Add the next reminder
+        await addReminder(babyId, nextReminderData, API_BASE_URL);
+        console.log(`Created next reminder successfully`);
+      }
+      
       await fetchReminders();
       handleCloseAddModal();
       showToast("Reminder added successfully", "success");
@@ -238,7 +288,21 @@ export const ReminderProvider = ({ children, babyId }) => {
     }
 
     try {
+      // Update the selected reminder
       await updateReminder(babyId, selectedReminder.id, formData, API_BASE_URL);
+      
+      // If next reminder is enabled, find and update or create it
+      if (formData.next_reminder && formData.reminder_in) {
+        console.log(`Updating/Creating next reminder in ${formData.reminder_in}`);
+        
+        // Create the next reminder data
+        const nextReminderData = createNextReminderData(formData);
+        
+        // Add the next reminder
+        await addReminder(babyId, nextReminderData, API_BASE_URL);
+        console.log(`Created/Updated next reminder successfully`);
+      }
+      
       await fetchReminders();
       handleCloseEditModal();
       showToast("Reminder updated successfully", "success");
@@ -307,21 +371,34 @@ export const ReminderProvider = ({ children, babyId }) => {
         return;
       }
 
+      // Get the new active state (opposite of current)
+      const newActiveState = !reminder.isActive;
+      
+      // Update state locally first
       const updatedReminders = reminders.map((r) => {
         if (r.id === id) {
-          return { ...r, isActive: !r.isActive };
+          return { ...r, isActive: newActiveState };
         }
         return r;
       });
       setReminders(updatedReminders);
 
-      await toggleReminderActive(babyId, id, reminder, !reminder.isActive, API_BASE_URL);
-      await fetchReminders();
-
+      // Update nextReminder data
       const nextReminderData = findNextDueReminder(updatedReminders);
       setNextReminderData(nextReminderData);
+
+      // Call API to update the server
+      const result = await toggleReminderActive(babyId, id, reminder, newActiveState, API_BASE_URL);
+      
+      // Only show success message, don't refetch
+      if (result && result.success) {
+        showToast(`Reminder ${newActiveState ? 'activated' : 'deactivated'} successfully`, "success");
+      }
     } catch (err) {
+      console.error("Error toggling reminder:", err);
       showToast(err.message || "Failed to update reminder", "error");
+      
+      // On error, revert local state by refetching
       await fetchReminders();
     }
   };
