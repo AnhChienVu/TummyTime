@@ -1,6 +1,6 @@
 // This component displays a list of babies and their feeding schedules. It fetches the list of babies from the API and then renders a FeedingSchedule component for each baby.
 import React, { useEffect, useState } from 'react';
-import { Alert, Card, Accordion } from 'react-bootstrap';
+import {Accordion } from 'react-bootstrap';
 import { useTranslation } from 'next-i18next';
 import FeedingSchedule from '../FeedingSchedule/FeedingSchedule';
 import styles from './MultipleFeedingSchedules.module.css';
@@ -33,9 +33,9 @@ const MultipleFeedingSchedules = () => {
     fetchBabies();
   }, []);
 
-  if (loading) return <Alert variant="info">{t("Loading babies...")}</Alert>;
-  if (error) return <Alert variant="danger">{t("Error loading babies")}</Alert>;
-  if (!babies.length) return <Alert variant="warning">{t("No babies found")}</Alert>;
+if (loading) return <div className={styles.statusMessage}>{t("Loading babies...")}</div>;
+  if (error) return <div className={styles.statusMessage}>{t("Error loading babies")}</div>;
+  if (!babies.length) return <div className={styles.statusMessage}>{t("No babies found")}</div>;
 
   return (
     <Accordion className={styles.customAccordion}>

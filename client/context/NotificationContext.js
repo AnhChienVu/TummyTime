@@ -1,6 +1,13 @@
 // File: client/context/NotificationContext.js
 
-import { createContext, useState, useContext, useEffect, useRef, useCallback } from "react";
+import {
+  createContext,
+  useState,
+  useContext,
+  useEffect,
+  useRef,
+  useCallback,
+} from "react";
 import * as reminderService from "@/services/reminderService";
 
 const NotificationContext = createContext();
@@ -16,9 +23,9 @@ export const NotificationProvider = ({ children }) => {
   const [dismissedReminderIds, setDismissedReminderIds] = useState(new Set());
   const checkIntervalRef = useRef(null);
   const lastCheckRef = useRef(null);
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL 
-    ? `${process.env.NEXT_PUBLIC_API_URL}/v1` 
-    : '/api/v1';
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL
+    ? `${process.env.NEXT_PUBLIC_API_URL}/v1`
+    : "/api/v1";
 
   // Audio state management
   const audioRef = useRef(null);
@@ -29,7 +36,7 @@ export const NotificationProvider = ({ children }) => {
     console.log("NotificationContext initializing (client-side check)");
     setIsClient(true);
     lastCheckRef.current = new Date();
-    
+
     // Check authentication status
     const token = localStorage.getItem("token");
     const isAuth = !!token;
@@ -40,14 +47,16 @@ export const NotificationProvider = ({ children }) => {
   // Load previously dismissed reminders from localStorage
   useEffect(() => {
     if (!isClient) return;
-    
+
     try {
-      const savedDismissed = localStorage.getItem('dismissedReminders');
+      const savedDismissed = localStorage.getItem("dismissedReminders");
       if (savedDismissed) {
         const parsedIds = JSON.parse(savedDismissed);
         if (Array.isArray(parsedIds)) {
           setDismissedReminderIds(new Set(parsedIds));
-          console.log(`Loaded ${parsedIds.length} dismissed reminder IDs from storage`);
+          console.log(
+            `Loaded ${parsedIds.length} dismissed reminder IDs from storage`,
+          );
         }
       }
     } catch (err) {
@@ -58,12 +67,14 @@ export const NotificationProvider = ({ children }) => {
   // Only run client-side code after component mounts
   useEffect(() => {
     if (!isClient) return;
-    
+
     if (!isAuthenticated) {
-      console.log("NotificationContext: User not authenticated, skipping baby fetch");
+      console.log(
+        "NotificationContext: User not authenticated, skipping baby fetch",
+      );
       return;
     }
-    
+
     console.log("NotificationContext: Running client-side initialization");
 
     // Fetch all babies belonging to user
@@ -71,49 +82,56 @@ export const NotificationProvider = ({ children }) => {
       try {
         const token = localStorage.getItem("token");
         if (!token) {
-          console.log("NotificationContext: No token found, skipping baby fetch");
+          console.log(
+            "NotificationContext: No token found, skipping baby fetch",
+          );
           return;
         }
 
         console.log("NotificationContext: Fetching babies from API");
         const url = `${API_BASE_URL}/babies`;
         console.log(`API Request URL: ${url}`);
-        
+
         const response = await fetch(url, {
-          headers: { 
+          headers: {
             Authorization: `Bearer ${token}`,
-            "Accept": "application/json"
+            Accept: "application/json",
           },
         });
-        
+
         if (!response.ok) {
-          console.error(`API Error: ${response.status} - ${response.statusText}`);
-          throw new Error(`Failed to fetch babies: ${response.status}`);
+          console.error(
+            `API Error: ${response.status} - ${response.statusText}:
+            This could be user is logged in as doctor, or user trying to get babies from another user`,
+          );
         }
-        
+
         // Read response as text first
         const text = await response.text();
-        
-        if (!text || text.trim() === '') {
+
+        if (!text || text.trim() === "") {
           console.log("Empty response from API");
           return;
         }
-        
+
         // Safely parse the response
         try {
           // Some validation to avoid common parsing errors
           const trimmedText = text.trim();
-          if (!trimmedText.startsWith('{') && !trimmedText.startsWith('[')) {
-            console.error("Invalid JSON format received:", text.substring(0, 100) + "...");
+          if (!trimmedText.startsWith("{") && !trimmedText.startsWith("[")) {
+            console.error(
+              "Invalid JSON format received:",
+              text.substring(0, 100) + "...",
+            );
             return;
           }
-          
+
           const data = JSON.parse(trimmedText);
-          
+
           // Check for various response formats
-          if (data && typeof data === 'object') {
+          if (data && typeof data === "object") {
             let babiesArray = [];
-            
+
             if (Array.isArray(data)) {
               // Direct array of babies
               babiesArray = data;
@@ -124,22 +142,29 @@ export const NotificationProvider = ({ children }) => {
               // Wrapped in a babies property
               babiesArray = data.babies;
             }
-            
+
             if (babiesArray.length > 0) {
               // Validate that the array contains proper baby objects
-              const validBabies = babiesArray.filter(baby => 
-                baby && typeof baby === 'object' && (baby.baby_id || baby.id)
+              const validBabies = babiesArray.filter(
+                (baby) =>
+                  baby && typeof baby === "object" && (baby.baby_id || baby.id),
               );
-              
+
               if (validBabies.length > 0) {
-                console.log(`NotificationContext: Found ${validBabies.length} valid babies`);
-                
+                console.log(
+                  `NotificationContext: Found ${validBabies.length} valid babies`,
+                );
+
                 // Normalize the baby objects to ensure they have a consistent structure
-                const normalizedBabies = validBabies.map(baby => ({
+                const normalizedBabies = validBabies.map((baby) => ({
                   baby_id: baby.baby_id || baby.id,
-                  name: baby.name || baby.first_name || baby.baby_name || `Baby ${baby.baby_id || baby.id}`
+                  name:
+                    baby.name ||
+                    baby.first_name ||
+                    baby.baby_name ||
+                    `Baby ${baby.baby_id || baby.id}`,
                 }));
-                
+
                 setUserBabies(normalizedBabies);
               } else {
                 console.error("No valid baby objects found in:", babiesArray);
@@ -165,11 +190,12 @@ export const NotificationProvider = ({ children }) => {
   // Play notification sound
   const playNotificationSound = useCallback(() => {
     if (!isClient || isPlayingAudio.current) return;
-    
+
     if (audioRef.current) {
       try {
         isPlayingAudio.current = true;
-        audioRef.current.play()
+        audioRef.current
+          .play()
           .then(() => {
             console.log("Notification sound played successfully");
             // Reset after sound completes
@@ -177,7 +203,7 @@ export const NotificationProvider = ({ children }) => {
               isPlayingAudio.current = false;
             }, 1000);
           })
-          .catch(err => {
+          .catch((err) => {
             console.error("Error playing notification sound:", err);
             isPlayingAudio.current = false;
           });
@@ -193,111 +219,135 @@ export const NotificationProvider = ({ children }) => {
     if (!isClient || !isAuthenticated) {
       return;
     }
-    
+
     if (userBabies.length === 0) {
       console.log("NotificationContext: No babies to check reminders for");
       return;
     }
-    
+
     console.log("NotificationContext: Checking for reminders...");
     const now = new Date();
     const allNotifications = [];
     let newNotificationsFound = false;
-    
+
     // Get the current dismissed IDs
     const currentDismissedIds = Array.from(dismissedReminderIds);
-    
+
     // Clean up expired dismissed reminders (older than 1 hour)
-    const oneHourAgo = new Date(now.getTime() - (60 * 60 * 1000));
+    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
     const expiredDismissals = [];
-    
+
     for (const baby of userBabies) {
       try {
-        console.log(`NotificationContext: Checking reminders for baby ${baby.name || baby.baby_id}`);
+        console.log(
+          `NotificationContext: Checking reminders for baby ${
+            baby.name || baby.baby_id
+          }`,
+        );
         let reminders = [];
-        
+
         try {
-          reminders = await reminderService.fetchReminders(baby.baby_id, API_BASE_URL);
-          console.log(`NotificationContext: Found ${reminders.length} reminders for baby ${baby.baby_id}`);
+          reminders = await reminderService.fetchReminders(
+            baby.baby_id,
+            API_BASE_URL,
+          );
+          console.log(
+            `NotificationContext: Found ${reminders.length} reminders for baby ${baby.baby_id}`,
+          );
         } catch (err) {
-          console.error(`Error fetching reminders for baby ${baby.baby_id}:`, err);
+          console.error(
+            `Error fetching reminders for baby ${baby.baby_id}:`,
+            err,
+          );
           continue;
         }
-        
+
         // Find all active reminders
-        const activeReminders = reminders.filter(r => r.isActive);
-        console.log(`NotificationContext: ${activeReminders.length}/${reminders.length} reminders are active for baby ${baby.baby_id}`);
-        
+        const activeReminders = reminders.filter((r) => r.isActive);
+        console.log(
+          `NotificationContext: ${activeReminders.length}/${reminders.length} reminders are active for baby ${baby.baby_id}`,
+        );
+
         // Process each active reminder
         for (const reminder of activeReminders) {
           // Skip reminders that have been recently dismissed
           if (dismissedReminderIds.has(reminder.id)) {
-            console.log(`Skipping dismissed reminder: ${reminder.title} (ID: ${reminder.id})`);
+            console.log(
+              `Skipping dismissed reminder: ${reminder.title} (ID: ${reminder.id})`,
+            );
             continue;
           }
-          
+
           // Create a consistent date object at noon to avoid timezone issues
           let reminderDate;
-          
+
           if (reminder.date instanceof Date) {
             reminderDate = new Date(
               reminder.date.getFullYear(),
               reminder.date.getMonth(),
               reminder.date.getDate(),
-              12, 0, 0
+              12,
+              0,
+              0,
             );
-          } else if (typeof reminder.date === 'string') {
-            const [year, month, day] = reminder.date.split('-').map(Number);
+          } else if (typeof reminder.date === "string") {
+            const [year, month, day] = reminder.date.split("-").map(Number);
             reminderDate = new Date(year, month - 1, day, 12, 0, 0);
           } else {
             console.warn("Unsupported date format:", reminder.date);
             continue;
           }
-          
+
           // Now get the actual time components and set them on the date
-          if (!reminder.time || typeof reminder.time !== 'string') {
+          if (!reminder.time || typeof reminder.time !== "string") {
             console.warn("Invalid time format:", reminder.time);
             continue;
           }
-          
-          const [hours, minutes] = reminder.time.split(':').map(Number);
-          
+
+          const [hours, minutes] = reminder.time.split(":").map(Number);
+
           // Reset the hours and minutes (keeping the noon date for day comparison)
           const reminderDateTime = new Date(reminderDate);
           reminderDateTime.setHours(hours, minutes, 0, 0);
-          
+
           // Get today's date with consistent noon time for day comparison
           const today = new Date();
           const todayAtNoon = new Date(
             today.getFullYear(),
             today.getMonth(),
             today.getDate(),
-            12, 0, 0
+            12,
+            0,
+            0,
           );
-          
+
           // Check if the reminder is for today by comparing the noon times
-          const dayDiff = Math.abs(reminderDate.getTime() - todayAtNoon.getTime());
+          const dayDiff = Math.abs(
+            reminderDate.getTime() - todayAtNoon.getTime(),
+          );
           const isToday = dayDiff < 24 * 60 * 60 * 1000; // Less than one day difference
-          
+
           // Show today's reminders AND any past reminders
           if (isToday || reminderDate < todayAtNoon) {
             // Check if the reminder is due now or is overdue
             const timeDiffMs = reminderDateTime - now;
             const isOverdue = timeDiffMs < 0;
-            
+
             // Use 60 minutes window for testing
             const isDue = Math.abs(timeDiffMs) < 60 * 60 * 1000; // Within 60 minutes
-            
+
             // Always show overdue reminders from past dates
             const isPastDate = reminderDate < todayAtNoon;
-            
+
             // Add if it's due or overdue or from a past date
             if (isDue || isOverdue || isPastDate) {
-              console.log(`Adding notification for reminder: ${reminder.title}`);
-              
+              console.log(
+                `Adding notification for reminder: ${reminder.title}`,
+              );
+
               // Find the baby's real name
               const babyName = baby.name || `Baby ${baby.baby_id}`;
-              
+
               allNotifications.push({
                 id: reminder.id,
                 babyId: reminder.babyId || baby.baby_id,
@@ -307,35 +357,44 @@ export const NotificationProvider = ({ children }) => {
                 time: reminderDateTime,
                 isOverdue: isOverdue || isPastDate, // Mark past date reminders as overdue
                 isEarlyNotification: false,
-                addedAt: new Date() // Track when notification was added
+                addedAt: new Date(), // Track when notification was added
               });
-              
+
               newNotificationsFound = true;
             }
           }
         }
       } catch (error) {
-        console.error(`Error checking reminders for baby ${baby.baby_id}:`, error);
+        console.error(
+          `Error checking reminders for baby ${baby.baby_id}:`,
+          error,
+        );
       }
     }
-    
+
     // If we found any notifications, update the state
     if (allNotifications.length > 0) {
-      console.log(`NotificationContext: Adding ${allNotifications.length} new notifications`);
-      
-      setActiveNotifications(prev => {
+      console.log(
+        `NotificationContext: Adding ${allNotifications.length} new notifications`,
+      );
+
+      setActiveNotifications((prev) => {
         // Add only new notifications (not already in the list)
-        const existingIds = new Set(prev.map(n => n.id));
-        const newNotifications = allNotifications.filter(n => !existingIds.has(n.id));
-        
+        const existingIds = new Set(prev.map((n) => n.id));
+        const newNotifications = allNotifications.filter(
+          (n) => !existingIds.has(n.id),
+        );
+
         if (newNotifications.length > 0) {
-          console.log(`NotificationContext: ${newNotifications.length} new notifications to add`);
-          
+          console.log(
+            `NotificationContext: ${newNotifications.length} new notifications to add`,
+          );
+
           // Play sound only for new notifications
           if (newNotifications.length > 0) {
             playNotificationSound();
           }
-          
+
           return [...prev, ...newNotifications];
         }
         return prev;
@@ -343,30 +402,30 @@ export const NotificationProvider = ({ children }) => {
     } else {
       console.log("NotificationContext: No notifications to add");
     }
-    
+
     lastCheckRef.current = now;
   }, [
-    userBabies, 
-    API_BASE_URL, 
-    isClient, 
-    isAuthenticated, 
-    dismissedReminderIds, 
-    playNotificationSound
+    userBabies,
+    API_BASE_URL,
+    isClient,
+    isAuthenticated,
+    dismissedReminderIds,
+    playNotificationSound,
   ]);
 
   // Setup reminder check interval - only on client side
   useEffect(() => {
     if (!isClient || !isAuthenticated) return;
-    
+
     console.log("NotificationContext: Setting up reminder check interval");
-    
+
     // Check right away
     checkForReminders();
-    
+
     // Then check every 30 seconds
     const intervalId = setInterval(checkForReminders, 30000);
     checkIntervalRef.current = intervalId;
-    
+
     return () => {
       if (checkIntervalRef.current) {
         console.log("NotificationContext: Cleaning up check interval");
@@ -378,165 +437,207 @@ export const NotificationProvider = ({ children }) => {
   // Save dismissed reminder IDs to localStorage when they change
   useEffect(() => {
     if (!isClient) return;
-    
+
     if (dismissedReminderIds.size > 0) {
       const idsArray = Array.from(dismissedReminderIds);
-      localStorage.setItem('dismissedReminders', JSON.stringify(idsArray));
+      localStorage.setItem("dismissedReminders", JSON.stringify(idsArray));
       console.log(`Saved ${idsArray.length} dismissed reminder IDs to storage`);
     }
   }, [dismissedReminderIds, isClient]);
 
   // Notification actions
-  const dismissNotification = useCallback(async (id, delayMinutes = 5) => {
-    if (!isClient || !isAuthenticated) return;
-    
-    try {
-      console.log(`NotificationContext: Dismissing notification ${id} (delay: ${delayMinutes} minutes)`);
-      const notification = activeNotifications.find(n => n.id === id);
-      if (!notification) {
-        console.log(`NotificationContext: Notification ${id} not found`);
-        return;
+  const dismissNotification = useCallback(
+    async (id, delayMinutes = 5) => {
+      if (!isClient || !isAuthenticated) return;
+
+      try {
+        console.log(
+          `NotificationContext: Dismissing notification ${id} (delay: ${delayMinutes} minutes)`,
+        );
+        const notification = activeNotifications.find((n) => n.id === id);
+        if (!notification) {
+          console.log(`NotificationContext: Notification ${id} not found`);
+          return;
+        }
+
+        // Add to dismissed set to prevent re-showing
+        setDismissedReminderIds((prev) => {
+          const updated = new Set(prev);
+          updated.add(id);
+          return updated;
+        });
+
+        // Remove from active notifications
+        setActiveNotifications((prev) => prev.filter((n) => n.id !== id));
+
+        // Reset to first notification if needed
+        if (currentIndex >= activeNotifications.length - 1) {
+          setCurrentIndex(0);
+        }
+
+        // Only delay if minutes specified
+        if (delayMinutes > 0) {
+          try {
+            const reminders = await reminderService.fetchReminders(
+              notification.babyId,
+              API_BASE_URL,
+            );
+            const reminder = reminders.find((r) => r.id === id);
+            if (!reminder) {
+              console.log(
+                `NotificationContext: Reminder ${id} not found for update`,
+              );
+              return;
+            }
+
+            // Calculate new reminder time (current time + delay)
+            const newTime = new Date();
+            newTime.setMinutes(newTime.getMinutes() + delayMinutes);
+
+            const hours = newTime.getHours().toString().padStart(2, "0");
+            const minutes = newTime.getMinutes().toString().padStart(2, "0");
+
+            console.log(
+              `NotificationContext: Delaying reminder ${id} to ${hours}:${minutes}`,
+            );
+
+            // Update the reminder
+            await reminderService.updateReminder(
+              notification.babyId,
+              id,
+              {
+                ...reminder,
+                time: `${hours}:${minutes}`,
+                date: newTime.toISOString().split("T")[0],
+              },
+              API_BASE_URL,
+            );
+
+            // Important: Dispatch a custom event to notify the ReminderContext
+            // that a reminder has been updated via notification
+            window.dispatchEvent(
+              new CustomEvent("reminderUpdated", {
+                detail: { id, babyId: notification.babyId, action: "delay" },
+              }),
+            );
+
+            // Schedule removal from dismissed after delay expires
+            setTimeout(() => {
+              setDismissedReminderIds((prev) => {
+                const updated = new Set(prev);
+                updated.delete(id);
+                return updated;
+              });
+              console.log(
+                `Removed reminder ${id} from dismissed after ${delayMinutes} minutes delay`,
+              );
+            }, delayMinutes * 60 * 1000); // Convert minutes to milliseconds
+          } catch (err) {
+            console.error("Error updating reminder:", err);
+          }
+        }
+      } catch (error) {
+        console.error("Error dismissing notification:", error);
       }
-      
-      // Add to dismissed set to prevent re-showing
-      setDismissedReminderIds(prev => {
-        const updated = new Set(prev);
-        updated.add(id);
-        return updated;
-      });
-      
-      // Remove from active notifications
-      setActiveNotifications(prev => prev.filter(n => n.id !== id));
-      
-      // Reset to first notification if needed
-      if (currentIndex >= activeNotifications.length - 1) {
-        setCurrentIndex(0);
-      }
-      
-      // Only delay if minutes specified
-      if (delayMinutes > 0) {
+    },
+    [
+      activeNotifications,
+      currentIndex,
+      API_BASE_URL,
+      isClient,
+      isAuthenticated,
+    ],
+  );
+
+  // Mark reminder as complete
+  const completeReminder = useCallback(
+    async (id) => {
+      if (!isClient || !isAuthenticated) return;
+
+      try {
+        console.log(`NotificationContext: Completing reminder ${id}`);
+        const notification = activeNotifications.find((n) => n.id === id);
+        if (!notification) {
+          console.log(`NotificationContext: Notification ${id} not found`);
+          return;
+        }
+
+        // Add to dismissed set to prevent re-showing (permanent)
+        setDismissedReminderIds((prev) => {
+          const updated = new Set(prev);
+          updated.add(id);
+          return updated;
+        });
+
+        // Always remove from notifications
+        setActiveNotifications((prev) => prev.filter((n) => n.id !== id));
+
+        // Reset index if needed
+        if (currentIndex >= activeNotifications.length - 1) {
+          setCurrentIndex(0);
+        }
+
         try {
-          const reminders = await reminderService.fetchReminders(notification.babyId, API_BASE_URL);
-          const reminder = reminders.find(r => r.id === id);
+          // Get full reminder data
+          const reminders = await reminderService.fetchReminders(
+            notification.babyId,
+            API_BASE_URL,
+          );
+          const reminder = reminders.find((r) => r.id === id);
           if (!reminder) {
-            console.log(`NotificationContext: Reminder ${id} not found for update`);
+            console.log(
+              `NotificationContext: Reminder ${id} not found for completion`,
+            );
             return;
           }
-          
-          // Calculate new reminder time (current time + delay)
-          const newTime = new Date();
-          newTime.setMinutes(newTime.getMinutes() + delayMinutes);
-          
-          const hours = newTime.getHours().toString().padStart(2, '0');
-          const minutes = newTime.getMinutes().toString().padStart(2, '0');
-          
-          console.log(`NotificationContext: Delaying reminder ${id} to ${hours}:${minutes}`);
-          
-          // Update the reminder
+
+          // Update to mark as inactive
           await reminderService.updateReminder(
             notification.babyId,
             id,
-            {
-              ...reminder,
-              time: `${hours}:${minutes}`,
-              date: newTime.toISOString().split('T')[0]
-            },
-            API_BASE_URL
+            { ...reminder, is_active: false },
+            API_BASE_URL,
           );
-          
+
+          console.log(
+            `NotificationContext: Successfully marked reminder ${id} as inactive`,
+          );
+
           // Important: Dispatch a custom event to notify the ReminderContext
-          // that a reminder has been updated via notification
-          window.dispatchEvent(new CustomEvent('reminderUpdated', { 
-            detail: { id, babyId: notification.babyId, action: 'delay' }
-          }));
-          
-          // Schedule removal from dismissed after delay expires
-          setTimeout(() => {
-            setDismissedReminderIds(prev => {
-              const updated = new Set(prev);
-              updated.delete(id);
-              return updated;
-            });
-            console.log(`Removed reminder ${id} from dismissed after ${delayMinutes} minutes delay`);
-          }, delayMinutes * 60 * 1000); // Convert minutes to milliseconds
+          // that a reminder has been completed via notification
+          window.dispatchEvent(
+            new CustomEvent("reminderCompleted", {
+              detail: { id, babyId: notification.babyId },
+            }),
+          );
         } catch (err) {
           console.error("Error updating reminder:", err);
         }
+      } catch (error) {
+        console.error("Error completing reminder:", error);
       }
-    } catch (error) {
-      console.error("Error dismissing notification:", error);
-    }
-  }, [activeNotifications, currentIndex, API_BASE_URL, isClient, isAuthenticated]);
-
-  // Mark reminder as complete
-  const completeReminder = useCallback(async (id) => {
-    if (!isClient || !isAuthenticated) return;
-    
-    try {
-      console.log(`NotificationContext: Completing reminder ${id}`);
-      const notification = activeNotifications.find(n => n.id === id);
-      if (!notification) {
-        console.log(`NotificationContext: Notification ${id} not found`);
-        return;
-      }
-      
-      // Add to dismissed set to prevent re-showing (permanent)
-      setDismissedReminderIds(prev => {
-        const updated = new Set(prev);
-        updated.add(id);
-        return updated;
-      });
-      
-      // Always remove from notifications
-      setActiveNotifications(prev => prev.filter(n => n.id !== id));
-      
-      // Reset index if needed
-      if (currentIndex >= activeNotifications.length - 1) {
-        setCurrentIndex(0);
-      }
-      
-      try {
-        // Get full reminder data
-        const reminders = await reminderService.fetchReminders(notification.babyId, API_BASE_URL);
-        const reminder = reminders.find(r => r.id === id);
-        if (!reminder) {
-          console.log(`NotificationContext: Reminder ${id} not found for completion`);
-          return;
-        }
-        
-        // Update to mark as inactive
-        await reminderService.updateReminder(
-          notification.babyId,
-          id,
-          { ...reminder, is_active: false },
-          API_BASE_URL
-        );
-        
-        console.log(`NotificationContext: Successfully marked reminder ${id} as inactive`);
-        
-        // Important: Dispatch a custom event to notify the ReminderContext
-        // that a reminder has been completed via notification
-        window.dispatchEvent(new CustomEvent('reminderCompleted', { 
-          detail: { id, babyId: notification.babyId }
-        }));
-      } catch (err) {
-        console.error("Error updating reminder:", err);
-      }
-    } catch (error) {
-      console.error("Error completing reminder:", error);
-    }
-  }, [activeNotifications, currentIndex, API_BASE_URL, isClient, isAuthenticated]);
+    },
+    [
+      activeNotifications,
+      currentIndex,
+      API_BASE_URL,
+      isClient,
+      isAuthenticated,
+    ],
+  );
 
   // Navigation between multiple notifications
   const showNextNotification = useCallback(() => {
     if (activeNotifications.length <= 1) return;
-    setCurrentIndex(prev => (prev + 1) % activeNotifications.length);
+    setCurrentIndex((prev) => (prev + 1) % activeNotifications.length);
     console.log("NotificationContext: Showing next notification");
   }, [activeNotifications]);
 
   const showPrevNotification = useCallback(() => {
     if (activeNotifications.length <= 1) return;
-    setCurrentIndex(prev => (prev === 0 ? activeNotifications.length - 1 : prev - 1));
+    setCurrentIndex((prev) =>
+      prev === 0 ? activeNotifications.length - 1 : prev - 1,
+    );
     console.log("NotificationContext: Showing previous notification");
   }, [activeNotifications]);
 
@@ -555,18 +656,18 @@ export const NotificationProvider = ({ children }) => {
     showPrevNotification,
     isClient,
     isAuthenticated,
-    audioRef
+    audioRef,
   };
 
   return (
     <NotificationContext.Provider value={value}>
       {children}
       {isClient && (
-        <audio 
-          ref={audioRef} 
-          src="/sounds/notification.mp3" 
-          preload="auto" 
-          style={{ display: 'none' }} 
+        <audio
+          ref={audioRef}
+          src="/sounds/notification.mp3"
+          preload="auto"
+          style={{ display: "none" }}
         />
       )}
     </NotificationContext.Provider>

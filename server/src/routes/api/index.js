@@ -59,8 +59,6 @@ router.get(
 );
 
 //************ /user routes ************
-router.get('/user/me', authenticate(), require('./user/me').getUserDetails);
-
 router.get('/user', authenticate(), require('./user/getUser').getUser);
 
 router.get('/user/:id', authenticate(), require('./user/getUserById').getUserById);
@@ -267,6 +265,11 @@ router.delete(
   authenticate(),
   require('./profilePicture/deleteProfilePicture')
 );
+
+// ************ /bookmarks routes ************
+// router.get('/forum/bookmarks', authenticate(), require('./forum/bookmarks/getBookmarks'));
+
+// router.post('/forum/bookmarks/:postId', authenticate(), require('./forum/bookmarks/addBookmark'));
 
 // Testing the authentication middleware
 // router.get('/test', authenticate(), require('./test'));
