@@ -100,6 +100,12 @@ const Dashboard = () => {
           },
         );
 
+        if (response.status === 404) {
+          console.log("No babies found");
+          setBabies([]);
+          return;
+        }
+
         // Check if response is ok before parsing JSON
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -111,6 +117,7 @@ const Dashboard = () => {
           setBabies(result.babies);
         } else {
           console.log("No babies found or invalid response format:", result);
+          setBabies([]);
         }
       } catch (error) {
         console.error("Error in fetchBabies:", error);
@@ -573,7 +580,14 @@ const Dashboard = () => {
             </Row>
           </>
         ) : (
-          <p>{t("No babies found")}</p>
+          <div className="text-center">
+            <p>{t("No babies found")}</p>
+            <Link href="/baby/add">
+              <Button variant="outline-primary">
+                {t("Add Your First Baby")}
+              </Button>
+            </Link>
+          </div>
         )}
         <br />
         <hr />
