@@ -4,6 +4,10 @@
     margin-top: 5px;
 }
 
+.fileList {
+  padding: 0;
+}
+
 .fileItem {
     display: flex;
     justify-content: space-between;
@@ -14,10 +18,13 @@
     margin-bottom: 20px;
     align-items: center;
     padding: 10px;
+    box-sizing: border-box;
   }
 
   .fileName {
     padding: 10px;
+    max-width: 70%;
+    overflow: hidden;
   }
   
   .downloadLink {

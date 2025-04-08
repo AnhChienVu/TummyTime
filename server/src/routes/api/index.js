@@ -59,7 +59,9 @@ router.get(
 );
 
 //************ /user routes ************
-router.get('/user', authenticate(), require('./user/getUser').getUserById);
+router.get('/user', authenticate(), require('./user/getUser').getUser);
+
+router.get('/user/:id', authenticate(), require('./user/getUserById').getUserById);
 
 router.put('/user/:id', authenticate(), require('./user/putUser').updateUserById);
 

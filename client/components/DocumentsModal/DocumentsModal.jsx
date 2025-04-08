@@ -107,10 +107,10 @@ function DocumentsModal({ show, handleClose, documents, babyId, purpose }) {
       </Modal.Header>
       <Modal.Body>
         {documents?.length > 0 ? (
-          <ul>
+          <ul className={styles.documentList}>
             {documents.map((doc) => (
               <li key={doc.document_id} className={styles.documentItem}>
-                <p>File name: {doc.filename}</p>
+                <p className={styles.fileName}>File name: {doc.filename}</p>
                 <Button
                   variant="link"
                   onClick={() => handleDownload(doc.document_id, doc.filename)}
