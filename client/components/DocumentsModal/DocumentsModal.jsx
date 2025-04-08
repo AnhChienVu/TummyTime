@@ -89,8 +89,21 @@ function DocumentsModal({ show, handleClose, documents, babyId, purpose }) {
       dialogClassName="modal-dialog-scrollable"
     >
       <Modal.Header closeButton>
-        <Modal.Title>Send health documents to baby</Modal.Title>
-        <p>You can see the sent documents as well as send a new one to baby</p>
+        {purpose === "send" ? (
+          <div>
+            <Modal.Title>Send health documents to baby</Modal.Title>
+            <p>
+              You can see the sent documents as well as send a new one to baby
+            </p>
+          </div>
+        ) : (
+          <div>
+            <Modal.Title>
+              Receive health documents from parent to baby
+            </Modal.Title>
+            <p>You can see the baby documents sent from parent</p>
+          </div>
+        )}
       </Modal.Header>
       <Modal.Body>
         {documents?.length > 0 ? (
