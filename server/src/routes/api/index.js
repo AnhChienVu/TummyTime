@@ -61,7 +61,9 @@ router.get(
 //************ /user routes ************
 router.get('/user/me', authenticate(), require('./user/me').getUserDetails);
 
-router.get('/user', authenticate(), require('./user/getUser').getUserById);
+router.get('/user', authenticate(), require('./user/getUser').getUser);
+
+router.get('/user/:id', authenticate(), require('./user/getUserById').getUserById);
 
 router.put('/user/:id', authenticate(), require('./user/putUser').updateUserById);
 
@@ -117,6 +119,12 @@ router.post('/baby', authenticate(), require('./baby/babyProfile/addBabyProfile'
 router.get('/babies', authenticate(), require('./baby/babyProfile/getAllBabyProfiles'));
 
 router.get('/baby/:baby_id', authenticate(), require('./baby/babyProfile/getBabyProfile'));
+
+router.get(
+  '/doctor/:doctor_id/baby/:baby_id/profile',
+  authenticate(),
+  require('./baby/babyProfile/getBabyProfileByDoctor')
+);
 
 router.put('/baby/:baby_id', authenticate(), require('./baby/babyProfile/putBabyProfile'));
 
