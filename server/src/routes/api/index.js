@@ -276,11 +276,18 @@ router.post(
 );
 
 // Doctor get all files sent by all parents to the doctor
-// router.get(
-//   '/doctor/:doctorId/getAllFiles',
-//   authenticate(),
-//   require('./doctor/getAllFiles').getAllFiles
-// );
+router.get(
+  '/doctor/:doctorId/getAllFiles',
+  authenticate(),
+  require('./doctor/getAllFiles').getAllFiles
+);
+
+// Doctor get all sent files to parents
+router.get(
+  '/doctor/:doctorId/getSentFiles',
+  authenticate(),
+  require('./doctor/getSentFiles').getSentFiles
+);
 
 // Parent get all files sent by a doctor to a baby
 router.get(
