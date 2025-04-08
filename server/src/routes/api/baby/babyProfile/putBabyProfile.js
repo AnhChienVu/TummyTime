@@ -1,4 +1,5 @@
 // src/routes/api/baby/babyProfile/putBabyProfile.js
+
 const pool = require("../../../../../database/db");
 const { getUserId } = require("../../../../utils/userIdHelper");
 const {
@@ -41,14 +42,15 @@ module.exports = async (req, res) => {
       });
     }
 
-    const { first_name, last_name, gender, weight } = req.body.data;
+    const { first_name, last_name, gender, weight, birthdate, height} = req.body.data;
 
     // Validate all required fields
-    const requiredFields = { first_name, last_name, gender, weight };
+    const requiredFields = { first_name, last_name, gender, weight, birthdate, height };
+    // Check if any required field is missing
     const missingFields = Object.entries(requiredFields)
       .filter(([_, value]) => !value)
       .map(([key]) => key);
-
+    // If there are missing fields, return an error response
     if (missingFields.length > 0) {
       return res.status(400).json({
         status: "error",
@@ -92,8 +94,11 @@ module.exports = async (req, res) => {
 
     // Update baby information
     const result = await pool.query(
-      "UPDATE baby SET first_name = $1, last_name = $2, gender = $3, weight = $4 WHERE baby_id = $5 RETURNING *",
-      [first_name, last_name, gender, weight, baby_id]
+      `UPDATE baby SET first_name = $1, last_name = $2, gender = $3, weight = $4,
+      birthdate = $5, height = $6
+      WHERE baby_id = $7
+      RETURNING * `,
+      [first_name, last_name, gender, weight, birthdate, height, baby_id]
     );
 
     if (result.rows.length === 0) {
