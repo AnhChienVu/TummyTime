@@ -106,17 +106,25 @@ export default function AddBaby() {
           <Row className="mb-3">
             <Col>
               <Form.Group>
+                <Form.Label>{t("Date of Birth")}</Form.Label>
+                {/* default value is 20 years ago */}
                 <Form.Control
                   name="birthdate"
                   type="date"
-                  placeholder={t("Date of Birth")}
+                  placeholder={t("Enter date of birth")}
                   {...register("birthdate")}
                   required
+                  defaultValue={new Date(
+                    new Date().setFullYear(new Date().getFullYear() - 20),
+                  )
+                    .toISOString()
+                    .slice(0, 10)}
                 />
               </Form.Group>
             </Col>
             <Col>
               <Form.Group>
+                <Form.Label>{t("Height (cm)")}</Form.Label>
                 <Form.Control
                   name="height"
                   type="number"
