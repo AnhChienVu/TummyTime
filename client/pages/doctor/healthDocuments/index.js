@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import styles from "./healthDocuments.module.css";
 import BabiesModal from "@/components/BabiesModal/BabiesModal";
 import DocumentsModal from "@/components/DocumentsModal/DocumentsModal";
-import { set } from "date-fns";
+import ReceivedDocumentsModal from "@/components/ReceivedDocumentsModal/ReceivedDocumentsModal";
 
 function HealthDocuments() {
   const [documents, setDocuments] = useState([]);
@@ -264,7 +264,7 @@ function HealthDocuments() {
         purpose={purpose}
         parentId={selectedParentId}
       />
-      <DocumentsModal
+      <ReceivedDocumentsModal
         show={showReceivedDocumentsModal}
         handleClose={handleCloseDocumentsModal}
         documents={receivedBabyDocuments}
