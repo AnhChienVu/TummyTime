@@ -93,7 +93,8 @@ module.exports = async (req, res) => {
         .status(404)
         .json(createErrorResponse(404, "No baby profiles found for this user"));
     }
-    logger.debug({ checkBabyExist }, `Checking if any baby exist for this user: `);
+
+    logger.debug(`Checking if any baby exist for this user: ${checkBabyExist.rows[0].count} babies found`);
     
     const babyProfilesResult = await pool.query(
       `SELECT b.* FROM baby b
@@ -103,8 +104,9 @@ module.exports = async (req, res) => {
        ORDER BY b.baby_id ASC`,
       [parseInt(user_id, 10)]
     );
+
     const babies = babyProfilesResult.rows;
-    logger.debug(babies, `Baby profiles: `);
+    logger.debug(`Baby profiles: ${babies.length} babies found for user_id ${user_id}`);
 
 
 
