@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/router";
 import styles from "./careServices.module.css";
+import HeartIcon from "../../components/HeartIcon";
 import {
   toggleFavoriteProvider,
   getFavoriteProviders,
@@ -26,7 +27,7 @@ export default function CareServices() {
   // Filters
   const [searchTerm, setSearchTerm] = useState("");
   const [cityFilter, setCityFilter] = useState("");
-  const [category, setCategory] = useState("all"); // 'all', 'babysitters' or 'nannies'
+  const [category, setCategory] = useState("all"); // 'all', 'babysitters', 'nannies', etc.
 
   // Sorting
   const [sortBy, setSortBy] = useState("rating");
@@ -38,15 +39,21 @@ export default function CareServices() {
     { id: "experience", label: "Most Experience" },
   ];
 
+  // Provider types
+  const providerTypes = [
+    { id: "all", label: "All" },
+    { id: "after-school-care", label: "After School Care" },
+    { id: "babysitters", label: "Babysitters" },
+    { id: "child-care", label: "Child Care" },
+    { id: "in-home-daycare", label: "In-Home Daycare" },
+    { id: "nannies", label: "Nannies" },
+    { id: "special-needs", label: "Special Needs" },
+    { id: "weekend-child-care", label: "Weekend Child Care" },
+  ];
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
-
-  // Message confirmation
-  const [messageConfirmation, setMessageConfirmation] = useState({
-    show: false,
-    providerName: "",
-  });
 
   // --------------------------------
   // 2. Authentication Check
@@ -189,8 +196,6 @@ export default function CareServices() {
     setFilteredProviders(searchFilteredProviders);
   };
 
-  // Rest of the existing methods remain the same...
-
   // --------------------------------
   // 4. Client-side Filtering & Sorting
   // --------------------------------
@@ -254,7 +259,7 @@ export default function CareServices() {
   );
 
   // --------------------------------
-  // 5. Handlers (unchanged)
+  // 5. Handlers
   // --------------------------------
   const handleCategoryChange = (newCategory) => {
     setCategory(newCategory);
@@ -321,22 +326,6 @@ export default function CareServices() {
     }
   };
 
-  const handleSendMessage = (providerId, providerName) => {
-    console.log(`Sending message to provider ${providerId}: ${providerName}`);
-
-    setMessageConfirmation({
-      show: true,
-      providerName: providerName,
-    });
-
-    setTimeout(() => {
-      setMessageConfirmation({
-        show: false,
-        providerName: "",
-      });
-    }, 3000);
-  };
-
   const handleViewProfile = (profileUrl) => {
     if (profileUrl) {
       window.open(profileUrl, "_blank");
@@ -345,11 +334,26 @@ export default function CareServices() {
     }
   };
 
-  const closeMessageConfirmation = () => {
-    setMessageConfirmation({
-      show: false,
-      providerName: "",
-    });
+  // Function to determine card style based on provider type
+  const getProviderCardClass = (providerType) => {
+    switch (providerType) {
+      case "after-school-care":
+        return styles.afterSchoolCare;
+      case "babysitters":
+        return styles.babysitter;
+      case "child-care":
+        return styles.childCare;
+      case "in-home-daycare":
+        return styles.inHomeDaycare;
+      case "nannies":
+        return styles.nanny;
+      case "special-needs":
+        return styles.specialNeeds;
+      case "weekend-child-care":
+        return styles.weekendChildCare;
+      default:
+        return ""; // Default style
+    }
   };
 
   // --------------------------------
@@ -400,30 +404,18 @@ export default function CareServices() {
             <div className={styles.bottomControls}>
               {/* Category Selection with Purple Tint */}
               <div className={styles.categorySelector}>
-                <button
-                  className={`${styles.categoryButton} ${
-                    category === "all" ? styles.active : ""
-                  }`}
-                  onClick={() => handleCategoryChange("all")}
-                >
-                  All
-                </button>
-                <button
-                  className={`${styles.categoryButton} ${
-                    category === "babysitters" ? styles.active : ""
-                  }`}
-                  onClick={() => handleCategoryChange("babysitters")}
-                >
-                  Babysitters
-                </button>
-                <button
-                  className={`${styles.categoryButton} ${
-                    category === "nannies" ? styles.active : ""
-                  }`}
-                  onClick={() => handleCategoryChange("nannies")}
-                >
-                  Nannies
-                </button>
+                {providerTypes.map((type) => (
+                  <button
+                    key={type.id}
+                    className={`${styles.categoryButton} ${
+                      category === type.id ? styles.active : ""
+                    }`}
+                    onClick={() => handleCategoryChange(type.id)}
+                    data-category={type.id}
+                  >
+                    {type.label}
+                  </button>
+                ))}
               </div>
 
               {/* Favorites Filter */}
@@ -442,22 +434,6 @@ export default function CareServices() {
             </div>
           </div>
 
-          {/* Message Confirmation */}
-          {messageConfirmation.show && (
-            <div className={styles.messageConfirmationOverlay}>
-              <div className={styles.messageConfirmation}>
-                <div className={styles.checkmarkIcon}>✓</div>
-                <p>Sent {messageConfirmation.providerName} a message to hire</p>
-                <button
-                  className={styles.confirmationButton}
-                  onClick={closeMessageConfirmation}
-                >
-                  OK
-                </button>
-              </div>
-            </div>
-          )}
-
           {/* Loading, Error & Results */}
           {loading ? (
             <div className={styles.loadingState}>
@@ -474,7 +450,7 @@ export default function CareServices() {
           ) : (
             <>
               <p>
-                Showing {currentProviders.length} of {totalItems} {category}
+                Showing {currentProviders.length} of {totalItems} {category === "all" ? "providers" : category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
               </p>
               {currentProviders.length > 0 ? (
                 <div className={styles.providersGrid}>
@@ -485,31 +461,21 @@ export default function CareServices() {
                     return (
                       <div
                         key={provider.id}
-                        className={`${styles.providerCard} ${
-                          provider.provider_type === "nannies"
-                            ? styles.nanny
-                            : styles.babysitter
-                        } ${provider.is_premium ? styles.premium : ""}`}
+                        className={`${styles.providerCard} ${getProviderCardClass(provider.provider_type)} ${
+                          provider.is_premium ? styles.premium : ""
+                        }`}
                       >
-                        {/* Favorite Button */}
-                        <button
-                          className={styles.favoriteButton}
+                        {/* Premium badge */}
+                        {provider.is_premium && (
+                          <div className={styles.premiumRibbon}>Premium</div>
+                        )}
+                        
+                        {/* Heart icon for favorites with premium status */}
+                        <HeartIcon 
+                          active={isFavorite}
                           onClick={() => handleToggleFavorite(provider.id)}
-                          aria-label={
-                            isFavorite
-                              ? "Remove from favorites"
-                              : "Add to favorites"
-                          }
-                        >
-                          <svg
-                            viewBox="0 0 24 24"
-                            className={`${styles.favoriteIcon} ${
-                              isFavorite ? styles.active : ""
-                            }`}
-                          >
-                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-                          </svg>
-                        </button>
+                          isPremium={provider.is_premium}
+                        />
 
                         <div className={styles.providerHeader}>
                           <div className={styles.providerImage}>
@@ -549,7 +515,14 @@ export default function CareServices() {
                               )}
                               {provider.is_premium && (
                                 <span className={styles.premiumBadge}>
-                                  Premium
+                                  ★ Premium
+                                </span>
+                              )}
+                              {provider.provider_type && (
+                                <span className={`${styles.typeBadge} ${styles[provider.provider_type]}`}>
+                                  {provider.provider_type.split('-')
+                                    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                                    .join(' ')}
                                 </span>
                               )}
                             </div>
@@ -572,27 +545,14 @@ export default function CareServices() {
                           )}
                         </div>
 
-                        {/* Action Buttons */}
+                        {/* Action Buttons - Only View Profile now */}
                         <div className={styles.providerActions}>
                           <button
                             className={styles.viewProfileButton}
-                            onClick={() =>
-                              handleViewProfile(provider.profile_url)
-                            }
+                            onClick={() => handleViewProfile(provider.profile_url)}
                           >
                             View Profile
                           </button>
-
-                          {/* 
-                          <button
-                            className={styles.contactButton}
-                            onClick={() =>
-                              handleSendMessage(provider.id, provider.name)
-                            }
-                          >
-                            Contact
-                          </button>
-                          */}
                         </div>
                       </div>
                     );
