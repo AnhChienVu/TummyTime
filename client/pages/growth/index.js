@@ -9,7 +9,7 @@ function Growth() {
   const { t } = useTranslation("common");
 
   return (
-    <div className={styles.container}>
+    <div className="container mt-5">
       <h1>Growth</h1>
       <BabyCardGrowth buttons={[{ name: "See Details", path: "growth" }]} />
     </div>

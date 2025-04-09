@@ -1,7 +1,15 @@
 // client/pages/coupons/index.js
 import React, { useState, useEffect } from "react";
 import Carousel from "react-multi-carousel";
-import { Form, Spinner, Alert, Container, Row, Col, Button } from "react-bootstrap";
+import {
+  Form,
+  Spinner,
+  Alert,
+  Container,
+  Row,
+  Col,
+  Button,
+} from "react-bootstrap";
 import "react-multi-carousel/lib/styles.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import styles from "./coupons.module.css";
@@ -32,70 +40,88 @@ const CouponPage = () => {
       try {
         setLoading(true);
         // Load offers from our local JSON file
-        const response = await fetch('/data/coupons-discounts.json');
-        
+        const response = await fetch("/data/coupons-discounts.json");
+
         if (!response.ok) {
           throw new Error(`Failed to fetch offers: ${response.status}`);
         }
-        
+
         const data = await response.json();
-        
+
         if (!data.offers || !Array.isArray(data.offers)) {
-          throw new Error('Invalid data format: offers not found or not an array');
+          throw new Error(
+            "Invalid data format: offers not found or not an array",
+          );
         }
-        
+
         // Set all offers
         setAllOffers(data.offers);
-        
+
         // Set featured offers
-        const featured = data.offers.filter(offer => offer.featured === "Yes");
+        const featured = data.offers.filter(
+          (offer) => offer.featured === "Yes",
+        );
         setFeaturedOffers(featured);
-        
+
         // Set baby-related offers
-        const babyRelated = data.offers.filter(offer => {
-          const categories = offer.categories || '';
-          const title = offer.title || offer.offer_text || '';
-          const description = offer.description || '';
-          
-          const babyKeywords = ['baby', 'infant', 'toddler', 'child', 'kid', 'diaper', 'toy'];
-          
+        const babyRelated = data.offers.filter((offer) => {
+          const categories = offer.categories || "";
+          const title = offer.title || offer.offer_text || "";
+          const description = offer.description || "";
+
+          const babyKeywords = [
+            "baby",
+            "infant",
+            "toddler",
+            "child",
+            "kid",
+            "diaper",
+            "toy",
+          ];
+
           return (
-            babyKeywords.some(keyword => categories.toLowerCase().includes(keyword)) ||
-            babyKeywords.some(keyword => title.toLowerCase().includes(keyword)) ||
-            babyKeywords.some(keyword => description.toLowerCase().includes(keyword))
+            babyKeywords.some((keyword) =>
+              categories.toLowerCase().includes(keyword),
+            ) ||
+            babyKeywords.some((keyword) =>
+              title.toLowerCase().includes(keyword),
+            ) ||
+            babyKeywords.some((keyword) =>
+              description.toLowerCase().includes(keyword),
+            )
           );
         });
         setBabyOffers(babyRelated);
-        
+
         // Extract all unique categories and stores for filters
         const allCategories = new Set();
         const allStores = new Set();
-        
-        data.offers.forEach(offer => {
+
+        data.offers.forEach((offer) => {
           if (offer.categories) {
-            offer.categories.split(',').forEach(category => {
+            offer.categories.split(",").forEach((category) => {
               allCategories.add(category.trim());
             });
           }
-          
+
           if (offer.store) {
             allStores.add(offer.store);
           }
         });
-        
+
         setCategories(Array.from(allCategories).sort());
         setStores(Array.from(allStores).sort());
-        
+
         // Set the last update time
         setLastUpdate(new Date(data.last_updated));
       } catch (err) {
-        console.error('Error fetching offers:', err);
-        setError(err.message || 'Failed to load offers');
+        console.error("Error fetching offers:", err);
+        setError(err.message || "Failed to load offers");
       } finally {
         setLoading(false);
       }
     };
-    
+
     fetchOffers();
   }, []);
 
@@ -106,26 +132,35 @@ const CouponPage = () => {
       setNoResultsSearch(false);
       return;
     }
-    
-    const filtered = allOffers.filter(offer => {
+
+    const filtered = allOffers.filter((offer) => {
       // Search text matches
-      const textMatch = !searchTerm || 
-        (offer.title && offer.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (offer.offer_text && offer.offer_text.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (offer.description && offer.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (offer.store && offer.store.toLowerCase().includes(searchTerm.toLowerCase()));
-      
+      const textMatch =
+        !searchTerm ||
+        (offer.title &&
+          offer.title.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (offer.offer_text &&
+          offer.offer_text.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (offer.description &&
+          offer.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (offer.store &&
+          offer.store.toLowerCase().includes(searchTerm.toLowerCase()));
+
       // Category matches
-      const categoryMatch = !selectedCategory || 
-        (offer.categories && offer.categories.toLowerCase().includes(selectedCategory.toLowerCase()));
-      
+      const categoryMatch =
+        !selectedCategory ||
+        (offer.categories &&
+          offer.categories
+            .toLowerCase()
+            .includes(selectedCategory.toLowerCase()));
+
       // Store matches
-      const storeMatch = !selectedStore || 
-        (offer.store && offer.store === selectedStore);
-      
+      const storeMatch =
+        !selectedStore || (offer.store && offer.store === selectedStore);
+
       return textMatch && categoryMatch && storeMatch;
     });
-    
+
     setFilteredOffers(filtered);
     setNoResultsSearch(filtered.length === 0);
   }, [searchTerm, selectedCategory, selectedStore, allOffers]);
@@ -142,19 +177,20 @@ const CouponPage = () => {
     return {
       id: offer.lmd_id,
       product_name: offer.title || offer.offer_text,
-      discount_description: offer.description || '',
-      discount_code: offer.code || '',
-      discount_amount: offer.offer_value || '',
-      discount_symbol: offer.offer && offer.offer.includes('Percentage') ? '%' : '$',
-      store: offer.store || 'Online Store',
-      city: '',
-      image_url: offer.image_url || '',
-      expiration_date: offer.end_date || '',
-      is_featured: offer.featured === 'Yes',
-      affiliate_link: offer.smartLink || '',
-      url: offer.url || offer.merchant_homepage || '',
-      type: offer.type || 'Deal',
-      categories: offer.categories || '',
+      discount_description: offer.description || "",
+      discount_code: offer.code || "",
+      discount_amount: offer.offer_value || "",
+      discount_symbol:
+        offer.offer && offer.offer.includes("Percentage") ? "%" : "$",
+      store: offer.store || "Online Store",
+      city: "",
+      image_url: offer.image_url || "",
+      expiration_date: offer.end_date || "",
+      is_featured: offer.featured === "Yes",
+      affiliate_link: offer.smartLink || "",
+      url: offer.url || offer.merchant_homepage || "",
+      type: offer.type || "Deal",
+      categories: offer.categories || "",
     };
   };
 
@@ -183,7 +219,8 @@ const CouponPage = () => {
   };
 
   return (
-    <div className={styles.couponContainer}>
+    <div className="container mt-5">
+      {/* // <div className={styles.couponContainer}> */}
       {loading ? (
         <div className={styles.loadingContainer}>
           <Spinner animation="border" variant="primary" />
@@ -200,7 +237,9 @@ const CouponPage = () => {
             <div>
               <h1 className={styles.mainTitle}>{t("Discounts and Coupons")}</h1>
               <p className={styles.subtitle}>
-                {t("As part of our partner program, find deals and discounts you won't find anywhere else!")}
+                {t(
+                  "As part of our partner program, find deals and discounts you won't find anywhere else!",
+                )}
               </p>
             </div>
           </div>
@@ -221,15 +260,20 @@ const CouponPage = () => {
                   </Form.Group>
                 </Col>
                 <Col md={6} lg={3}>
-                  <Form.Group controlId="categoryFilter" className="mb-3 mb-md-0">
+                  <Form.Group
+                    controlId="categoryFilter"
+                    className="mb-3 mb-md-0"
+                  >
                     <Form.Select
                       value={selectedCategory}
                       onChange={(e) => setSelectedCategory(e.target.value)}
                       className={styles.filterSelect}
                     >
                       <option value="">{t("All Categories")}</option>
-                      {categories.map(category => (
-                        <option key={category} value={category}>{category}</option>
+                      {categories.map((category) => (
+                        <option key={category} value={category}>
+                          {category}
+                        </option>
                       ))}
                     </Form.Select>
                   </Form.Group>
@@ -242,17 +286,21 @@ const CouponPage = () => {
                       className={styles.filterSelect}
                     >
                       <option value="">{t("All Stores")}</option>
-                      {stores.map(store => (
-                        <option key={store} value={store}>{store}</option>
+                      {stores.map((store) => (
+                        <option key={store} value={store}>
+                          {store}
+                        </option>
                       ))}
                     </Form.Select>
                   </Form.Group>
                 </Col>
                 <Col md={6} lg={2}>
-                  <Button 
-                    variant="outline-secondary" 
+                  <Button
+                    variant="outline-secondary"
                     onClick={handleResetFilters}
-                    disabled={!searchTerm && !selectedCategory && !selectedStore}
+                    disabled={
+                      !searchTerm && !selectedCategory && !selectedStore
+                    }
                     className={styles.resetButton}
                   >
                     {t("Reset Filters")}
@@ -279,40 +327,53 @@ const CouponPage = () => {
                   <h5 className="text-muted">
                     {t("No offers found matching your criteria")}
                   </h5>
-                  <Button 
-                    variant="primary" 
+                  <Button
+                    variant="primary"
                     onClick={handleResetFilters}
                     className={styles.resetButtonCenter}
                   >
                     {t("Clear Filters")}
                   </Button>
                 </div>
-              ) : filteredOffers.length > 0 && (
-                <div className={styles.searchResultsSection}>
-                  <h3 className={styles.sectionTitle}>
-                    {t("Search Results")} ({filteredOffers.length})
-                  </h3>
-                  <div className={styles.couponGrid}>
-                    <Row>
-                      {filteredOffers.map((offer, index) => (
-                        <Col key={index} xs={12} sm={6} md={4} lg={3} className="mb-4">
-                          <CouponCard coupon={transformOfferToCoupon(offer)} />
-                        </Col>
-                      ))}
-                    </Row>
+              ) : (
+                filteredOffers.length > 0 && (
+                  <div className={styles.searchResultsSection}>
+                    <h3 className={styles.sectionTitle}>
+                      {t("Search Results")} ({filteredOffers.length})
+                    </h3>
+                    <div className={styles.couponGrid}>
+                      <Row>
+                        {filteredOffers.map((offer, index) => (
+                          <Col
+                            key={index}
+                            xs={12}
+                            sm={6}
+                            md={4}
+                            lg={3}
+                            className="mb-4"
+                          >
+                            <CouponCard
+                              coupon={transformOfferToCoupon(offer)}
+                            />
+                          </Col>
+                        ))}
+                      </Row>
+                    </div>
                   </div>
-                </div>
+                )
               )}
             </>
           )}
-          
+
           {/* Featured Offers Section */}
           {!filteredOffers.length && featuredOffers.length > 0 && (
             <div className={styles.featuredSection}>
               <div className={styles.sectionHeader}>
-                <h3 className={styles.sectionTitle}>{t("Featured Discounts")}</h3>
-                <Button 
-                  variant="link" 
+                <h3 className={styles.sectionTitle}>
+                  {t("Featured Discounts")}
+                </h3>
+                <Button
+                  variant="link"
                   onClick={() => setSelectedCategory("featured")}
                   className={styles.viewMoreButton}
                 >
@@ -350,9 +411,11 @@ const CouponPage = () => {
           {!filteredOffers.length && babyOffers.length > 0 && (
             <div className={styles.babySection}>
               <div className={styles.sectionHeader}>
-                <h3 className={styles.sectionTitle}>{t("Baby Product Deals")}</h3>
-                <Button 
-                  variant="link" 
+                <h3 className={styles.sectionTitle}>
+                  {t("Baby Product Deals")}
+                </h3>
+                <Button
+                  variant="link"
                   onClick={() => setSelectedCategory("Baby Products")}
                   className={styles.viewMoreButton}
                 >
@@ -385,7 +448,7 @@ const CouponPage = () => {
               </Carousel>
             </div>
           )}
-          
+
           {/* All Offers Section (only show when no filters are active) */}
           {!filteredOffers.length && allOffers.length > 0 && (
             <div className={styles.allOffersSection}>
@@ -393,19 +456,30 @@ const CouponPage = () => {
               <div className={styles.couponGrid}>
                 <Row>
                   {allOffers.slice(0, 8).map((offer, index) => (
-                    <Col key={index} xs={12} sm={6} md={4} lg={3} className="mb-4">
+                    <Col
+                      key={index}
+                      xs={12}
+                      sm={6}
+                      md={4}
+                      lg={3}
+                      className="mb-4"
+                    >
                       <CouponCard coupon={transformOfferToCoupon(offer)} />
                     </Col>
                   ))}
                 </Row>
                 {allOffers.length > 8 && (
                   <div className={styles.viewAllContainer}>
-                    <Button 
-                      variant="primary" 
+                    <Button
+                      variant="primary"
                       className={styles.viewAllButton}
-                      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                      onClick={() =>
+                        window.scrollTo({ top: 0, behavior: "smooth" })
+                      }
                     >
-                      {t("Browse all {{count}} offers", { count: allOffers.length })}
+                      {t("Browse all {{count}} offers", {
+                        count: allOffers.length,
+                      })}
                     </Button>
                   </div>
                 )}
