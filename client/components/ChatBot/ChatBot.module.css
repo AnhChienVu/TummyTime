@@ -265,6 +265,73 @@
   cursor: not-allowed;
 }
 
+/* TipTap editor styles - mirror from Journal.module.css */
+.viewOnlyEditorWrapper {
+  width: 100%;
+}
+
+/* Global styles for the TipTap editor */
+.viewOnlyEditorWrapper :global(.ProseMirror) {
+  outline: none;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Typography styles for editor content - copied from Journal */
+.viewOnlyEditorWrapper :global(.ProseMirror p) {
+  margin: 0 0 0.75em 0;
+}
+
+.viewOnlyEditorWrapper :global(.ProseMirror p:last-child) {
+  margin-bottom: 0;
+}
+
+.viewOnlyEditorWrapper :global(.ProseMirror h1) {
+  font-size: 1.5em;
+  margin: 0.67em 0;
+}
+
+.viewOnlyEditorWrapper :global(.ProseMirror h2) {
+  font-size: 1.3em;
+  margin: 0.75em 0;
+}
+
+.viewOnlyEditorWrapper :global(.ProseMirror h3) {
+  font-size: 1.1em;
+  margin: 0.83em 0;
+}
+
+/* List styles - copied from Journal */
+.viewOnlyEditorWrapper :global(.ProseMirror ul),
+.viewOnlyEditorWrapper :global(.ProseMirror ol) {
+  padding-left: 1.5em;
+  margin: 0.5em 0;
+}
+
+.viewOnlyEditorWrapper :global(.ProseMirror li) {
+  margin: 0.25em 0;
+}
+
+.viewOnlyEditorWrapper :global(.ProseMirror li p) {
+  margin: 0;
+}
+
+/* Link styles */
+.viewOnlyEditorWrapper :global(.ProseMirror a) {
+  color: #0d6efd;
+  text-decoration: underline;
+}
+
+/* Strong and emphasis */
+.viewOnlyEditorWrapper :global(.ProseMirror strong) {
+  font-weight: 600;
+}
+
+.viewOnlyEditorWrapper :global(.ProseMirror em) {
+  font-style: italic;
+}
+
 /* Add these to make the disclaimer styles */
 .disclaimer {
   width: 100%;
@@ -343,6 +410,11 @@
 .notificationMessage {
   font-size: 14px;
   font-weight: 500;
+}
+
+/* User message text */
+.messageText {
+  width: 100%;
 }
 
 /* Media query for mobile devices */
