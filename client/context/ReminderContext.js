@@ -112,25 +112,53 @@ export const ReminderProvider = ({ children, babyId }) => {
     // Parse original time
     const [hours, minutes] = originalReminder.time.split(':').map(Number);
     
-    // Create a date object with the original date and time
-    const originalDate = new Date(originalReminder.date);
+    // Create a proper Date object based on the source format
+    let originalDate;
+    
+    if (typeof originalReminder.date === 'string') {
+      // For ISO format "YYYY-MM-DD"
+      if (originalReminder.date.includes('-')) {
+        const [year, month, day] = originalReminder.date.split('-').map(Number);
+        originalDate = new Date(year, month - 1, day); // Month is 0-indexed
+      } else {
+        // For other string formats
+        originalDate = new Date(originalReminder.date);
+      }
+    } else if (originalReminder.date instanceof Date) {
+      // If it's already a Date object
+      originalDate = new Date(originalReminder.date.getTime());
+    } else {
+      // Fallback
+      originalDate = new Date();
+      console.warn('Unknown date format, using current date');
+    }
+    
+    // Set the specific time from the original reminder
     originalDate.setHours(hours, minutes, 0, 0);
     
-    // Calculate new time by adding hours - using milliseconds for precision
-    const nextReminderDate = new Date(originalDate);
-    const millisecondsToAdd = hoursToAdd * 60 * 60 * 1000; // convert hours to milliseconds
-    nextReminderDate.setTime(nextReminderDate.getTime() + millisecondsToAdd);
+    console.log(`Original reminder time: ${originalDate.toLocaleString()}`);
     
-    // Format time for new reminder (24 hour format for API)
+    // Add hours to get the next reminder time - this correctly handles date rollover
+    const nextReminderDate = new Date(originalDate.getTime());
+    nextReminderDate.setTime(nextReminderDate.getTime() + (hoursToAdd * 60 * 60 * 1000));
+    
+    console.log(`Next reminder time after adding ${hoursToAdd} hours: ${nextReminderDate.toLocaleString()}`);
+    
+    // Format time for API (24-hour format)
     const nextHours = nextReminderDate.getHours().toString().padStart(2, '0');
     const nextMinutes = nextReminderDate.getMinutes().toString().padStart(2, '0');
     const formattedTime = `${nextHours}:${nextMinutes}`;
     
-    // Create new reminder with same details but updated time
+    // Format date as YYYY-MM-DD using proper method that preserves correct date
+    const formattedDate = `${nextReminderDate.getFullYear()}-${(nextReminderDate.getMonth() + 1).toString().padStart(2, '0')}-${nextReminderDate.getDate().toString().padStart(2, '0')}`;
+    
+    console.log(`Calculated next reminder date: ${formattedDate}, time: ${formattedTime}`);
+    
+    // Create new reminder with updated date and time
     return {
       title: originalReminder.title,
       time: formattedTime,
-      date: nextReminderDate.toISOString().split('T')[0],
+      date: formattedDate,
       notes: originalReminder.notes || originalReminder.note || "",
       is_active: true,
       next_reminder: originalReminder.next_reminder,
