@@ -1,16 +1,17 @@
 import React, { useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
-import styles from "./DocumentsModal.module.css";
+import styles from "./ReceivedDocumentsModal.module.css";
 
-function DocumentsModal({
+function ReceivedDocumentsModal({
   show,
   handleClose,
   documents,
   babyId,
   purpose,
   parentId,
+  receivedDocuments,
 }) {
-  console.log("DocumentModal documents:", documents);
+  console.log("ReceivedDocumentsModal documents:", receivedDocuments);
   const [selectedFile, setSelectedFile] = useState(null);
   const handleFileChange = (e) => {
     setSelectedFile(e.target.files[0]);
@@ -114,24 +115,50 @@ function DocumentsModal({
         )}
       </Modal.Header>
       <Modal.Body>
-        {documents.length > 0 ? (
-          <ul className={styles.documentList}>
-            {documents.map((doc) => (
-              <li key={doc.document_id} className={styles.documentItem}>
-                <p className={styles.fileName}>File name: {doc.filename}</p>
-                <Button
-                  variant="link"
-                  onClick={() => handleDownload(doc.document_id, doc.filename)}
-                  className={styles.downloadButton}
-                >
-                  Download
-                </Button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>No documents available for this baby.</p>
-        )}
+        {purpose === "receive" &&
+          (receivedDocuments.length > 0 ? (
+            <ul className={styles.documentList}>
+              {receivedDocuments.map((doc) => (
+                <li key={doc.document_id} className={styles.documentItem}>
+                  <p className={styles.fileName}>File name: {doc.filename}</p>
+                  <Button
+                    variant="link"
+                    onClick={() =>
+                      handleDownload(doc.document_id, doc.filename)
+                    }
+                    className={styles.downloadButton}
+                  >
+                    Download
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No documents available for this baby.</p>
+          ))}
+
+        {purpose === "send" &&
+          (documents.length > 0 ? (
+            <ul className={styles.documentList}>
+              {documents.map((doc) => (
+                <li key={doc.document_id} className={styles.documentItem}>
+                  <p className={styles.fileName}>File name: {doc.filename}</p>
+                  <Button
+                    variant="link"
+                    onClick={() =>
+                      handleDownload(doc.document_id, doc.filename)
+                    }
+                    className={styles.downloadButton}
+                  >
+                    Download
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No documents available for this baby.</p>
+          ))}
+
         {purpose === "send" && (
           <Form.Group controlId="formFile" className="mt-3">
             <Form.Label>Select a file to send</Form.Label>
@@ -157,4 +184,4 @@ function DocumentsModal({
   );
 }
 
-export default DocumentsModal;
+export default ReceivedDocumentsModal;
