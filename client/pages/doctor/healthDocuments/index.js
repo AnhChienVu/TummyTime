@@ -297,6 +297,8 @@ function HealthDocuments() {
   const [purpose, setPurpose] = useState("");
   const [assignedBabiesWithParent, setAssignedBabiesWithParent] = useState([]);
 
+  const [isLoading, setIsLoading] = useState(true); // Loading state
+
   useEffect(() => {
     // Fetch parent list with assigned babies
     const fetchAssignedBabiesWithParent = async () => {
@@ -321,6 +323,8 @@ function HealthDocuments() {
         }
       } catch (error) {
         console.error("Error fetching assigned babies with parents:", error);
+      } finally {
+        setIsLoading(false); // Stop loading after fetch
       }
     };
 
@@ -328,6 +332,9 @@ function HealthDocuments() {
     // fetchSentDocuments();
     fetchAssignedBabiesWithParent();
   }, []);
+  if (isLoading) {
+    return <p>Loading...</p>;
+  }
 
   // useEffect(() => {
   //   console.log("Updated documents state:", documents);
