@@ -26,36 +26,44 @@ export function formatTime12h(timeStr) {
  * @param {Date|string} date - Date to format
  * @returns {Object} Formatted date information
  */
-// export function formatDay(date) {
-//   try {
-//     const d = new Date(date);
-//     if (isNaN(d.getTime())) {
-//       return { date: "N/A", dateText: "Invalid Date", isToday: false };
-//     }
-//     const month = d.toLocaleString("default", { month: "short" });
-//     const day = d.getDate();
-//     const dayName = d.toLocaleString("default", { weekday: "short" });
-//     const today = new Date();
-//     const isToday =
-//       d.getDate() === today.getDate() &&
-//       d.getMonth() === today.getMonth() &&
-//       d.getFullYear() === today.getFullYear();
-
-//     return { date: day, dateText: `${month}, ${dayName}`, isToday };
-//   } catch (err) {
-//     console.error("Error formatting date:", err, date);
-//     return { date: "N/A", dateText: "Invalid Date", isToday: false };
-//   }
-// }
 export const formatDay = (dateStr) => {
-  // Parse the date string into a Date object
-  const parsedDate = parse(dateStr, "EEE MMM dd yyyy", new Date());
-
+  // First determine what format we're getting
+  let parsedDate;
+  
+  // Try to parse assuming it's already a date string (e.g., "Wed Apr 08 2025")
+  try {
+    parsedDate = parse(dateStr, "EEE MMM dd yyyy", new Date());
+    if (isNaN(parsedDate.getTime())) {
+      throw new Error("Invalid date parsed");
+    }
+  } catch (err) {
+    // If that fails, try ISO format (e.g., "2025-04-08")
+    try {
+      parsedDate = parse(dateStr, "yyyy-MM-dd", new Date());
+      if (isNaN(parsedDate.getTime())) {
+        throw new Error("Invalid date parsed");
+      }
+    } catch (err2) {
+      // As a last resort, just create a date from the string
+      parsedDate = new Date(dateStr);
+      if (isNaN(parsedDate.getTime())) {
+        // If all parsing attempts fail, use current date
+        console.error("Failed to parse date:", dateStr);
+        parsedDate = new Date();
+      }
+    }
+  }
+  
   // Extract the day number, formatted date text, and check if it's today
   const date = format(parsedDate, "d"); // Day number (e.g., 27)
-  const dateText = format(parsedDate, "MMM d, yyyy"); // Formatted date (e.g., Mar 27, 2025)
-  const isToday =
-    format(parsedDate, "yyyy-MM-dd") === format(new Date(), "yyyy-MM-dd");
+  const dateText = format(parsedDate, "MMM, yyyy"); // Month and year format
+  
+  // Use direct string comparison of dates to check if it's today
+  const today = new Date();
+  const isToday = 
+    parsedDate.getFullYear() === today.getFullYear() && 
+    parsedDate.getMonth() === today.getMonth() && 
+    parsedDate.getDate() === today.getDate();
 
   return { date, dateText, isToday };
 };
@@ -156,11 +164,43 @@ export function findNextDueReminder(remindersList) {
  * @param {Array} reminders - List of reminders to group
  * @returns {Object} Reminders grouped by date
  */
+// Replace the existing groupRemindersByDate function with this improved version
 export function groupRemindersByDate(reminders) {
   return reminders.reduce((acc, reminder) => {
-    if (!reminder || !reminder.createdAt) return acc;
+    if (!reminder || !reminder.date) return acc;
+    
     try {
-      const dateStr = new Date(reminder.createdAt).toDateString(); // Example: "Thu Mar 27 2025"
+      // Create a date that preserves the day regardless of timezone
+      let dateObj;
+      
+      if (reminder.date instanceof Date) {
+        // If it's already a Date object, create a new one at noon to avoid timezone issues
+        dateObj = new Date(
+          reminder.date.getFullYear(),
+          reminder.date.getMonth(),
+          reminder.date.getDate(),
+          12, 0, 0
+        );
+      } else if (typeof reminder.date === 'string') {
+        // If it's a string like "2025-04-08", parse it carefully
+        if (reminder.date.includes('-')) {
+          // ISO format (YYYY-MM-DD)
+          const [year, month, day] = reminder.date.split('-').map(Number);
+          dateObj = new Date(year, month - 1, day, 12, 0, 0); // Month is 0-indexed in JS
+        } else {
+          // Try to parse as a regular date, but set to noon
+          dateObj = new Date(reminder.date);
+          dateObj.setHours(12, 0, 0, 0);
+        }
+      } else {
+        console.error("Unexpected date format:", reminder.date);
+        return acc;
+      }
+      
+      // Use a consistent string representation
+      const dateStr = dateObj.toDateString();
+      
+      // Group by this date string
       if (!acc[dateStr]) {
         acc[dateStr] = [];
       }
@@ -168,6 +208,7 @@ export function groupRemindersByDate(reminders) {
     } catch (err) {
       console.error("Error processing reminder for grouping:", err, reminder);
     }
+    
     return acc;
   }, {});
 }

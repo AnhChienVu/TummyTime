@@ -65,6 +65,7 @@ module.exports.getReminders = async (req, res) => {
           reminder_id,
           baby_id,
           title,
+          time,
           TO_CHAR(date, 'YYYY-MM-DD') AS date,
           notes,
           is_active,
