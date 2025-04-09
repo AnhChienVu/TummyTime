@@ -1,29 +1,65 @@
-.navbar {
-    width: 100%;
+.navContainer {
     display: flex;
     justify-content: space-between;
     align-items: center;
     padding: 1rem 2rem;
-    background-color: #E8DEF8;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     position: fixed;
     top: 0;
-    z-index: 1000;
+    background: #E8DEF8;
+    width: 100%;
+    z-index: 1001;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.navbar a.navbar-brand {
+.brand {
     display: flex;
     align-items: center;
+    text-decoration: none;
+    gap: 0.5rem;
+    cursor: pointer;
+    color:black;
 }
 
-.navbar :global(img):hover {
+.brand:hover {
+    color: black;
+    text-decoration: none;
+}
+
+.logo {
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+}
+
+.logo:hover {
     animation: shake 0.5s ease-in-out;
 }
 
 @keyframes shake {
     0% { transform: rotate(0deg); }
-    25% { transform: rotate(-10deg); }
-    50% { transform: rotate(10deg); }
-    75% { transform: rotate(-10deg); }
+    25% { transform: rotate(-5deg); }
+    50% { transform: rotate(5deg); }
+    75% { transform: rotate(-5deg); }
     100% { transform: rotate(0deg); }
+}
+
+.brandName {
+    font-size: 1.5rem;
+    /* font-weight: bold; */
+}
+
+ .topNav {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+}
+
+.topNav a {
+    color: #333;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.topNav a:hover {
+    color: #A267AC;
 }
