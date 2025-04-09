@@ -10,6 +10,7 @@ function DocumentsModal({
   purpose,
   parentId,
 }) {
+  console.log("DocumentModal documents:", documents);
   const [selectedFile, setSelectedFile] = useState(null);
   const handleFileChange = (e) => {
     setSelectedFile(e.target.files[0]);
@@ -113,7 +114,7 @@ function DocumentsModal({
         )}
       </Modal.Header>
       <Modal.Body>
-        {documents?.length > 0 ? (
+        {documents.length > 0 ? (
           <ul className={styles.documentList}>
             {documents.map((doc) => (
               <li key={doc.document_id} className={styles.documentItem}>

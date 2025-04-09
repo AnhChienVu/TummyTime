@@ -182,6 +182,7 @@ function HealthDocuments() {
       const babyDocuments = documents[parentId]?.filter(
         (doc) => doc.baby_id === babyId,
       );
+      console.log("Receiving documents:", babyDocuments);
       setSelectedBabyDocuments(babyDocuments);
       setSelectedBabyId(babyId);
       setShowDocumentsModal(true);
