@@ -553,7 +553,7 @@ export const NotificationProvider = ({ children }) => {
   const completeReminder = useCallback(
     async (id) => {
       if (!isClient || !isAuthenticated) return;
-
+  
       try {
         console.log(`NotificationContext: Completing reminder ${id}`);
         const notification = activeNotifications.find((n) => n.id === id);
@@ -561,22 +561,22 @@ export const NotificationProvider = ({ children }) => {
           console.log(`NotificationContext: Notification ${id} not found`);
           return;
         }
-
+  
         // Add to dismissed set to prevent re-showing (permanent)
         setDismissedReminderIds((prev) => {
           const updated = new Set(prev);
           updated.add(id);
           return updated;
         });
-
+  
         // Always remove from notifications
         setActiveNotifications((prev) => prev.filter((n) => n.id !== id));
-
+  
         // Reset index if needed
         if (currentIndex >= activeNotifications.length - 1) {
           setCurrentIndex(0);
         }
-
+  
         try {
           // Get full reminder data
           const reminders = await reminderService.fetchReminders(
@@ -590,7 +590,7 @@ export const NotificationProvider = ({ children }) => {
             );
             return;
           }
-
+  
           // Update to mark as inactive
           await reminderService.updateReminder(
             notification.babyId,
@@ -598,11 +598,52 @@ export const NotificationProvider = ({ children }) => {
             { ...reminder, is_active: false },
             API_BASE_URL,
           );
-
+  
           console.log(
             `NotificationContext: Successfully marked reminder ${id} as inactive`,
           );
-
+  
+          // Create next reminder if enabled
+          if (reminder.nextReminder && reminder.reminderIn) {
+            console.log(
+              `NotificationContext: Creating next reminder in ${reminder.reminderIn} for reminder ${id}`
+            );
+            
+            // Parse the reminder_in value to get hours
+            const hoursMatch = reminder.reminderIn.match(/(\d+(\.\d+)?)/);
+            const hoursToAdd = hoursMatch ? parseFloat(hoursMatch[1]) : 1.5;
+            
+            // Calculate new time
+            const reminderDate = new Date();
+            reminderDate.setHours(reminderDate.getHours() + hoursToAdd);
+            
+            // Format time for new reminder (24 hour format for API)
+            const hours = reminderDate.getHours().toString().padStart(2, '0');
+            const minutes = reminderDate.getMinutes().toString().padStart(2, '0');
+            const formattedTime = `${hours}:${minutes}`;
+            
+            // Create new reminder with same details but updated time
+            const newReminderData = {
+              title: reminder.title,
+              time: formattedTime,
+              date: reminderDate.toISOString().split('T')[0],
+              notes: reminder.notes || reminder.note || "",
+              is_active: true,
+              next_reminder: reminder.nextReminder,
+              reminder_in: reminder.reminderIn,
+              baby_id: notification.babyId
+            };
+            
+            // Add the new reminder
+            await reminderService.addReminder(
+              notification.babyId,
+              newReminderData,
+              API_BASE_URL,
+            );
+            
+            console.log(`NotificationContext: Created next reminder for ${id} in ${reminder.reminderIn}`);
+          }
+  
           // Important: Dispatch a custom event to notify the ReminderContext
           // that a reminder has been completed via notification
           window.dispatchEvent(
