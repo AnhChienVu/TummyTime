@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import styles from "./healthDocuments.module.css";
 import BabiesModal from "@/components/BabiesModal/BabiesModal";
 import DocumentsModal from "@/components/DocumentsModal/DocumentsModal";
+import { set } from "date-fns";
 
 function HealthDocuments() {
   const [documents, setDocuments] = useState([]);
@@ -10,6 +11,8 @@ function HealthDocuments() {
   const [showModal, setShowModal] = useState(false);
   const [showDocumentsModal, setShowDocumentsModal] = useState(false);
   const [selectedBabyDocuments, setSelectedBabyDocuments] = useState([]);
+  const [receivedBabyDocuments, setReceivedBabyDocuments] = useState([]);
+
   const [selectedBabyId, setSelectedBabyId] = useState(null);
   const [showSendModal, setShowSendModal] = useState(false);
   const [selectedBabyForSend, setSelectedBabyForSend] = useState(null);
@@ -183,11 +186,15 @@ function HealthDocuments() {
 
   const handleOpenDocumentsModal = (babyId, parentId, openTo) => {
     if (openTo === "receive") {
-      const babyDocuments = documents[parentId]?.filter(
-        (doc) => doc.baby_id === babyId,
-      );
-      console.log("Receiving documents:", babyDocuments);
-      setSelectedBabyDocuments(babyDocuments);
+      const parentData = documents[parentId];
+      const parentDocuments =
+        parentData?.filter((doc) => doc.baby_id === babyId) || [];
+      // const babyDocuments = documents[parentId]?.filter(
+      //   (doc) => doc.baby_id === babyId,
+      // );
+      console.log("Receiving documents:", parentDocuments);
+      // setSelectedBabyDocuments(parentDocuments);
+      setReceivedBabyDocuments(parentDocuments);
       setSelectedBabyId(babyId);
       setShowDocumentsModal(true);
       setPurpose("receive");
@@ -204,7 +211,9 @@ function HealthDocuments() {
   const handleCloseDocumentsModal = () => {
     setShowDocumentsModal(false);
     setSelectedBabyDocuments([]);
+    setReceivedBabyDocuments([]);
     setSelectedBabyId(null);
+    setPurpose("");
   };
 
   return (
@@ -238,14 +247,26 @@ function HealthDocuments() {
         />
       )}
 
-      <DocumentsModal
-        show={showDocumentsModal}
-        handleClose={handleCloseDocumentsModal}
-        documents={selectedBabyDocuments}
-        babyId={selectedBabyId}
-        purpose={purpose}
-        parentId={selectedParentId}
-      />
+      {purpose === "send" && (
+        <DocumentsModal
+          show={showDocumentsModal}
+          handleClose={handleCloseDocumentsModal}
+          documents={selectedBabyDocuments}
+          babyId={selectedBabyId}
+          purpose={purpose}
+          parentId={selectedParentId}
+        />
+      )}
+      {purpose === "receive" && (
+        <DocumentsModal
+          show={showDocumentsModal}
+          handleClose={handleCloseDocumentsModal}
+          documents={receivedBabyDocuments}
+          babyId={selectedBabyId}
+          purpose={purpose}
+          parentId={selectedParentId}
+        />
+      )}
     </div>
   );
 }
