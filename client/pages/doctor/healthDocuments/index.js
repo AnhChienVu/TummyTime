@@ -313,11 +313,23 @@ function HealthDocuments() {
             },
           },
         );
+        if (!res.ok) {
+          console.error("API Error:", res.status, res.statusText);
+        }
 
         const data = await res.json();
         if (data.status === "ok") {
+          console.log("API Response:", data);
+          if (!data.parents) {
+            console.error("Parents data is undefined");
+          }
           console.log("Assigned babies with parent:", data.parents);
-          setAssignedBabiesWithParent(data.parents);
+          if (data.status === "ok" && data.parents) {
+            setAssignedBabiesWithParent(data.parents);
+          } else {
+            console.error("Error: Parents data is missing or undefined");
+            setAssignedBabiesWithParent([]); // Fallback to an empty array
+          }
         } else {
           console.error("Error fetching assigned babies with parents");
         }
@@ -330,7 +342,9 @@ function HealthDocuments() {
 
     // fetchDocuments();
     // fetchSentDocuments();
-    fetchAssignedBabiesWithParent();
+    if (typeof window !== "undefined") {
+      fetchAssignedBabiesWithParent();
+    }
   }, []);
   if (isLoading) {
     return <p>Loading...</p>;
