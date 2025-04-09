@@ -1,13 +1,7 @@
-// pages/api/chat.js
-
-/**
- * API handler for chat completions using OpenRouter
- */
 export default async function handler(req, res) {
   // Handle status check with GET request
   if (req.method === 'GET') {
     try {
-      // Check if the API key is configured
       const apiKey = process.env.OPENROUTER_API_KEY;
       if (!apiKey) {
         return res.status(200).json({ 
@@ -16,13 +10,11 @@ export default async function handler(req, res) {
         });
       }
   
-      // Return success status
       return res.status(200).json({ 
         status: 'ready',
         message: 'Chat API is ready'
       });
     } catch (error) {
-      console.error('Status check error:', error);
       return res.status(500).json({ 
         status: 'error',
         message: 'Error checking API status' 
@@ -43,17 +35,16 @@ export default async function handler(req, res) {
       return res.status(400).json({ message: 'Invalid request parameters' });
     }
 
-    // Get API key directly from environment variables
+    // Get API key from environment variables
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) {
-      console.error('OpenRouter API key not configured');
       return res.status(500).json({ message: 'Server configuration error' });
     }
 
     // Site info for OpenRouter referral
-    const siteUrl = process.env.SITE_URL || 'https://tummy-time.app';
+    const siteUrl = process.env.NEXT_PUBLIC_CLIENT_URL || 'http://localhost:3000';
     const siteName = 'Tummy Time Baby Care Assistant';
-
+    
     // Make request to OpenRouter API
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -76,17 +67,15 @@ export default async function handler(req, res) {
 
     // Check for errors in OpenRouter response
     if (!response.ok) {
-      console.error('OpenRouter API error:', data);
       return res.status(response.status).json({
         message: data.error?.message || 'Error from OpenRouter API',
         error: data.error
       });
     }
-
+    
     // Return successful response
     return res.status(200).json(data);
   } catch (error) {
-    console.error('Chat API error:', error);
     return res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 }
