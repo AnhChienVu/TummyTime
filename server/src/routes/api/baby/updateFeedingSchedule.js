@@ -1,26 +1,21 @@
-// src/routes/api/getFeedingSchedules.js
+// src/routes/api/updateFeedingSchedule.js
 const pool = require('../../../../database/db');
-const {
-  createSuccessResponse,
-  createErrorResponse,
-} = require('../../../utils/response');
-const {checkBabyBelongsToUser} = require("../../../utils/babyAccessHelper");
-const { getUserId } = require("../../../utils/userIdHelper");
+const { createSuccessResponse, createErrorResponse } = require('../../../utils/response');
+const { checkBabyBelongsToUser } = require('../../../utils/babyAccessHelper');
+const { getUserId } = require('../../../utils/userIdHelper');
 
 module.exports = async (req, res) => {
-  const { mealId } = req.params;
+  const { babyId, mealId } = req.params;
   const { meal, time, type, amount, issues, notes } = req.body;
 
-  console.log('Request body:', req.body);
-  console.log('Meal id:', req.params.id);
   try {
     // Decode the token to get the user ID
     const authHeader = req.headers.authorization;
     if (!authHeader) {
       return res.status(401).json({
-        status: "error",
+        status: 'error',
         error: {
-          message: "No authorization token provided",
+          message: 'No authorization token provided',
         },
       });
     }
@@ -28,22 +23,20 @@ module.exports = async (req, res) => {
     const user_id = await getUserId(authHeader);
     if (!user_id) {
       return res.status(404).json({
-        status: "error",
+        status: 'error',
         error: {
-          message: "User not found",
+          message: 'User not found',
         },
       });
     }
 
-   // {CHECK OWNERSHIP of BABY}
+    // {CHECK OWNERSHIP of BABY}
     // Verify user has access to this baby
-    const hasAccess = await checkBabyBelongsToUser(baby_id, user_id);
+    const hasAccess = await checkBabyBelongsToUser(babyId, user_id);
     if (!hasAccess) {
       return res
         .status(403)
-        .json(
-          createErrorResponse("Not authorized to access this baby profile")
-        );
+        .json(createErrorResponse('Not authorized to access this baby profile'));
     }
 
     const updatedFeedingSchedules = await pool.query(
@@ -54,8 +47,6 @@ module.exports = async (req, res) => {
     return res.json(createSuccessResponse(updatedFeedingSchedules.rows));
   } catch (error) {
     console.error('Database query error:', error);
-    return res
-      .status(500)
-      .json(createErrorResponse(500, 'Internal server error'));
+    return res.status(500).json(createErrorResponse(500, 'Internal server error'));
   }
 };
