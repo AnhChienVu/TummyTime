@@ -190,8 +190,9 @@ function HealthDocuments() {
   const handleOpenDocumentsModal = (babyId, parentId, openTo) => {
     if (openTo === "receive") {
       const parentData = documents[parentId];
-      const parentDocuments =
-        parentData?.filter((doc) => doc.baby_id === babyId) || [];
+      const parentDocuments = parentData?.filter(
+        (doc) => doc.baby_id === babyId,
+      );
       // const babyDocuments = documents[parentId]?.filter(
       //   (doc) => doc.baby_id === babyId,
       // );
