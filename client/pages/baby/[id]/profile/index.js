@@ -80,13 +80,18 @@ export default function BabyProfile({ baby_id }) {
 
           setBaby(babyData);
 
+          // Convert birthdate to YYYY-MM-DD format
+          const formattedBirthdate = babyData.birthdate
+            ? new Date(babyData.birthdate).toISOString().split("T")[0]
+            : "";
+
           // Form field setup
           setValue("first_name", babyData.first_name);
           setValue("last_name", babyData.last_name);
           setValue("gender", babyData.gender);
           setValue("weight", babyData.weight);
 
-          setValue("birthdate", babyData.birthdate ? babyData.birthdate : "");
+          setValue("birthdate", formattedBirthdate);
           setValue("height", babyData.height ? babyData.height : "");
 
           setOriginalData(babyData);
