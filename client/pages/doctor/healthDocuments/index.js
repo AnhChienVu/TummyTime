@@ -314,6 +314,7 @@ function HealthDocuments() {
 
         const data = await res.json();
         if (data.status === "ok") {
+          console.log("Assigned babies with parent:", data.parents);
           setAssignedBabiesWithParent(data.parents);
         } else {
           console.error("Error fetching assigned babies with parents");

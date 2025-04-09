@@ -10,54 +10,55 @@ function BabiesModal({
   onReceiveDocument,
   parentId,
 }) {
-  const [babiesWithNames, setBabiesWithNames] = useState([]);
-  useEffect(() => {
-    const fetchBabies = async () => {
-      try {
-        // Fetch baby details for each baby_id
-        const babiesWithNames = await Promise.all(
-          babies.map(async (baby) => {
-            const babyDetailsResponse = await fetch(
-              `${
-                process.env.NEXT_PUBLIC_API_URL
-              }/v1/doctor/${localStorage.getItem("userId")}/baby/${
-                baby.baby_id
-              }/profile`,
-              {
-                headers: {
-                  Authorization: `Bearer ${localStorage.getItem("token")}`,
-                },
-              },
-            );
+  // const [babiesWithNames, setBabiesWithNames] = useState([]);
+  // useEffect(() => {
+  //   const fetchBabies = async () => {
+  //     try {
+  //       // Fetch baby details for each baby_id
+  //       const babiesWithNames = await Promise.all(
+  //         babies.map(async (baby) => {
+  //           const babyDetailsResponse = await fetch(
+  //             `${
+  //               process.env.NEXT_PUBLIC_API_URL
+  //             }/v1/doctor/${localStorage.getItem("userId")}/baby/${
+  //               baby.baby_id
+  //             }/profile`,
+  //             {
+  //               headers: {
+  //                 Authorization: `Bearer ${localStorage.getItem("token")}`,
+  //               },
+  //             },
+  //           );
 
-            const babyDetails = await babyDetailsResponse.json();
-            if (babyDetails.status !== "ok") {
-              throw new Error("Error fetching baby details");
-            }
-            return {
-              ...baby,
-              parent_id: parentId,
-              baby_name:
-                babyDetails.data.first_name + " " + babyDetails.data.last_name,
-            };
-          }),
-        );
-        setBabiesWithNames(babiesWithNames);
-      } catch (error) {
-        console.error("Error fetching babies:", error);
-      }
-    };
-    fetchBabies();
-  }, [babies, parentId]);
+  //           const babyDetails = await babyDetailsResponse.json();
+  //           if (babyDetails.status !== "ok") {
+  //             throw new Error("Error fetching baby details");
+  //           }
+  //           return {
+  //             ...baby,
+  //             parent_id: parentId,
+  //             baby_name:
+  //               babyDetails.data.first_name + " " + babyDetails.data.last_name,
+  //           };
+  //         }),
+  //       );
+  //       setBabiesWithNames(babiesWithNames);
+  //     } catch (error) {
+  //       console.error("Error fetching babies:", error);
+  //     }
+  //   };
+  //   // fetchBabies();
+  // }, [babies, parentId]);
   return (
     <Modal show={show} onHide={handleClose} centered>
       <Modal.Header closeButton>
         <Modal.Title>Babies</Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        {babiesWithNames.length > 0 ? (
+        {console.log("BabiesModal babies:", babies)}
+        {babies.length > 0 ? (
           <ul>
-            {babiesWithNames.map((baby) => (
+            {babies.map((baby) => (
               <li key={baby.baby_id} className={styles.babyItem}>
                 <p className={styles.babyName}>Baby: {baby.baby_name}</p>
                 <Button
