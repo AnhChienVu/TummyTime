@@ -10,6 +10,9 @@ function HealthDocuments() {
   const [selectedBabies, setSelectedBabies] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [showDocumentsModal, setShowDocumentsModal] = useState(false);
+  const [showReceivedDocumentsModal, setShowReceivedDocumentsModal] =
+    useState(false);
+
   const [selectedBabyDocuments, setSelectedBabyDocuments] = useState([]);
   const [receivedBabyDocuments, setReceivedBabyDocuments] = useState([]);
 
@@ -196,7 +199,7 @@ function HealthDocuments() {
       // setSelectedBabyDocuments(parentDocuments);
       setReceivedBabyDocuments(parentDocuments);
       setSelectedBabyId(babyId);
-      setShowDocumentsModal(true);
+      setShowReceivedDocumentsModal(true);
       setPurpose("receive");
     } else if (openTo === "send") {
       const babyDocuments = sentDocuments[babyId];
@@ -209,7 +212,9 @@ function HealthDocuments() {
   };
 
   const handleCloseDocumentsModal = () => {
+    console.log("Closing documents modal");
     setShowDocumentsModal(false);
+    setShowReceivedDocumentsModal(false);
     setSelectedBabyDocuments([]);
     setReceivedBabyDocuments([]);
     setSelectedBabyId(null);
@@ -247,26 +252,28 @@ function HealthDocuments() {
         />
       )}
 
-      {purpose === "send" && (
-        <DocumentsModal
-          show={showDocumentsModal}
-          handleClose={handleCloseDocumentsModal}
-          documents={selectedBabyDocuments}
-          babyId={selectedBabyId}
-          purpose={purpose}
-          parentId={selectedParentId}
-        />
-      )}
-      {purpose === "receive" && (
-        <DocumentsModal
-          show={showDocumentsModal}
-          handleClose={handleCloseDocumentsModal}
-          documents={receivedBabyDocuments}
-          babyId={selectedBabyId}
-          purpose={purpose}
-          parentId={selectedParentId}
-        />
-      )}
+      {/* {purpose === "send" && (
+        
+      )} */}
+      <DocumentsModal
+        show={showDocumentsModal}
+        handleClose={handleCloseDocumentsModal}
+        documents={selectedBabyDocuments}
+        babyId={selectedBabyId}
+        purpose={purpose}
+        parentId={selectedParentId}
+      />
+      <DocumentsModal
+        show={showReceivedDocumentsModal}
+        handleClose={handleCloseDocumentsModal}
+        documents={receivedBabyDocuments}
+        babyId={selectedBabyId}
+        purpose={purpose}
+        parentId={selectedParentId}
+      />
+      {/* {purpose === "receive" && (
+        
+      )} */}
     </div>
   );
 }
