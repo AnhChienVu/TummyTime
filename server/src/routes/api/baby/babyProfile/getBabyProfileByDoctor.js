@@ -21,7 +21,8 @@ module.exports = async (req, res) => {
     }
 
     const babyProfile = await pool.query(
-      'SELECT first_name, last_name, gender, weight FROM baby WHERE baby_id = $1',
+      `SELECT first_name, last_name, gender, weight, height, birthdate
+       FROM baby WHERE baby_id = $1`,
       [baby_id]
     );
 
