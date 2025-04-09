@@ -39,7 +39,7 @@ router.get('/baby/:id/getFeedingSchedules', authenticate(), require('./baby/getF
 router.get('baby/:id/getLatestFeed', authenticate(), require('./baby/getLatestFeed'));
 
 router.put(
-  '/baby/:id/updateFeedingSchedule/:mealId',
+  '/baby/:babyId/updateFeedingSchedule/:mealId',
   authenticate(),
   require('./baby/updateFeedingSchedule')
 );
