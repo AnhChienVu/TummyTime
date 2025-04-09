@@ -1,6 +1,6 @@
 // components/HeartIcon.js
 import React from "react";
-import styles from "./careServices.module.css";
+import styles from "../pages/careServices/careServices.module.css";
 
 /**
  * Heart icon component for favorite functionality
@@ -8,12 +8,13 @@ import styles from "./careServices.module.css";
  * @param {boolean} props.active - Whether the heart is active (filled)
  * @param {Function} props.onClick - Click handler function
  * @param {string} props.className - Additional CSS classes
+ * @param {boolean} props.isPremium - Whether the provider is premium (for positioning)
  * @returns {JSX.Element} Heart icon component
  */
-const HeartIcon = ({ active = false, onClick, className = "" }) => {
+const HeartIcon = ({ active = false, onClick, className = "", isPremium = false }) => {
   return (
     <button
-      className={`${styles.favoriteButton} ${className}`}
+      className={`${styles.favoriteButton} ${isPremium ? styles.premiumFavoriteButton : ""} ${className}`}
       onClick={onClick}
       aria-label={active ? "Remove from favorites" : "Add to favorites"}
       type="button"
