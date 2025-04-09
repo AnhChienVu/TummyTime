@@ -1,5 +1,13 @@
 /* client/pages/coupons/coupons.module.css */
 /* Main container */
+
+.container {
+  background-color: #ffffff;
+  overflow-x: hidden;
+  padding: 0 15px;
+  margin-left: 50px;
+}
+
 .couponContainer {
   background-color: #ffffff;
   overflow-x: hidden;
@@ -60,14 +68,16 @@
   align-items: flex-end;
 }
 
-.searchInput, .filterSelect {
+.searchInput,
+.filterSelect {
   border-radius: 8px;
   border: 1px solid #ced4da;
   padding: 0.625rem 1rem;
   transition: all 0.2s ease;
 }
 
-.searchInput:focus, .filterSelect:focus {
+.searchInput:focus,
+.filterSelect:focus {
   border-color: #6658d3;
   box-shadow: 0 0 0 0.2rem rgba(102, 88, 211, 0.25);
 }
@@ -101,7 +111,10 @@
 }
 
 /* Section styling */
-.featuredSection, .babySection, .allOffersSection, .searchResultsSection {
+.featuredSection,
+.babySection,
+.allOffersSection,
+.searchResultsSection {
   margin-bottom: 3rem;
 }
 
@@ -190,15 +203,15 @@
   .mainTitle {
     font-size: 1.75rem;
   }
-  
+
   .subtitle {
     font-size: 1rem;
   }
-  
+
   .sectionTitle {
     font-size: 1.5rem;
   }
-  
+
   .filtersSection {
     padding: 1rem;
   }
@@ -210,7 +223,7 @@
     align-items: flex-start;
     gap: 0.5rem;
   }
-  
+
   .viewMoreButton {
     margin-left: 0;
   }

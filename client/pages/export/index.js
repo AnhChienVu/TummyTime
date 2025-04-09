@@ -130,7 +130,7 @@ const ExportDataPage = () => {
   };
 
   return (
-    <div className={styles.container}>
+    <div className="container mt-5">
       <h1>Export Baby Health Data</h1>
       <div className="card p-4 mt-4">
         {/* Select Types of Data to Export */}

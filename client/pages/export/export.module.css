@@ -1,13 +1,14 @@
 /* client/pages/[export]/export.module.css */
 
 .container {
-  max-width: 1200px;
+  background-color: #ffffff;
+  overflow-x: hidden;
+  padding: 0 15px;
   margin-left: 50px;
-  padding: 12px;
 }
 
 .button {
-  background-color: #65558F;
+  background-color: #65558f;
   color: white;
   padding: 8px;
   border-radius: 12px;
@@ -16,5 +17,5 @@
 }
 
 .button:hover {
-  background-color: #4D3D7E;
+  background-color: #4d3d7e;
 }
