@@ -20,6 +20,8 @@ export default function AddBaby() {
       first_name: "",
       last_name: "",
       weight: "",
+      // birthdate: "",
+      // height: "",
     },
   });
 
@@ -99,6 +101,46 @@ export default function AddBaby() {
               </Form.Group>
             </Col>
           </Row>
+
+          {/* NEW: Add DOB and Height fields */}
+          {/* <Row className="mb-3">
+            <Col md={6}>
+              <Form.Group>
+                <Form.Label>{t("Date of Birth")}</Form.Label>
+                <Form.Control
+                  {...register("birthdate", {
+                    required: true,
+                    // Validation:
+                    validate: (value) => {
+                      const today = new Date();
+                      const birthDate = new Date(value);
+                      return (
+                        birthDate <= today && // not in the future
+                        birthDate >= new Date(today.getFullYear() - 50, 0, 1) // not earlier than 50 years ago
+                      );
+                    },
+                  })}
+                  type="date"
+                  required
+                />
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group>
+                <Form.Label>{t("Height")} (cm)</Form.Label>
+                <Form.Control
+                  {...register("height", {
+                    required: true,
+                    min: 5, // min height: 5cm
+                    max: 200, // max height: 2meters
+                  })}
+                  type="number"
+                  placeholder={t("Enter height in cm")}
+                  required
+                />
+              </Form.Group>
+            </Col>
+          </Row> */}
 
           <Row className="mb-3">
             <Col>
