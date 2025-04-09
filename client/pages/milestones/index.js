@@ -1,4 +1,4 @@
-// pages/milestones/index.js
+// client/pages/milestones/index.js
 import React, { useState, useEffect, useCallback } from "react";
 import {
   Button,
@@ -9,7 +9,7 @@ import {
   Col,
   Alert,
 } from "react-bootstrap";
-import { format, setDate } from "date-fns";
+import { format } from "date-fns";
 import { FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
 import styles from "./milestones.module.css";
 import BabyCard from "@/components/BabyCard/BabyCard";
@@ -96,20 +96,17 @@ function Milestones() {
     </div>
   );
 
-  let toastIdCounter = 1;
-  const showToast = useCallback(
-    (message, variant = "success") => {
-      const createToastId = () => {
-        return toastIdCounter++;
-      };
-      const id = createToastId();
-      setToasts((prev) => [...prev, { id, message, variant }]);
-      setTimeout(() => {
-        setToasts((prev) => prev.filter((t) => t.id !== id));
-      }, 5000);
-    },
-    [toastIdCounter],
-  );
+  const showToast = useCallback((message, variant = "success") => {
+    let toastIdCounter = 1;
+    const createToastId = () => {
+      return toastIdCounter++;
+    };
+    const id = createToastId();
+    setToasts((prev) => [...prev, { id, message, variant }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 5000);
+  }, []);
 
   const removeToast = (id) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
@@ -122,40 +119,34 @@ function Milestones() {
     setTitleError("");
     setDetailsError("");
     setDateError("");
-    setNewModalError("");
 
     // Check for empty title
     if (!title.trim()) {
       setTitleError(t("Title is required"));
-      setNewModalError(t("Title is required"));
       isValid = false;
     }
 
     // Check for empty details
     if (!details.trim()) {
       setDetailsError(t("Details are required"));
-      setNewModalError(t("Details are required"));
       isValid = false;
     }
 
     // Validate title length (max 255 characters)
     if (title.length > 255) {
       setTitleError(t("Title must be less than 255 characters."));
-      setNewModalError(t("Title must be less than 255 characters."));
       isValid = false;
     }
 
     // Validate details length (max 255 characters)
     if (details.length > 255) {
       setDetailsError(t("Details must be less than 255 characters."));
-      setNewModalError(t("Details must be less than 255 characters."));
       isValid = false;
     }
 
     // Validate date
     if (!selectedDate) {
       setDateError(t("Please select a date."));
-      setNewModalError(t("Please select a date."));
       isValid = false;
     } else {
       const selectedDateTime = new Date(selectedDate);
@@ -163,7 +154,6 @@ function Milestones() {
       // Check if date is valid
       if (isNaN(selectedDateTime.getTime())) {
         setDateError(t("Invalid date format."));
-        setNewModalError(t("Invalid date format."));
         isValid = false;
       }
 
@@ -172,7 +162,6 @@ function Milestones() {
       fiveYearsFromNow.setFullYear(fiveYearsFromNow.getFullYear() + 5);
       if (selectedDateTime > fiveYearsFromNow) {
         setDateError(t("Date cannot be more than 5 years in the future."));
-        setNewModalError(t("Date cannot be more than 5 years in the future."));
         isValid = false;
       }
 
@@ -181,8 +170,6 @@ function Milestones() {
       fiftyYearsAgo.setFullYear(fiftyYearsAgo.getFullYear() - 50);
       if (selectedDateTime < fiftyYearsAgo) {
         setDateError(t("Date cannot be more than 50 years in the past."));
-        setNewModalError(t("Date cannot be more than 50 years in the past."));
-
         isValid = false;
       }
     }
@@ -198,6 +185,8 @@ function Milestones() {
     if (!validateInputs()) {
       return;
     }
+    console.log("Selected Date:", selectedDate);
+    console.log("Formatted Date:", selectedDate.toISOString().split("T")[0]);
 
     try {
       const res = await fetch(
@@ -211,7 +200,7 @@ function Milestones() {
           body: JSON.stringify({
             title,
             details,
-            date: format(new Date(selectedDate.toDateString()), "yyyy-MM-dd"),
+            date: selectedDate.toISOString().split("T")[0], // Format date as YYYY-MM-DD in UTC
           }),
         },
       );
@@ -247,12 +236,19 @@ function Milestones() {
       );
       const data = await res.json();
       if (data.status === "ok") {
-        const formattedMilestones = data.data.map((milestone) => ({
-          title: `${milestone.first_name} ${milestone.last_name}: ${milestone.title}`,
-          start: new Date(milestone.date),
-          end: new Date(milestone.date),
-          details: milestone.details,
-        }));
+        const formattedMilestones = data.data.map((milestone) => {
+          console.log("Milestone Date:", milestone.date);
+          // Parse the date as a local date
+          const [year, month, day] = milestone.date.split("-");
+          const localDate = new Date(year, month - 1, day); // Month is 0-indexed in JavaScript
+          return {
+            title: `${milestone.first_name} ${milestone.last_name}: ${milestone.title}`,
+            start: localDate, // Use the parsed local date
+            end: localDate, // Use the same date for start and end
+            details: milestone.details,
+          };
+        });
+        console.log("Formatted Milestones:", formattedMilestones);
         setMilestones(formattedMilestones);
       }
     } catch (error) {
@@ -319,52 +315,55 @@ function Milestones() {
 
   return (
     <Container className={styles.container} fluid>
+      {/* Add ToastContainer at the top level */}
       <ToastContainer toasts={toasts} removeToast={removeToast} />
 
       <Row>
         <Col>
           <h1>{t("Milestones")}</h1>
-          <div className={styles.calendarWrapper}>
-            <Calendar
-              localizer={localizer}
-              events={milestones}
-              startAccessor="start"
-              endAccessor="end"
-              views={["month"]}
-              tooltipAccessor="details"
-              date={currentDate}
-              onNavigate={(date) => setCurrentDate(date)}
-              defaultView="month"
-              messages={{
-                today: t("Today"),
-                previous: t("Back"),
-                next: t("Next"),
-                month: t("Month"),
-              }}
-              eventPropGetter={(event) => ({
-                style: {
-                  backgroundColor: "#007bff",
-                },
-              })}
-              dayPropGetter={(date) => {
-                const isToday =
-                  format(date, "yyyy-MM-dd") ===
-                  format(new Date(), "yyyy-MM-dd");
-                const isWeekend = date.getDay() === 0 || date.getDay() === 6;
-                return {
+          <Col>
+            <div className={styles.calendarWrapper}>
+              <Calendar
+                localizer={localizer}
+                events={milestones}
+                startAccessor="start"
+                endAccessor="end"
+                views={["month"]}
+                tooltipAccessor="details"
+                date={currentDate}
+                onNavigate={(date) => setCurrentDate(date)}
+                defaultView="month"
+                messages={{
+                  today: t("Today"),
+                  previous: t("Back"),
+                  next: t("Next"),
+                  month: t("Month"),
+                }}
+                eventPropGetter={(event) => ({
                   style: {
-                    backgroundColor: isToday
-                      ? "#f756566c"
-                      : isWeekend
-                      ? "#f8f9fa"
-                      : "white",
+                    backgroundColor: "#007bff",
                   },
-                };
-              }}
-              onSelectEvent={handleEventClick}
-            />
-          </div>
-
+                })}
+                dayPropGetter={(date) => {
+                  const isToday =
+                    format(date, "yyyy-MM-dd") ===
+                    format(new Date(), "yyyy-MM-dd");
+                  const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+                  return {
+                    style: {
+                      backgroundColor: isToday
+                        ? "#f756566c" // background for today
+                        : isWeekend
+                        ? "#f8f9fa"
+                        : "white",
+                    },
+                  };
+                }}
+                onSelectEvent={handleEventClick}
+                popup
+              />
+            </div>
+          </Col>
           <BabyCard
             buttons={[
               {
@@ -415,6 +414,9 @@ function Milestones() {
                   )}
                 </Button>
               </div>
+              <Form.Control.Feedback type="invalid">
+                {titleError}
+              </Form.Control.Feedback>
               <Form.Text className="text-muted">
                 {`${title.length}/255 ${t("characters")}`}
               </Form.Text>
@@ -433,6 +435,9 @@ function Milestones() {
                 }}
                 isInvalid={!!dateError}
               />
+              <Form.Control.Feedback type="invalid">
+                {dateError}
+              </Form.Control.Feedback>
             </Form.Group>
 
             <Form.Group className="mb-3" controlId="details">
@@ -458,6 +463,9 @@ function Milestones() {
                   )}
                 </Button>
               </div>
+              <Form.Control.Feedback type="invalid">
+                {detailsError}
+              </Form.Control.Feedback>
               <Form.Text className="text-muted">
                 {`${details.length}/255 ${t("characters")}`}
               </Form.Text>
