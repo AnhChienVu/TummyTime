@@ -15,6 +15,7 @@ function HealthDocuments() {
   const [selectedBabyForSend, setSelectedBabyForSend] = useState(null);
   const [sentDocuments, setSentDocuments] = useState([]);
   const [purpose, setPurpose] = useState("");
+  const [assignedBabies, setAssignedBabies] = useState([]);
 
   useEffect(() => {
     // Fetch documents sent from parents
@@ -105,14 +106,43 @@ function HealthDocuments() {
 
           setSentDocuments(groupedDocuments);
         } else {
+          setSentDocuments([]);
           console.error("Error fetching documents:", data.message);
         }
       } catch (error) {
         console.error("Error fetching documents:", error);
       }
     };
+
+    // Fetch assigned babies
+    const fetchAssignedBabies = async () => {
+      try {
+        const res = await fetch(
+          `${
+            process.env.NEXT_PUBLIC_API_URL
+          }/v1/medical-professional/${localStorage.getItem("userId")}/babies`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
+        );
+
+        const data = await res.json();
+        if (data.status === "ok") {
+          setAssignedBabies(data.babies);
+        } else {
+          setAssignedBabies([]);
+          console.error("Error fetching assigned babies:", data.message);
+        }
+      } catch (error) {
+        console.error("Error fetching assigned babies:", error);
+      }
+    };
+
     fetchDocuments();
     fetchSentDocuments();
+    fetchAssignedBabies();
   }, []);
 
   const handleOpenModal = (parentId) => {
@@ -126,25 +156,29 @@ function HealthDocuments() {
   };
 
   const getBabiesForParent = (parentId) => {
-    const parentDocuments = documents[parentId];
-    const uniqueBabies = {};
+    // Filter assigned babies for the given parentId
+    const babiesForParent = assignedBabies.filter(
+      (baby) => baby.parent_id === parentId,
+    );
 
-    parentDocuments.forEach((doc) => {
-      if (!uniqueBabies[doc.baby_id]) {
-        uniqueBabies[doc.baby_id] = {
-          baby_id: doc.baby_id,
-          parent_id: parentId,
-          documents: parentDocuments.filter((d) => d.baby_id === doc.baby_id),
-        };
-      }
+    // Map each baby to include documents if available
+    return babiesForParent.map((baby) => {
+      const parentDocuments = documents[parentId] || []; // Get documents for the parent, or an empty array
+      const babyDocuments = parentDocuments.filter(
+        (doc) => doc.baby_id === baby.baby_id,
+      );
+
+      return {
+        baby_id: baby.baby_id,
+        parent_id: parentId,
+        baby_name: baby.baby_name, // Include baby's name from assignedBabies
+        documents: babyDocuments, // Attach documents if available
+      };
     });
-    return Object.values(uniqueBabies);
   };
 
   const handleOpenDocumentsModal = (babyId, parentId, openTo) => {
     if (openTo === "receive") {
-      console.log("Parent ID:", parentId);
-      console.log("receive", documents[parentId]);
       const babyDocuments = documents[parentId]?.filter(
         (doc) => doc.baby_id === babyId,
       );
@@ -155,6 +189,7 @@ function HealthDocuments() {
     } else if (openTo === "send") {
       const babyDocuments = sentDocuments[babyId];
       setSelectedBabyDocuments(babyDocuments);
+      console.log("Sending documents:", babyDocuments);
       setSelectedBabyId(babyId);
       setShowDocumentsModal(true);
       setPurpose("send");
@@ -170,20 +205,20 @@ function HealthDocuments() {
   return (
     <div className={styles.container}>
       <h1>Health Records</h1>
-      {Object.keys(documents).length > 0 ? (
-        Object.keys(documents).map((parentId) => (
-          <div key={parentId} className={styles.parentContainer}>
-            <h3>Parent: {documents[parentId].parentName}</h3>
+      {assignedBabies.length > 0 ? (
+        assignedBabies.map((baby) => (
+          <div key={baby.baby_id} className={styles.parentContainer}>
+            <h3>Parent: {baby.parent_name}</h3>
             <button
               className={styles.viewBabiesButton}
-              onClick={() => handleOpenModal(parentId)}
+              onClick={() => handleOpenModal(baby.parent_id)}
             >
               View Babies
             </button>
           </div>
         ))
       ) : (
-        <p>No documents found.</p>
+        <p>No assigned babies yet.</p>
       )}
 
       {/* Modal for displaying babies */}
@@ -204,6 +239,7 @@ function HealthDocuments() {
         documents={selectedBabyDocuments}
         babyId={selectedBabyId}
         purpose={purpose}
+        parentId={selectedParentId}
       />
     </div>
   );
