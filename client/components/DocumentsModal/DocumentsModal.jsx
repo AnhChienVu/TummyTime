@@ -2,7 +2,14 @@ import React, { useState } from "react";
 import { Modal, Button, Form } from "react-bootstrap";
 import styles from "./DocumentsModal.module.css";
 
-function DocumentsModal({ show, handleClose, documents, babyId, purpose }) {
+function DocumentsModal({
+  show,
+  handleClose,
+  documents,
+  babyId,
+  purpose,
+  parentId,
+}) {
   const [selectedFile, setSelectedFile] = useState(null);
   const handleFileChange = (e) => {
     setSelectedFile(e.target.files[0]);
@@ -40,7 +47,7 @@ function DocumentsModal({ show, handleClose, documents, babyId, purpose }) {
 
   const handleSendFile = async () => {
     if (selectedFile) {
-      handleSendNewDocument(selectedFile, babyId, documents[0].shared_with); // Assuming documents[0] has parent_id
+      handleSendNewDocument(selectedFile, babyId, parentId); // Assuming documents[0] has parent_id
     } else {
       alert("Please select a file to send.");
     }
