@@ -7,9 +7,33 @@ import {
   FaUser,
   FaInfoCircle,
 } from "react-icons/fa";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Link from "@tiptap/extension-link";
+import Underline from "@tiptap/extension-underline";
 
 import openRouterService from "../../services/openRouterService";
 import styles from "./chat.module.css";
+
+// View-only editor component - identical to Journal's approach
+const ViewOnlyEditor = ({ content }) => {
+  const editor = useEditor(
+    {
+      extensions: [StarterKit, Link, Underline],
+      content: content,
+      editable: false,
+      editorProps: {
+        attributes: {
+          class: "view-only-editor",
+        },
+      },
+      enableCoreExtensions: true,
+    },
+    [content],
+  );
+
+  return <EditorContent editor={editor} />;
+};
 
 const Disclaimer = () => {
   return (
@@ -49,151 +73,33 @@ const Notification = ({ message, visible }) => {
   );
 };
 
-const generateSmartTitle = (userQuery, botResponse = "") => {
-  if (!userQuery || userQuery.trim() === "") {
-    return "New conversation";
-  }
-
-  const normalizedQuery = userQuery.toLowerCase().trim();
-
-  const topics = {
-    "Sleep Issues": [
-      "sleep",
-      "nap",
-      "bedtime",
-      "night",
-      "wake",
-      "waking",
-      "tired",
-      "drowsy",
-      "snore",
-      "snoring",
-    ],
-    "Feeding & Nutrition": [
-      "feed",
-      "formula",
-      "breast",
-      "milk",
-      "bottle",
-      "eat",
-      "eating",
-      "food",
-      "solid",
-      "nurse",
-      "hungry",
-      "appetite",
-      "nutrition",
-    ],
-    Development: [
-      "milestone",
-      "crawl",
-      "walk",
-      "talk",
-      "roll",
-      "sit",
-      "stand",
-      "development",
-      "grow",
-      "skill",
-      "motor",
-    ],
-    "Health Concern": [
-      "sick",
-      "fever",
-      "temperature",
-      "cold",
-      "cough",
-      "rash",
-      "vomit",
-      "diarrhea",
-      "constipation",
-      "doctor",
-      "medicine",
-      "vaccine",
-    ],
-    "Behavior & Routine": [
-      "cry",
-      "crying",
-      "fussy",
-      "tantrum",
-      "behavior",
-      "calm",
-      "soothe",
-      "habit",
-      "routine",
-      "discipline",
-    ],
-    Teething: ["teeth", "tooth", "teething", "gum", "drool"],
-    "Diapering & Potty": [
-      "diaper",
-      "poop",
-      "pee",
-      "stool",
-      "urine",
-      "bowel",
-      "toilet",
-      "potty",
-    ],
-  };
-
-  let agePrefix = "";
-  const ageMatch = normalizedQuery.match(
-    /(\d+)\s*(month|week|year|day)s?\s*(old)?/,
-  );
-  if (ageMatch) {
-    agePrefix = `${ageMatch[1]} ${ageMatch[2]}${
-      parseInt(ageMatch[1]) !== 1 ? "s" : ""
-    }: `;
-  }
-
-  let matchedCategory = "";
-  let highestScore = 0;
-  let bestKeyword = "";
-
-  Object.entries(topics).forEach(([category, keywords]) => {
-    keywords.forEach((keyword) => {
-      if (normalizedQuery.includes(keyword)) {
-        const position = normalizedQuery.indexOf(keyword);
-        const score = 10 - Math.min(position / 10, 9);
-
-        if (score > highestScore) {
-          highestScore = score;
-          matchedCategory = category;
-          bestKeyword = keyword;
-        }
-      }
-    });
+// Function to convert markdown-like text to HTML
+const convertToHtml = (text) => {
+  if (!text) return "";
+  
+  let html = text;
+  
+  // Convert numbered lists
+  html = html.replace(/^(\d+)\.\s+(.+)$/gm, "<li>$2</li>");
+  html = html.replace(/(<li>.*<\/li>\n?)+/g, "<ol>$&</ol>");
+  
+  // Convert bullet points
+  html = html.replace(/^\*\s+(.+)$/gm, "<li>$1</li>");
+  html = html.replace(/^-\s+(.+)$/gm, "<li>$1</li>");
+  html = html.replace(/(<li>.*<\/li>\n?)+/g, match => {
+    return match.includes("<ol>") ? match : "<ul>" + match + "</ul>";
   });
-
-  if (matchedCategory) {
-    return `${matchedCategory}`;
-  }
-
-  let cleanedQuery = normalizedQuery
-    .replace(
-      /^(is|are|the|about|how|what|when|why|do|does|can|could|should|would)\s+/i,
-      "",
-    )
-    .replace(/my baby(\s+is)?(\s+has)?/i, "")
-    .replace(/\s+/g, " ")
-    .trim();
-
-  if (cleanedQuery.length > 0) {
-    cleanedQuery = cleanedQuery.charAt(0).toUpperCase() + cleanedQuery.slice(1);
-  }
-
-  if (cleanedQuery.length > 35) {
-    cleanedQuery = cleanedQuery.substring(0, 32) + "...";
-  } else if (cleanedQuery.length === 0) {
-    const words = normalizedQuery.split(" ").slice(0, 5).join(" ");
-    cleanedQuery = words.charAt(0).toUpperCase() + words.slice(1);
-
-    if (cleanedQuery.length > 35) {
-      cleanedQuery = cleanedQuery.substring(0, 32) + "...";
-    }
-  }
-
-  return `${agePrefix}${cleanedQuery}`;
+  
+  // Convert bold text
+  html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  
+  // Convert italic text
+  html = html.replace(/\*([^*]+)\*/g, "<em>$1</em>");
+  
+  // Convert paragraphs
+  html = html.replace(/(.+?)(\n\n|$)/g, "<p>$1</p>");
+  
+  return html;
 };
 
 const ChatPage = () => {
@@ -234,7 +140,7 @@ const ChatPage = () => {
     if (typeof window !== "undefined") {
       loadConversations();
     }
-  });
+  }, []);
 
   const loadConversations = () => {
     const storedConversations = localStorage.getItem(
@@ -309,7 +215,7 @@ const ChatPage = () => {
       lastUpdated: new Date().toISOString(),
       messages: [
         {
-          text: "Hello! I'm your baby care assistant. I can answer questions about infant care, feeding, development, and more for children ages 0-7. How can I help you today?",
+          text: "<p>Hello! I'm your baby care assistant. I can answer questions about infant care, feeding, development, and more for children ages 0-7. How can I help you today?</p>",
           isBot: true,
         },
       ],
@@ -464,7 +370,7 @@ const ChatPage = () => {
 
     if (!inputText.trim()) {
       const emptyMessage = {
-        text: "Your message was empty. Please try again.",
+        text: "<p>Your message was empty. Please try again.</p>",
         isBot: true,
       };
       const updatedMessages = [...messages, emptyMessage];
@@ -505,20 +411,15 @@ const ChatPage = () => {
     setIsLoading(true);
 
     let currentConversation = conversations.find(
-      (conv) => conv.id === activeConversation,
+      (conv) => conv.id === activeConversation
     );
+    
     if (currentConversation) {
-      let updatedTitle = currentConversation.title;
-      if (updatedTitle === "New conversation") {
-        updatedTitle = generateSmartTitle(currentInput);
-        setActiveChatTitle(updatedTitle);
-      }
-
+      // We'll update the title after getting the AI response
       let updatedConversations = conversations.map((conv) => {
         if (conv.id === activeConversation) {
           return {
             ...conv,
-            title: updatedTitle,
             messages: updatedMessages,
             lastUpdated: new Date().toISOString(),
           };
@@ -530,14 +431,16 @@ const ChatPage = () => {
     }
 
     try {
-      let botReply;
+      let botResponse;
+      let conversationTitle;
 
       if (!isRelevantQuery(currentInput)) {
-        botReply =
-          "I'm specialized in helping with questions about babies and children ages 0-7. " +
+        botResponse =
+          "<p>I'm specialized in helping with questions about babies and children ages 0-7. " +
           "If you have questions about feeding, growth, development, symptoms, or " +
           "other child-related topics, I'd be happy to assist. Could you please ask " +
-          "a question related to infant or child care?";
+          "a question related to infant or child care?</p>";
+        conversationTitle = "Baby Care Assistant";
       } else {
         const conversationHistory = messages.slice(1).map((msg) => ({
           role: msg.isBot ? "assistant" : "user",
@@ -551,34 +454,42 @@ const ChatPage = () => {
           conversationHistory,
         );
 
-        botReply =
-          typeof response === "object" && response.responseText
-            ? response.responseText
-            : typeof response === "string"
-            ? response
-            : "Sorry, I couldn't generate a response";
+        if (response && response.conversationTitle && response.responseText) {
+          // The API successfully returned JSON with title and response
+          conversationTitle = response.conversationTitle;
+          botResponse = response.responseText;
+        } else if (typeof response === 'object' && response.responseText) {
+          // Legacy format - just get the response text
+          botResponse = response.responseText;
+          conversationTitle = "Baby Care Advice";
+        } else if (typeof response === 'string') {
+          // Plain string response
+          botResponse = response;
+          conversationTitle = "Baby Care Advice";
+        } else {
+          // Fallback
+          botResponse = "Sorry, I couldn't generate a response";
+          conversationTitle = "Baby Care Assistance";
+        }
+        
+        // Check if the response is already in HTML format
+        if (!botResponse.includes("<p>") && !botResponse.includes("<li>")) {
+          botResponse = convertToHtml(botResponse);
+        }
       }
 
-      const botMessage = { text: botReply, isBot: true };
+      const botMessage = { text: botResponse, isBot: true };
       const finalMessages = [...updatedMessages, botMessage];
 
-      let updatedTitle = currentConversation.title;
-      if (
-        updatedTitle === "New conversation" ||
-        (currentConversation.messages.length <= 2 &&
-          updatedTitle === generateSmartTitle(currentInput))
-      ) {
-        updatedTitle = generateSmartTitle(currentInput, botReply);
-        setActiveChatTitle(updatedTitle);
-      }
-
+      // Update the conversation title using the AI-generated title
+      setActiveChatTitle(conversationTitle);
       setMessages(finalMessages);
 
       const updatedConversations = conversations.map((conv) => {
         if (conv.id === activeConversation) {
           return {
             ...conv,
-            title: updatedTitle,
+            title: conversationTitle,
             messages: finalMessages,
             lastUpdated: new Date().toISOString(),
           };
@@ -591,7 +502,7 @@ const ChatPage = () => {
       console.error("Error calling OpenRouter API:", error);
 
       const errorMessage = {
-        text: "Sorry, I encountered an error. Please try again later.",
+        text: "<p>Sorry, I encountered an error. Please try again later.</p>",
         isBot: true,
       };
 
@@ -707,7 +618,13 @@ const ChatPage = () => {
                       {message.isBot ? <FaComment /> : <FaUser />}
                     </div>
                     <div className={styles.messageContent}>
-                      <div className={styles.messageText}>{message.text}</div>
+                      {message.isBot ? (
+                        <div className={styles.viewOnlyEditorWrapper}>
+                          <ViewOnlyEditor content={message.text} />
+                        </div>
+                      ) : (
+                        <div className={styles.messageText}>{message.text}</div>
+                      )}
                     </div>
                   </div>
                 ))}
