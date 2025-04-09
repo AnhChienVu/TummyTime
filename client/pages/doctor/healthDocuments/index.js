@@ -145,6 +145,10 @@ function HealthDocuments() {
     fetchAssignedBabies();
   }, []);
 
+  useEffect(() => {
+    console.log("Updated documents state:", documents);
+  }, [documents]);
+
   const handleOpenModal = (parentId) => {
     setSelectedParentId(parentId);
     setShowModal(true);
