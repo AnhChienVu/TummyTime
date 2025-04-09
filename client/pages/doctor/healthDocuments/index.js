@@ -196,9 +196,9 @@ function HealthDocuments() {
       // const babyDocuments = documents[parentId]?.filter(
       //   (doc) => doc.baby_id === babyId,
       // );
-      console.log("Receiving documents:", parentDocuments);
+      console.log("Receiving documents:", documents[parentId]);
       // setSelectedBabyDocuments(parentDocuments);
-      setReceivedBabyDocuments(parentDocuments);
+      setReceivedBabyDocuments(documents[parentId]);
       setSelectedBabyId(babyId);
       setShowReceivedDocumentsModal(true);
       setPurpose("receive");
