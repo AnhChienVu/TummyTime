@@ -3,7 +3,7 @@
 import React from "react";
 import styles from "./ForumCategories.module.css";
 
-const ForumCategories = ({ selectedCategory, setCategory }) => {
+const ForumCategories = ({ selectedCategory, setCategory, className }) => {
   const categories = [
     { id: "general", name: "General Discussion", icon: "💬" },
     { id: "help", name: "Help & Support", icon: "❓" },
@@ -21,18 +21,19 @@ const ForumCategories = ({ selectedCategory, setCategory }) => {
   };
 
   return (
-    <div className={styles.categoryGrid}>
+    <div className={`${styles.categoryGrid} ${className || ""}`}>
       {categories.map((category) => (
-        <div
+        <button
           key={category.id}
-          className={`${styles.categoryCard} ${
+          type="button"
+          className={`${styles.categoryButton} ${
             selectedCategory === category.id ? styles.selected : ""
           }`}
           onClick={() => handleCategoryClick(category.id)}
         >
           <span className={styles.categoryIcon}>{category.icon}</span>
           <span className={styles.categoryName}>{category.name}</span>
-        </div>
+        </button>
       ))}
     </div>
   );
