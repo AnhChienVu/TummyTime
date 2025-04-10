@@ -1,7 +1,10 @@
 // client/pages/[quiz]/index.js
 import React, { useState } from "react";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 const QuizPage = () => {
+  const { t } = useTranslation("common");
   const [category, setCategory] = useState("ALL");
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({}); // key: question_id, value: selected option
@@ -71,29 +74,35 @@ const QuizPage = () => {
   // RENDER PAGE
   return (
     <div className="container mt-5">
-      <h2>Interactive Quiz</h2>
+      <h2>{t("Interactive Quiz")}</h2>
 
       {/* Select Category */}
       <div className="mb-3">
-        <label htmlFor="categorySelect">Quiz Category:</label>
+        <label htmlFor="categorySelect">{t("Quiz Category")}:</label>
         <select
           id="categorySelect"
           value={category}
           onChange={(e) => setCategory(e.target.value)}
           className="form-control"
         >
-          <option value="ALL">ALL</option>
-          <option value="SLEEP">SLEEP</option>
-          <option value="HYGIENE">HYGIENE</option>
-          <option value="PHYSICAL ACTIVITIES">PHYSICAL ACTIVITIES</option>
-          <option value="LANGUAGE DEVELOPMENT">LANGUAGE DEVELOPMENT</option>
-          <option value="EMOTIONAL DEVELOPMENT">EMOTIONAL DEVELOPMENT</option>
+          <option value="ALL">{t("ALL")}</option>
+          <option value="SLEEP">{t("SLEEP")}</option>
+          <option value="HYGIENE">{t("HYGIENE")}</option>
+          <option value="PHYSICAL ACTIVITIES">
+            {t("PHYSICAL ACTIVITIES")}
+          </option>
+          <option value="LANGUAGE DEVELOPMENT">
+            {t("LANGUAGE DEVELOPMENT")}
+          </option>
+          <option value="EMOTIONAL DEVELOPMENT">
+            {t("EMOTIONAL DEVELOPMENT")}
+          </option>
         </select>
       </div>
 
       {/* Change button text if quiz is loaded */}
       <button className="btn btn-primary mb-3" onClick={fetchQuiz}>
-        {questions.length > 0 ? "Start Another Quiz" : "Start Quiz"}{" "}
+        {questions.length > 0 ? t("Start Another Quiz") : t("Start Quiz")}{" "}
       </button>
 
       {/* Show error if any */}
@@ -210,7 +219,7 @@ const QuizPage = () => {
             onClick={submitQuiz}
             disabled={submitted} // disable submit button after submission
           >
-            Submit Quiz
+            {t("Submit Quiz")}
           </button>
         </form>
       )}
@@ -218,15 +227,16 @@ const QuizPage = () => {
       {/* Show results */}
       {result && (
         <div className="mt-4">
-          <h4>Quiz Results</h4>
+          <h4>{t("Quiz Results")}</h4>
           <p>
             <strong>
-              You answered {result.correct} out of {result.total} correctly.
+              {t("You answered")} {result.correct} {t("out of")} {result.total}{" "}
+              {t("correctly")}.
             </strong>
           </p>
           <p>
             {/* SHOW THE WRONG QUESTION COUNT (NOT question ID) */}
-            Review the questions you missed:{" "}
+            {t("Review the questions you missed:")}{" "}
             {result.wrong.map((id, index) => {
               // find index of wrong questions
               const questionIndex = questions.findIndex(
@@ -249,3 +259,11 @@ const QuizPage = () => {
 };
 
 export default QuizPage;
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
+  };
+}
