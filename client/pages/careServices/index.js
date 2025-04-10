@@ -6,8 +6,11 @@ import {
   toggleFavoriteProvider,
   getFavoriteProviders,
 } from "../../services/addFavoriteChildcareService";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 export default function CareServices() {
+  const { t } = useTranslation("common");
   const router = useRouter();
 
   // --------------------------------
@@ -31,11 +34,11 @@ export default function CareServices() {
   // Sorting
   const [sortBy, setSortBy] = useState("rating");
   const sortOptions = [
-    { id: "rating", label: "Top Rated" },
-    { id: "hourly_rate_asc", label: "Lowest Price" },
-    { id: "hourly_rate_desc", label: "Highest Price" },
-    { id: "hired_count", label: "Most Hired" },
-    { id: "experience", label: "Most Experience" },
+    { id: "rating", label: t("Top Rated") },
+    { id: "hourly_rate_asc", label: t("Lowest Price") },
+    { id: "hourly_rate_desc", label: t("Highest Price") },
+    { id: "hired_count", label: t("Most Hired") },
+    { id: "experience", label: t("Most Experience") },
   ];
 
   // Pagination
@@ -357,7 +360,7 @@ export default function CareServices() {
   // --------------------------------
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>Find Childcare Services</h1>
+      <h1 className={styles.title}>{t("Find Childcare Services")}</h1>
 
       {!isAuthenticated && !loading ? (
         <div className={styles.error}>
@@ -374,7 +377,9 @@ export default function CareServices() {
             <div className={styles.combinedSearch}>
               <input
                 type="text"
-                placeholder="Search by city (e.g. Toronto, Vancouver), or by name (e.g. Sarah, John)"
+                placeholder={t(
+                  "Search by city (e.g. Toronto, Vancouver), or by name (e.g. Sarah, John)",
+                )}
                 value={searchTerm}
                 onChange={handleSearchChange}
                 className={styles.combinedSearchInput}
@@ -406,7 +411,7 @@ export default function CareServices() {
                   }`}
                   onClick={() => handleCategoryChange("all")}
                 >
-                  All
+                  {t("All")}
                 </button>
                 <button
                   className={`${styles.categoryButton} ${
@@ -414,7 +419,7 @@ export default function CareServices() {
                   }`}
                   onClick={() => handleCategoryChange("babysitters")}
                 >
-                  Babysitters
+                  {t("Babysitter")}
                 </button>
                 <button
                   className={`${styles.categoryButton} ${
@@ -422,7 +427,7 @@ export default function CareServices() {
                   }`}
                   onClick={() => handleCategoryChange("nannies")}
                 >
-                  Nannies
+                  {t("Nannie")}
                 </button>
               </div>
 
@@ -436,7 +441,7 @@ export default function CareServices() {
                     className={styles.favoritesCheckbox}
                   />
                   <span className={styles.favoritesHeart}>❤</span>
-                  <span>Show only favorites</span>
+                  <span>{t("Show only favorites")}</span>
                 </label>
               </div>
             </div>
@@ -474,7 +479,8 @@ export default function CareServices() {
           ) : (
             <>
               <p>
-                Showing {currentProviders.length} of {totalItems} {category}
+                {t("Showing")} {currentProviders.length} {t("of")} {totalItems}{" "}
+                {category}
               </p>
               {currentProviders.length > 0 ? (
                 <div className={styles.providersGrid}>
@@ -562,7 +568,7 @@ export default function CareServices() {
                           )}
                           {provider.experience && (
                             <p className={styles.experience}>
-                              Experience: {provider.experience} years
+                              Experience: {provider.experience} {t("years")}
                             </p>
                           )}
                           {provider.hourly_rate && (
@@ -580,7 +586,7 @@ export default function CareServices() {
                               handleViewProfile(provider.profile_url)
                             }
                           >
-                            View Profile
+                            {t("View Profile")}
                           </button>
 
                           {/* 
@@ -614,17 +620,17 @@ export default function CareServices() {
                     disabled={currentPage === 1}
                     className={styles.paginationButton}
                   >
-                    Previous
+                    {t("Previous")}
                   </button>
                   <span>
-                    Page {currentPage} of {totalPages}
+                    {t("Page")} {currentPage} {t("of")} {totalPages}
                   </span>
                   <button
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
                     className={styles.paginationButton}
                   >
-                    Next
+                    {t("Next")}
                   </button>
                 </div>
               )}
@@ -634,4 +640,12 @@ export default function CareServices() {
       )}
     </div>
   );
+}
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
+  };
 }

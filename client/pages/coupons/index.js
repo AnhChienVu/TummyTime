@@ -477,9 +477,7 @@ const CouponPage = () => {
                         window.scrollTo({ top: 0, behavior: "smooth" })
                       }
                     >
-                      {t("Browse all {{count}} offers", {
-                        count: allOffers.length,
-                      })}
+                      {`${t("Browse all")} ${allOffers.length} ${t("offers")}`}
                     </Button>
                   </div>
                 )}

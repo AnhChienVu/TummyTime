@@ -1,21 +1,24 @@
 // client/pages/[aboutUs]/index.js
 import React from "react";
 import { Container, Row, Col, Image, Button } from "react-bootstrap";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 const AboutUs = () => {
+  const { t } = useTranslation("common");
   return (
     <Container className="py-5">
-      <h1 className="text-center mb-4">About Tummy Time</h1>
+      <h1 className="text-center mb-4">{t("About Tummy Time")}</h1>
 
       {/* Company History & Mission Section */}
       <Row className="mb-5">
         <Col md={12}>
-          <h2 className="text-center mb-3">Our History</h2>
+          <h2 className="text-center mb-3">{t("Our History")}</h2>
           <p className="text-center">
-            Tummy Time was created as a project by a group of passionate
+            {t(`Tummy Time was created as a project by a group of passionate
             students at Seneca Polytechnic. Our journey began in the classrooms
             and labs, where we aimed to make a difference in the way parents
-            monitor and support their baby’s development.
+            monitor and support their baby’s development.`)}
           </p>
         </Col>
 
@@ -32,12 +35,12 @@ const AboutUs = () => {
 
       <Row className="mb-5">
         <Col md={12} className="order-md-2">
-          <h2 className="text-center mb-3">Our Mission</h2>
+          <h2 className="text-center mb-3">{t("Our Mission")}</h2>
           <p className="text-center">
-            Our mission is to empower parents with innovative tools and reliable
+            {t(`Our mission is to empower parents with innovative tools and reliable
             insights to help monitor their baby&#39;s health and development. We
             strive to build an engaging and supportive platform that combines
-            cutting-edge technology with compassionate care.
+            cutting-edge technology with compassionate care.`)}
           </p>
         </Col>
 
@@ -127,20 +130,22 @@ const AboutUs = () => {
       {/* Additional Information */}
       <Row>
         <Col>
-          <h2 className="text-center mb-3">Our Core Values</h2>
+          <h2 className="text-center mb-3">{t("Our Core Values")}</h2>
           <ul className="list-unstyled text-center">
             <li>
-              <strong>Innovation:</strong> We embrace creative solutions.
+              <strong>{t("Innovation:")}</strong>{" "}
+              {t("We embrace creative solutions.")}
             </li>
             <li>
-              <strong>Collaboration:</strong> We believe in teamwork.
+              <strong>{t("Collaboration:")}</strong>{" "}
+              {t("We believe in teamwork.")}
             </li>
             <li>
-              <strong>Integrity:</strong> We operate with honesty and
-              transparency.
+              <strong>{t("Integrity:")}</strong>{" "}
+              {t("We operate with honesty and transparency.")}
             </li>
             <li>
-              <strong>Empathy:</strong> We put people first.
+              <strong>{t("Empathy:")}</strong> {t("We put people first.")}
             </li>
           </ul>
         </Col>
@@ -150,3 +155,11 @@ const AboutUs = () => {
 };
 
 export default AboutUs;
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
+  };
+}

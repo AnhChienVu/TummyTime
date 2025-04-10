@@ -1,9 +1,14 @@
 // pages/faq/index.js
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import HomePageNavBar from "@/components/Navbar/HomePageNavBar";
 import styles from "./faq.module.css";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+import BackButton from "@/components/BackButton/BackButton";
+import { jwtDecode } from "jwt-decode";
 
-const FAQCategory = ({ title, questions }) => {
+const FAQCategory = ({ title, questions, france = "false" }) => {
+  const { t } = useTranslation("common");
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
@@ -25,7 +30,12 @@ const FAQCategory = ({ title, questions }) => {
               <p>{qa.answer}</p>
               {qa.links && (
                 <div className={styles.relatedLinks}>
-                  <span>Related: </span>
+                  {france === "true" ? (
+                    <span>Connexe: </span>
+                  ) : (
+                    <span>Related: </span>
+                  )}
+
                   {qa.links.map((link, i) => (
                     <a key={i} href={link.url} className={styles.link}>
                       {link.text}
@@ -42,123 +52,150 @@ const FAQCategory = ({ title, questions }) => {
 };
 
 const FAQ = () => {
+  const { t } = useTranslation("common");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token && isTokenExpired(token) === true) {
+      setIsLoggedIn(false);
+    } else if (token && isTokenExpired(token) === false) {
+      setIsLoggedIn(true);
+    }
+  }, []);
+
   const faqData = [
     {
-      category: "Getting Started",
+      category: t("Getting Started"),
       questions: [
         {
-          question: "What is TummyTime?",
-          answer:
+          question: t("What is TummyTime?"),
+          answer: t(
             "TummyTime is a baby tracking application that helps you monitor feeding schedules, growth, milestones and more for your little one.",
+          ),
         },
         {
-          question: "How do I start using TummyTime?",
-          answer:
+          question: t("How do I start using TummyTime?"),
+          answer: t(
             "Create an account, add your baby's profile, and start tracking their daily activities like feeding times, growth measurements, and milestones.",
-          links: [{ text: "Quick Start Guide", url: "/guide/quickstart" }],
+          ),
+          links: [{ text: t("Quick Start Guide"), url: "/guide/quickstart" }],
         },
       ],
     },
     {
-      category: "Feeding Tracking",
+      category: t("Feeding Tracking"),
       questions: [
         {
-          question: "How do I log a feeding?",
-          answer:
+          question: t("How do I log a feeding?"),
+          answer: t(
             "Go to your baby's feeding schedule page, click 'Add Feed', and enter details like time, food type, and amount.",
+          ),
         },
         {
-          question: "Can I set feeding reminders?",
-          answer:
+          question: t("Can I set feeding reminders?"),
+          answer: t(
             "Yes! When adding or editing a feed, enable the reminder option and set how many minutes before the next feed you'd like to be notified.",
+          ),
         },
       ],
     },
     {
-      category: "Growth Tracking",
+      category: t("Growth Tracking"),
       questions: [
         {
-          question: "How do I track my baby's growth?",
-          answer:
+          question: t("How do I track my baby's growth?"),
+          answer: t(
             "Visit the Growth section to record your baby's height and weight measurements. You can view trends over time and compare to standard growth charts.",
+          ),
         },
         {
-          question: "How often should I update growth measurements?",
-          answer:
+          question: t("How often should I update growth measurements?"),
+          answer: t(
             "We recommend updating growth measurements monthly for babies under 1 year, and every 2-3 months for older babies, or as recommended by your pediatrician.",
+          ),
         },
       ],
     },
     {
-      category: "Milestones",
+      category: t("Milestones"),
       questions: [
         {
-          question: "What kind of milestones can I track?",
-          answer:
+          question: t("What kind of milestones can I track?"),
+          answer: t(
             "You can track all types of developmental milestones including first smile, rolling over, first steps, and more. Add photos and notes to capture these special moments.",
+          ),
         },
         {
-          question: "Can I export milestone data?",
-          answer:
+          question: t("Can I export milestone data?"),
+          answer: t(
             "Yes! Use our export feature to download all milestone data in various formats for easy sharing or record keeping.",
+          ),
         },
       ],
     },
     {
-      category: "Product Safety",
+      category: t("Product Safety"),
       questions: [
         {
-          question: "How does the product safety scanner work?",
-          answer:
+          question: t("How does the product safety scanner work?"),
+          answer: t(
             "Use your computer's (or tablet's) camera to scan product barcodes or search by product name. We'll check against recall databases and safety alerts to ensure the product is safe for your baby.",
+          ),
         },
         {
-          question: "Where do you get safety data from?",
-          answer:
+          question: t("Where do you get safety data from?"),
+          answer: t(
             "We aggregate safety data from multiple official sources including government consumer safety databases and manufacturer recall notices.",
+          ),
         },
       ],
     },
     {
-      category: "Technical Support",
+      category: t("Technical Support"),
       questions: [
         {
-          question: "What devices support TummyTime?",
-          answer:
+          question: t("What devices support TummyTime?"),
+          answer: t(
             "TummyTime works on all modern browsers including Chrome, Firefox, Safari, and Edge.",
+          ),
         },
         {
-          question: "Is my data secure?",
-          answer:
+          question: t("Is my data secure?"),
+          answer: t(
             "Yes! We use industry-standard encryption to protect all your data. Your baby's information is private and only accessible to authorized caregivers you approve.",
+          ),
         },
       ],
     },
     {
-      category: "Account Management",
+      category: t("Account Management"),
       questions: [
         {
-          question: "How do I create an account?",
-          answer:
+          question: t("How do I create an account?"),
+          answer: t(
             "To create an account, click the 'Get Started' button in the top right corner and follow the registration process. You'll need to provide your email, create a password, and verify your account.",
-          links: [{ text: "Sign Up Guide", url: "/guide/signup" }],
+          ),
+          links: [{ text: t("Sign Up Guide"), url: "/guide/signup" }],
         },
       ],
     },
     {
-      category: "Technical Support",
+      category: t("Technical Support"),
       questions: [
         {
-          question: "What browsers are supported?",
-          answer:
+          question: t("What browsers are supported?"),
+          answer: t(
             "Our application supports the latest versions of Chrome, Firefox, Safari, and Edge.",
+          ),
         },
         {
-          question: "The app isn't working on my device",
-          answer:
+          question: t("The app isn't working on my device"),
+          answer: t(
             "Try clearing your browser cache and cookies. If the issue persists, please contact our support team.",
+          ),
           links: [
-            { text: "Contact Support", url: "mailto:privacy@tummytime.com" },
+            { text: t("Contact Support"), url: "mailto:privacy@tummytime.com" },
           ],
         },
       ],
@@ -167,10 +204,10 @@ const FAQ = () => {
 
   return (
     <div className={styles.container}>
-      <HomePageNavBar variant="dark" />
+      {isLoggedIn ? <BackButton /> : <HomePageNavBar variant="dark" />}
       <main className={styles.main}>
         <div className={styles.header}>
-          <h1 className={styles.title}>Frequently Asked Questions</h1>
+          <h1 className={styles.title}>{t("Frequently Asked Questions")}</h1>
           <div className={styles.divider}></div>
         </div>
 
@@ -180,15 +217,16 @@ const FAQ = () => {
               key={index}
               title={category.category}
               questions={category.questions}
+              france="true"
             />
           ))}
         </div>
 
         <footer className={styles.footer}>
           <p>
-            Can&apos;t find what you&apos;re looking for?
+            {t("Can not find what you are looking for?")}
             <a href="mailto:support@tummytime.com" className={styles.link}>
-              Contact Support
+              {t("Contact Support")}
             </a>
           </p>
         </footer>
@@ -202,3 +240,24 @@ FAQ.getLayout = function getLayout(page) {
 };
 
 export default FAQ;
+
+// Helper function to check if the token is expired
+const isTokenExpired = (token) => {
+  try {
+    const { exp } = jwtDecode(token);
+    const currentTime = Math.floor(Date.now() / 1000);
+
+    return exp < currentTime;
+  } catch (error) {
+    console.log("Error decoding token:", error);
+    return true; // Assume expired if there's an error
+  }
+};
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
+  };
+}

@@ -10,8 +10,8 @@ function Growth() {
 
   return (
     <div className="container mt-5">
-      <h1>Growth</h1>
-      <BabyCardGrowth buttons={[{ name: "See Details", path: "growth" }]} />
+      <h1>{t("Growth")}</h1>
+      <BabyCardGrowth buttons={[{ name: t("See Details"), path: "growth" }]} />
     </div>
   );
 }
