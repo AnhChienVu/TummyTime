@@ -63,24 +63,56 @@ function Settings() {
   };
 
   return (
-    <Container fluid className={styles.container}>
+    <Container className={styles.container}>
       <div className={styles.content}>
-        <h2>{t("Preferred Languages")}</h2>
-        <div className={styles.languageBoard}>
-          <ul className={styles.languageList}>
-            <li>
-              <p>{t("English")}</p>
-              <span onClick={() => handleToggle("en")}>
-                <FontAwesomeIcon icon={toggles.en ? faToggleOn : faToggleOff} />
-              </span>
-            </li>
-            <li>
-              <p>{t("French")}</p>
-              <span onClick={() => handleToggle("fr")}>
-                <FontAwesomeIcon icon={toggles.fr ? faToggleOn : faToggleOff} />
-              </span>
-            </li>
-          </ul>
+        <div className={styles.header}>
+          <h1>{t("Language Settings")}</h1>
+        </div>
+
+        <div className={styles.section}>
+          {/* <h2>{t("Language Preferences")}</h2> */}
+          <p className={styles.sectionDescription}>
+            {t("Choose your preferred language for the application")}
+          </p>
+
+          <div className={styles.languageBoard}>
+            <ul className={styles.languageList}>
+              <li>
+                <div className={styles.languageOption}>
+                  <div className={styles.languageInfo}>
+                    <p className={styles.languageName}>{t("English")}</p>
+                    <span className={styles.languageNative}>English</span>
+                  </div>
+                  <button
+                    className={styles.toggleButton}
+                    onClick={() => handleToggle("en")}
+                    aria-label={t("Toggle English language")}
+                  >
+                    <FontAwesomeIcon
+                      icon={toggles.en ? faToggleOn : faToggleOff}
+                    />
+                  </button>
+                </div>
+              </li>
+              <li>
+                <div className={styles.languageOption}>
+                  <div className={styles.languageInfo}>
+                    <p className={styles.languageName}>{t("French")}</p>
+                    <span className={styles.languageNative}>Français</span>
+                  </div>
+                  <button
+                    className={styles.toggleButton}
+                    onClick={() => handleToggle("fr")}
+                    aria-label={t("Toggle French language")}
+                  >
+                    <FontAwesomeIcon
+                      icon={toggles.fr ? faToggleOn : faToggleOff}
+                    />
+                  </button>
+                </div>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
     </Container>

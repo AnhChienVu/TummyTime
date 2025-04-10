@@ -3,8 +3,11 @@
 .container {
     background-color: #ffffff;
     overflow-x: hidden;
-    padding: 0 15px;
+    max-width: 1200px;
+    padding: 12px;
     margin-left: 50px;
+    margin-top: 20px;
+    width:90%
 }
 
 .button {
