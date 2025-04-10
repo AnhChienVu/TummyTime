@@ -46,21 +46,15 @@ const FeedingSchedule = ({ babyId }) => {
 
     // Sort feeds by date and time
     const sortedFeeds = [...feedingSchedules].sort((a, b) => {
-      const dateA = format(
-        new Date(
-          parseInt(a.time.split("-")[0]),
-          parseInt(a.time.split("-")[1]) - 1,
-          parseInt(a.time.split("-")[2]),
-        ).toString(),
-        "MMM d, yyyy",
+      const dateA = new Date(
+        parseInt(a.time.split("-")[0]),
+        parseInt(a.time.split("-")[1]) - 1,
+        parseInt(a.time.split("-")[2]),
       );
-      const dateB = format(
-        new Date(
-          parseInt(b.time.split("-")[0]),
-          parseInt(b.time.split("-")[1]) - 1,
-          parseInt(b.time.split("-")[2]),
-        ).toString(),
-        "MMM d, yyyy",
+      const dateB = new Date(
+        parseInt(b.time.split("-")[0]),
+        parseInt(b.time.split("-")[1]) - 1,
+        parseInt(b.time.split("-")[2]),
       );
       return dateB - dateA;
     });
@@ -107,9 +101,9 @@ const FeedingSchedule = ({ babyId }) => {
               <td>
                 {format(
                   new Date(
-                    parseInt(a.time.split("-")[0]),
-                    parseInt(a.time.split("-")[1]) - 1,
-                    parseInt(a.time.split("-")[2]),
+                    parseInt(feed.date.split("-")[0]),
+                    parseInt(feed.date.split("-")[1]) - 1,
+                    parseInt(feed.date.split("-")[2]),
                   ).toString(),
                   "MMM d, yyyy",
                 )}
