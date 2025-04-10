@@ -15,13 +15,9 @@ export const fetchReminders = async (id, apiBaseUrl) => {
       throw new Error("No token found");
     }
 
-    console.log(`Fetching reminders for baby ID: ${id}`);
-
     const response = await fetch(`${apiBaseUrl}/baby/${id}/reminders`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-
-    console.log(`API response status: ${response.status}`);
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -36,17 +32,9 @@ export const fetchReminders = async (id, apiBaseUrl) => {
     }
 
     const responseText = await response.text();
-    console.log(`Raw API response length: ${responseText.length} chars`);
-    if (responseText.length < 500)
-      console.log(`Full response: ${responseText}`);
-
     let responseData;
     try {
       responseData = JSON.parse(responseText);
-      console.log(
-        "Parsed response data structure:",
-        Object.keys(responseData),
-      );
     } catch (parseErr) {
       console.error("Failed to parse response as JSON:", parseErr);
       throw new Error("Invalid response format");
@@ -59,28 +47,16 @@ export const fetchReminders = async (id, apiBaseUrl) => {
       const numericKeys = keys.filter((k) => !isNaN(parseInt(k)));
 
       if (numericKeys.length > 0) {
-        console.log(`Found ${numericKeys.length} numeric keys in response`);
-
         remindersArray = numericKeys
           .map((key) => responseData[key])
           .filter(
             (item) => item && typeof item === "object" && item.reminder_id,
           );
-
-        console.log(
-          `Extracted ${remindersArray.length} reminders from object keys`,
-        );
       } else if (responseData.data && Array.isArray(responseData.data)) {
         remindersArray = responseData.data;
       } else if (Array.isArray(responseData)) {
         remindersArray = responseData;
       }
-    }
-
-    if (remindersArray.length > 0) {
-      console.log("First reminder sample:", remindersArray[0]);
-    } else {
-      console.log("No reminders found in response");
     }
 
     const fetchedReminders = remindersArray
@@ -127,11 +103,6 @@ export const fetchReminders = async (id, apiBaseUrl) => {
         }
       })
       .filter(Boolean);
-
-    console.log(
-      `Processed ${fetchedReminders.length} valid reminders for display`,
-    );
-
     return fetchedReminders;
   } catch (err) {
     console.error("Error in fetchReminders:", err);
@@ -159,8 +130,6 @@ export const addReminder = async (id, reminderData, apiBaseUrl) => {
       baby_id: parseInt(id)
     };
 
-    console.log("Adding reminder with data:", completeData);
-
     const response = await fetch(`${apiBaseUrl}/baby/${id}/reminders`, {
       method: "POST",
       headers: {
@@ -171,9 +140,6 @@ export const addReminder = async (id, reminderData, apiBaseUrl) => {
     });
 
     const responseText = await response.text();
-    console.log(
-      `Add reminder API response (${response.status}): ${responseText}`,
-    );
 
     if (!response.ok) {
       try {
@@ -183,7 +149,6 @@ export const addReminder = async (id, reminderData, apiBaseUrl) => {
         throw new Error(`Failed to add reminder: ${response.status}`);
       }
     }
-
     return responseText ? JSON.parse(responseText) : { success: true };
   } catch (err) {
     console.error("Error adding reminder:", err);
@@ -205,9 +170,6 @@ export const updateReminder = async (babyId, reminderId, reminderData, apiBaseUr
     if (!token) {
       throw new Error("No token found");
     }
-
-    console.log(`Updating reminder ID=${reminderId} with data:`, reminderData);
-
     const updateResponse = await fetch(
       `${apiBaseUrl}/baby/${babyId}/reminders/${reminderId}`,
       {
@@ -221,9 +183,6 @@ export const updateReminder = async (babyId, reminderId, reminderData, apiBaseUr
     );
 
     const updateResponseText = await updateResponse.text();
-    console.log(
-      `Update response (${updateResponse.status}): ${updateResponseText}`,
-    );
 
     if (!updateResponse.ok) {
       try {
@@ -264,8 +223,6 @@ export const deleteReminders = async (babyId, reminderIds, apiBaseUrl) => {
       throw new Error("No token found");
     }
 
-    console.log(`Deleting reminders: ${reminderIds.join(", ")}`);
-
     const response = await fetch(`${apiBaseUrl}/baby/${babyId}/reminders`, {
       method: "DELETE",
       headers: {
@@ -276,7 +233,6 @@ export const deleteReminders = async (babyId, reminderIds, apiBaseUrl) => {
     });
 
     const responseText = await response.text();
-    console.log(`Delete response: ${response.status} - ${responseText}`);
 
     if (!response.ok) {
       throw new Error(`Failed to delete reminders: ${response.status}`);
@@ -305,11 +261,6 @@ export const toggleReminderActive = async (babyId, reminderId, reminder, newActi
       throw new Error("No token found");
     }
 
-    console.log(
-      `Toggling active state for reminder ID=${reminderId} to:`,
-      newActiveState
-    );
-
     const updateData = {
       title: reminder.title,
       time: reminder.time,
@@ -337,7 +288,6 @@ export const toggleReminderActive = async (babyId, reminderId, reminder, newActi
 
     if (!updateResponse.ok) {
       const updateResponseText = await updateResponse.text();
-      console.error(`Failed to toggle reminder: ${updateResponseText}`);
       throw new Error(`Failed to update reminder: ${updateResponse.status}`);
     }
 
