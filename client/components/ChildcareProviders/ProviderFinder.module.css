@@ -168,6 +168,7 @@
   border-color: #fca5a5;
 }
 
+/* Updated control bar to fix spacing issues */
 .controlBar {
   display: flex;
   justify-content: space-between;
@@ -175,10 +176,13 @@
   padding: 16px;
   background-color: #ffffff;
   border-bottom: 1px solid #f0f0f0;
+  flex-wrap: wrap;
+  gap: 16px; /* Added gap for better spacing on wrap */
 }
 
 .sortSection {
   flex-grow: 1;
+  margin-right: 20px; /* Added margin to create space between sort and filters */
 }
 
 .sortControls {
@@ -186,6 +190,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px;
+  margin-right: 10px; /* Added margin for better spacing */
 }
 
 .sortBtn {
@@ -197,6 +202,7 @@
   color: #4b5563;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap; /* Prevent text wrapping within buttons */
 }
 
 .sortBtn:hover {
@@ -213,6 +219,7 @@
 .filterButtons {
   display: flex;
   gap: 12px;
+  flex-wrap: wrap; /* Allow wrapping on small screens */
 }
 
 /* Premium Filter Button */
@@ -227,6 +234,7 @@
   color: #4b5563;
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap; /* Prevent text wrapping */
 }
 
 .premiumToggle:hover, .favoriteToggle:hover, .verifiedToggle:hover {
@@ -269,10 +277,15 @@
   font-size: 16px;
 }
 
+/* Results count styling - positioned above provider cards */
 .resultsCount {
   margin: 16px 0;
   font-size: 14px;
-  color: #4b5563;
+  color: #777d86; /* Blue color matching image */
+  font-weight: 500;
+  text-align: left;
+  width: 100%;
+  padding-left: 8px;
 }
 
 .providersGrid {
@@ -769,6 +782,148 @@
   }
 }
 
+/* Updated Pagination styles to match the design in the reference image */
+.paginationContainer {
+  margin: 32px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  background-color: #f8f9fa;
+  padding: 16px 0;
+  border-radius: 8px;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+/* General pagination buttons */
+.paginationButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  background-color: white;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  color: #6c757d;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.paginationButton:hover:not(.disabled) {
+  background-color: #f8f9fa;
+  color: #495057;
+}
+
+.paginationButton.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Page numbers container */
+.pageNumbers {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Individual page number button */
+.pageNumber {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0;
+  background-color: white;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  color: #495057;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pageNumber:hover:not(.currentPage) {
+  background-color: #f8f9fa;
+}
+
+.pageNumber.currentPage {
+  background-color: #7952b3; /* Purple color matching image */
+  color: white;
+  border-color: #7952b3;
+}
+
+.ellipsis {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  height: 32px;
+  color: #6c757d;
+}
+
+/* Manual page input section */
+.manualPageSection {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.manualPageLabel {
+  font-size: 14px;
+  color: #495057;
+}
+
+.manualPageForm {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.manualPageInput {
+  width: 65px;
+  height: 32px;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+  padding: 0 8px;
+  font-size: 14px;
+  text-align: left;
+  background: white;
+}
+
+.manualPageInput:focus {
+  outline: none;
+  border-color: #7952b3;
+  box-shadow: 0 0 0 0.2rem rgba(121, 82, 179, 0.25);
+}
+
+.manualPageSubmit {
+  height: 32px;
+  padding: 0 10px;
+  background-color: #e9ecef;
+  color: #495057;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.manualPageSubmit:hover {
+  background-color: #dee2e6;
+}
+
 /* Responsive styles */
 @media (max-width: 768px) {
   .mainContainer {
@@ -780,10 +935,51 @@
     margin-bottom: 20px;
   }
   
+/* Updated control bar to improve alignment of sort and filter buttons */
+.controlBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background-color: #ffffff;
+  border-bottom: 1px solid #f0f0f0;
+  flex-wrap: wrap;
+  gap: 16px; /* Added gap for better spacing on wrap */
+}
+
+.sortSection {
+  flex-grow: 1;
+  margin-right: 20px; /* Added margin to create space between sort and filters */
+  display: flex;
+  flex-direction: column;
+}
+
+.sortControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-right: 10px; /* Added margin for better spacing */
+}
+
+.filterButtons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center; /* Align vertically with sort buttons */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
   .controlBar {
     flex-direction: column;
     align-items: flex-start;
     gap: 12px;
+  }
+  
+  .sortSection {
+    width: 100%;
+    margin-right: 0;
   }
   
   .sortControls {
@@ -800,9 +996,35 @@
   .premiumToggle, .favoriteToggle, .verifiedToggle {
     flex: 1;
     justify-content: center;
+    padding: 6px 10px;
+    font-size: 13px;
   }
-  
+}
   .providersGrid {
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+  
+  .pagination {
+    gap: 4px;
+  }
+  
+  .paginationButton {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+  
+  .pageNumber {
+    min-width: 30px;
+    height: 30px;
+    font-size: 13px;
+  }
+  
+  .manualPageSection {
+    flex-wrap: wrap;
+  }
+  
+  .manualPageInput {
+    width: 55px;
+    height: 32px;
   }
 }

@@ -111,6 +111,9 @@ const CardBody = ({ provider }) => {
   const formatExperience = () => {
     if (!provider.experience) return null;
     
+    // Return null for "N/A" experience - First fix
+    if (provider.experience === "N/A") return null;
+    
     // Extract just the numeric part if it's a string like "10 years experience"
     let years = provider.experience;
     if (typeof years === 'string' && years.includes('years')) {
@@ -125,7 +128,7 @@ const CardBody = ({ provider }) => {
       {provider.title && (
         <p className={styles.bio}>{provider.title}</p>
       )}
-      {provider.experience && (
+      {provider.experience && provider.experience !== "N/A" && (
         <p className={styles.experience}>{formatExperience()}</p>
       )}
     </div>
@@ -279,6 +282,134 @@ ProviderCard.propTypes = {
   onViewProfile: PropTypes.func.isRequired
 };
 
+// Pagination Component - Updated to match design in reference image
+const Pagination = ({ 
+  currentPage, 
+  totalPages, 
+  onPageChange,
+  hasNextPage,
+  hasPrevPage
+}) => {
+  // Generate page numbers to display
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPagesToShow = 5; // Show at most 5 page numbers
+    
+    if (totalPages <= maxPagesToShow) {
+      // If we have 5 or fewer pages, show all of them
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      // Always include first page
+      pageNumbers.push(1);
+      
+      // Current page and surrounding pages
+      let startPage = Math.max(2, currentPage - 1);
+      let endPage = Math.min(totalPages - 1, currentPage + 1);
+      
+      // Adjust if we're near the start
+      if (currentPage <= 3) {
+        endPage = Math.min(4, totalPages - 1);
+      }
+      
+      // Adjust if we're near the end
+      if (currentPage >= totalPages - 2) {
+        startPage = Math.max(2, totalPages - 3);
+      }
+      
+      // Add ellipsis if there's a gap at the beginning
+      if (startPage > 2) {
+        pageNumbers.push('...');
+      }
+      
+      // Add middle pages
+      for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i);
+      }
+      
+      // Add ellipsis if there's a gap at the end
+      if (endPage < totalPages - 1) {
+        pageNumbers.push('...');
+      }
+      
+      // Always include last page
+      pageNumbers.push(totalPages);
+    }
+    
+    return pageNumbers;
+  };
+  
+  // Handle direct page input - Fix for issue #2
+  const handlePageNumberClick = (page) => {
+    if (page === currentPage) {
+      // If clicking the current page, make it editable
+      const newPage = prompt(`Enter page number (1-${totalPages}):`, currentPage);
+      if (newPage !== null) {
+        const pageNum = parseInt(newPage, 10);
+        if (!isNaN(pageNum) && pageNum >= 1 && pageNum <= totalPages) {
+          onPageChange(pageNum);
+        }
+      }
+    } else {
+      onPageChange(page);
+    }
+  };
+  
+  return (
+    <div className={styles.paginationContainer}>
+      <div className={styles.pagination}>
+        {/* Previous button */}
+        <button 
+          className={`${styles.paginationButton} ${!hasPrevPage ? styles.disabled : ''}`}
+          onClick={() => hasPrevPage && onPageChange(currentPage - 1)}
+          disabled={!hasPrevPage}
+          aria-label="Previous page"
+        >
+          ← Prev
+        </button>
+        
+        {/* Page numbers */}
+        <div className={styles.pageNumbers}>
+          {getPageNumbers().map((page, index) => (
+            page === '...' ? (
+              <span key={`ellipsis-${index}`} className={styles.ellipsis}>...</span>
+            ) : (
+              <button
+                key={`page-${page}`}
+                className={`${styles.pageNumber} ${currentPage === page ? styles.currentPage : ''}`}
+                onClick={() => handlePageNumberClick(page)}
+                aria-label={`Page ${page}`}
+                aria-current={currentPage === page ? 'page' : undefined}
+              >
+                {page}
+              </button>
+            )
+          ))}
+        </div>
+        
+        {/* Next button */}
+        <button 
+          className={`${styles.paginationButton} ${!hasNextPage ? styles.disabled : ''}`}
+          onClick={() => hasNextPage && onPageChange(currentPage + 1)}
+          disabled={!hasNextPage}
+          aria-label="Next page"
+        >
+          Next →
+        </button>
+      </div>
+    </div>
+  );
+};
+
+Pagination.propTypes = {
+  currentPage: PropTypes.number.isRequired,
+  totalPages: PropTypes.number.isRequired,
+  onPageChange: PropTypes.func.isRequired,
+  hasNextPage: PropTypes.bool.isRequired,
+  hasPrevPage: PropTypes.bool.isRequired
+};
+
 // Main ProviderFinder Component
 const ProviderFinder = () => {
   const {
@@ -301,7 +432,13 @@ const ProviderFinder = () => {
     toggleFavorite,
     loading,
     error,
-    isAuthenticated
+    isAuthenticated,
+    // Pagination-related values from context
+    currentPage,
+    setCurrentPage,
+    totalPages,
+    hasNextPage,
+    hasPrevPage
   } = useProviders();
 
   const handleViewProfile = (profileUrl) => {
@@ -362,6 +499,13 @@ const ProviderFinder = () => {
     { id: 'reviewCount', label: 'Most Reviews' },
   ];
 
+  // Calculate the range of items currently showing - Fix for issue #4
+  const calculateItemRange = () => {
+    const start = (currentPage - 1) * 20 + 1;
+    const end = Math.min(currentPage * 20, totalItems);
+    return `${start}-${end}`;
+  };
+
   // Determine what to render based on auth and loading state
   const renderContent = () => {
     if (!isAuthenticated) {
@@ -394,9 +538,9 @@ const ProviderFinder = () => {
 
     return (
       <>
-        {/* Results Count */}
+        {/* Results Count - Updated to show correct range - Fix for issue #4 */}
         <p className={styles.resultsCount}>
-          Showing {providers.length} of {totalItems} providers
+          Showing {calculateItemRange()} of {totalItems} providers
           {showOnlyPremium && " (Premium only)"}
           {showOnlyVerified && " (Verified only)"}
           {showOnlyFavorites && " (Favorites only)"}
@@ -420,6 +564,17 @@ const ProviderFinder = () => {
             </div>
           )}
         </div>
+        
+        {/* Pagination - Only show when we have multiple pages */}
+        {providers.length > 0 && totalPages > 1 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            hasNextPage={hasNextPage}
+            hasPrevPage={hasPrevPage}
+          />
+        )}
       </>
     );
   };
@@ -456,7 +611,7 @@ const ProviderFinder = () => {
           </div>
         </div>
 
-        {/* Control Bar */}
+        {/* Control Bar - Fixed alignment for issue #3 */}
         <div className={styles.controlBar}>
           <div className={styles.sortSection}>
             <div className={styles.filterHeading}>Sort by</div>
