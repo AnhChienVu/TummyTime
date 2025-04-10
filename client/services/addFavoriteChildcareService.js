@@ -22,12 +22,6 @@ export const toggleFavoriteProvider = async (providerId, isFavorite) => {
     // Full endpoint
     const finalUrl = `${apiUrl}/v1/careServices/favorites`;
 
-    console.log(
-      `Sending ${
-        isFavorite ? "add" : "remove"
-      } favorite request for provider ${providerId}`,
-    );
-
     // Make the request with Bearer token
     const response = await fetch(finalUrl, {
       method: "POST",

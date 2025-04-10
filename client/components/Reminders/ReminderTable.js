@@ -19,14 +19,12 @@ const RemindersTable = () => {
     handleShowEditModal,
     handleToggleReminderActive,
   } = useReminders();
-  console.log("RemindersTable reminders:", reminders);
 
   const groupedReminders = groupRemindersByDate(reminders);
   return (
     <>
       {Object.keys(groupedReminders).map((dateStr) => {
         const { date, dateText, isToday } = formatDay(dateStr);
-        console.log("Date :", date, dateText, isToday);
         const dateReminders = groupedReminders[dateStr];
 
         return (
