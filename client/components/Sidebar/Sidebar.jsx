@@ -4,9 +4,8 @@ import { Col, Nav } from "react-bootstrap";
 import styles from "./Sidebar.module.css";
 import { useTranslation } from "next-i18next";
 import Link from "next/link";
-import { MdChevronLeft, MdChevronRight } from 'react-icons/md'; // Icons for sidebar collapse/expand
-import { 
-  MdDashboard,
+import { MdChevronLeft, MdChevronRight} from 'react-icons/md'; // Icons for sidebar collapse/expand
+import {
   MdAnalytics,
   MdRestaurant,
   MdForum,
@@ -17,14 +16,15 @@ import {
   MdLocalOffer,
   MdLightbulb,
   MdQuiz,
-  MdSettings,
   MdFileDownload,
   MdLocalHospital,
   MdSearch,
-  MdChildCare,
-  MdChat,
   MdCake,
+  MdGTranslate,
 } from 'react-icons/md';
+import { LuBaby } from "react-icons/lu";
+import { TbMessageChatbotFilled,TbLayoutDashboardFilled } from "react-icons/tb";
+
 
 const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
   const { t, i18n } = useTranslation("common");
@@ -50,7 +50,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
                 className={styles.navlink}
                 title={t("Dashboard")}
               >
-                <span className={styles.icon}><MdDashboard /></span>
+                <span className={styles.icon}><TbLayoutDashboardFilled /></span>
                 <span className={styles.linkText}>{t("Dashboard")}</span>
               </Nav.Link>
               <Nav.Link
@@ -168,10 +168,10 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
                 href="/settings"
                 locale={locale}
                 className={styles.navlink}
-                title={t("Settings")}
+                title={t("Language Settings")}
               >
-                <span className={styles.icon}><MdSettings /></span>
-                <span className={styles.linkText}>{t("Settings")}</span>
+                <span className={styles.icon}><MdGTranslate /></span>
+                <span className={styles.linkText}>{t("Language Settings")}</span>
               </Nav.Link>
               <Nav.Link
                 as={Link}
@@ -210,7 +210,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
                 className={styles.navlink}
                 title={t("Childcare Services")}
               >
-                <span className={styles.icon}><MdChildCare /></span>
+                <span className={styles.icon}><LuBaby /></span>
                 <span className={styles.linkText}>{t("Childcare Services")}</span>
               </Nav.Link>
               <Nav.Link
@@ -220,9 +220,51 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
                 className={styles.navlink}
                 title={t("Ask Tummy AI")}
               >
-                <span className={styles.icon}><MdChat /></span>
+                <span className={styles.icon}><TbMessageChatbotFilled /></span>
                 <span className={styles.linkText}>{t("Ask Tummy AI")}</span>
               </Nav.Link>
+              {!isCollapsed && (
+                <div className={styles.bottomLinks}>
+                  <hr />
+                                    <Nav.Link
+                    as={Link}
+                    href="/faq"
+                    locale={locale}
+                    className={styles.navlink}
+                    title={t("FAQ")}
+                  >
+                    <span className={styles.linkText}>{t("FAQ")}</span>
+                  </Nav.Link>
+                  <Nav.Link
+                    as={Link}
+                    href="/about"
+                    locale={locale}
+                    className={styles.navlink}
+                    title={t("About Us")}
+                  >
+                    <span className={styles.linkText}>{t("About Us")}</span>
+                  </Nav.Link>
+
+                                    <Nav.Link
+                    as={Link}
+                    href="/privacy"
+                    locale={locale}
+                    className={styles.navlink}
+                    title={t("Privacy Policy")}
+                  >
+                    <span className={styles.linkText}>{t("Privacy Policy")}</span>
+                  </Nav.Link>
+                                    <Nav.Link
+                    as={Link}
+                    href="/terms"
+                    locale={locale}
+                    className={styles.navlink}
+                    title={t("Terms of Service")}
+                  >
+                    <span className={styles.linkText}>{t("Terms of Service")}</span>
+                  </Nav.Link>
+                </div>
+              )}
             </Nav>
           </Col>
         </div>
