@@ -96,13 +96,27 @@ function Feeding({ baby_id }) {
 
   const formatDate = (dateString) => {
     const parsed = new Date(dateString);
+    const options = {
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    };
+    console.log(
+      "Parsed date:",
+      parsed.toLocaleDateString("en-US", {
+        day: "numeric",
+        ...options,
+      }),
+    );
 
     return {
-      dayNumber: parsed.toLocaleDateString("en-US", { day: "numeric" }),
+      dayNumber: parsed.toLocaleDateString("en-US", {
+        day: "numeric",
+        ...options,
+      }),
       restOfDate: parsed.toLocaleDateString("en-US", {
         month: "short",
         weekday: "short",
         year: "numeric",
+        ...options,
       }),
     };
   };
