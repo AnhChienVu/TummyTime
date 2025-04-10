@@ -7,6 +7,7 @@ import Link from "next/link";
 
 function NavBar() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userInfo, setUserInfo] = useState({ firstName: '', role: '' });
   const { t, i18n } = useTranslation();
   const locale = i18n.language;
 
@@ -14,13 +15,38 @@ function NavBar() {
     const token = localStorage.getItem("token");
     if (token) {
       setIsAuthenticated(true);
+      // Fetch user info from API
+      fetchUserInfo(token);
     }
   }, []);
+
+  const fetchUserInfo = async (token) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/user`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      });
+      
+      if (response.ok) {
+        const userData = await response.json();
+        setUserInfo({
+          firstName: userData.first_name || '',
+          role: localStorage.getItem("userRole") || ''
+        });
+      }
+    } catch (error) {
+      console.error('Failed to fetch user info:', error);
+    }
+  };
 
   const handleLogoutBtn = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userId");
+    localStorage.removeItem("firstName");
+    localStorage.removeItem("userRole");
     setIsAuthenticated(false);
+    setUserInfo({ firstName: '', role: '' });
   };
 
   return (
@@ -37,12 +63,15 @@ function NavBar() {
         <span className={styles.brandName}>Tummy Time</span>
       </Link>
       <div className={styles.topNav}>
-        <Nav.Link href="/aboutUs">{t("About Us")}</Nav.Link>
-        <Nav.Link href="/faq">FAQ</Nav.Link>
         {isAuthenticated ? (
-          <Nav.Link href="/" onClick={handleLogoutBtn}>
-            {t("Log out")}
-          </Nav.Link>
+          <>
+            <span className={styles.userInfo}>
+              {userInfo.firstName} &#40;{userInfo.role}&#41;
+            </span>
+            <Nav.Link href="/" onClick={handleLogoutBtn}>
+              {t("Log out")}
+            </Nav.Link>
+          </>
         ) : (
           <Nav.Link as={Link} href="/login" locale={locale}>
             {t("Login")}
