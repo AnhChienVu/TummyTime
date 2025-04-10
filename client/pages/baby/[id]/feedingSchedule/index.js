@@ -95,11 +95,15 @@ function Feeding({ baby_id }) {
   let hasAnyMeals = sortedData.some((d) => d.meal && d.meal.length > 0);
 
   const formatDate = (dateString) => {
-    const parsed = parseISO(dateString);
+    const parsed = new Date(dateString);
 
     return {
-      dayNumber: format(parsed, "d"),
-      restOfDate: format(parsed, "MMM, EEE yyyy"),
+      dayNumber: parsed.toLocaleDateString("en-US", { day: "numeric" }),
+      restOfDate: parsed.toLocaleDateString("en-US", {
+        month: "short",
+        weekday: "short",
+        year: "numeric",
+      }),
     };
   };
   const handleOpenModal = (mealItem, date) => {
@@ -412,6 +416,7 @@ function Feeding({ baby_id }) {
         const meals = mealsOnSameDate[1];
         const date = mealsOnSameDate[0];
         const { dayNumber, restOfDate } = formatDate(date);
+        console.log("Parsed date:", dayNumber);
         const today = isSameDay(parseISO(date), new Date());
 
         return (
