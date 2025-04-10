@@ -1,10 +1,12 @@
-// client/pages/[about]/index.js
+// client/pages/about/index.js
 import React from "react";
 import styles from "./about.module.css";
+import HomePageNavBar from "@/components/Navbar/HomePageNavBar";
 
 const AboutUs = () => {
   return (
     <div className={styles.container}>
+      <HomePageNavBar variant="dark" />
       <div className={styles.main}>
         <header className={styles.header}>
           <h1 className={styles.title}>About Tummy Time</h1>
