@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Navbar, Nav, Container } from "react-bootstrap";
-import Image from 'next/image';
+import Image from "next/image";
 import styles from "./NavBar.module.css";
 import { useTranslation } from "next-i18next";
 import Link from "next/link";
@@ -39,8 +39,12 @@ function NavBar() {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="ms-auto">
-            <Nav.Link href="/aboutUs">{t("About Us")}</Nav.Link>
-            <Nav.Link href="/faq">FAQ</Nav.Link>
+            <Nav.Link as={Link} href="/aboutUs" locale={locale}>
+              {t("About Us")}
+            </Nav.Link>
+            <Nav.Link as={Link} href="/faq" locale={locale}>
+              FAQ
+            </Nav.Link>
             {isAuthenticated ? (
               <Nav.Link href="/" onClick={handleLogoutBtn}>
                 {t("Log out")}
