@@ -11,9 +11,7 @@ import {
   Button,
 } from "react-bootstrap";
 import "react-multi-carousel/lib/styles.css";
-import "bootstrap/dist/css/bootstrap.min.css";
 import styles from "./coupons.module.css";
-import Image from "next/image";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import CouponCard from "@/components/CouponCard/CouponCard";
