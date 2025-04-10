@@ -41,6 +41,8 @@ module.exports = async (req, res) => {
       SELECT DISTINCT ON (name, rating, hourly_rate, experience, title, description)
             id,
             provider_type,
+            location,
+            REGEXP_REPLACE(location, '^(.*)\\s+([A-Z0-9]+)$', '\\2') AS postal_code,
             REGEXP_REPLACE(location, '\\s+[A-Z0-9]+$', '') AS location,
             name,
             rating,
@@ -58,7 +60,6 @@ module.exports = async (req, res) => {
       FROM child_providers
       ORDER BY name, rating, hourly_rate, experience, title, description, id
     `);
-
     // 5) Return the distinct rows
     return res.status(200).json(createSuccessResponse({ providers: result.rows }));
   } catch (error) {
