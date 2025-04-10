@@ -277,21 +277,21 @@ export default function Forum() {
                 onClick={() => editor.chain().focus().toggleBold().run()}
                 className={editor?.isActive("bold") ? styles.isActive : ""}
               >
-                Bold
+                {t("Bold")}
               </button>
               <button
                 type="button"
                 onClick={() => editor.chain().focus().toggleItalic().run()}
                 className={editor?.isActive("italic") ? styles.isActive : ""}
               >
-                Italic
+                {t("Italic")}
               </button>
               <button
                 type="button"
                 onClick={() => editor.chain().focus().toggleUnderline().run()}
                 className={editor?.isActive("underline") ? styles.isActive : ""}
               >
-                Underline
+                {t("Underline")}
               </button>
               <button
                 type="button"
@@ -300,7 +300,7 @@ export default function Forum() {
                   editor?.isActive("bulletList") ? styles.isActive : ""
                 }
               >
-                Bullet List
+                {t("Bullet")} List
               </button>
               <button
                 type="button"
@@ -309,7 +309,7 @@ export default function Forum() {
                   editor?.isActive("orderedList") ? styles.isActive : ""
                 }
               >
-                Ordered List
+                {t("Ordered")} List
               </button>
               <button
                 type="button"
@@ -321,7 +321,7 @@ export default function Forum() {
                 }}
                 className={editor?.isActive("link") ? styles.isActive : ""}
               >
-                Link
+                {t("Link")}
               </button>
             </div>
             <EditorContent editor={editor} />
@@ -409,7 +409,7 @@ export default function Forum() {
                       >
                         {post.category && (
                           <div className={styles.categoryBadge}>
-                            {post.category}
+                            {t(post.category)}
                           </div>
                         )}
                         <Card.Title className={styles.postCardTitle}>
@@ -425,7 +425,7 @@ export default function Forum() {
                         </div>
                         <div className={styles.postMetadata}>
                           <small>
-                            Posted by: {post.display_name} on{" "}
+                            {t("Posted by:")} {post.display_name} on{" "}
                             {new Date(post.created_at).toLocaleDateString()} at{" "}
                             {new Date(post.created_at).toLocaleTimeString()}
                           </small>
