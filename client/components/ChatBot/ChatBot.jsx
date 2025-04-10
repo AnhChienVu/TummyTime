@@ -1,5 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
-import { FaRobot, FaUser, FaPaperPlane, FaTimes, FaExclamationTriangle, FaInfoCircle } from "react-icons/fa";
+import {
+  FaRobot,
+  FaUser,
+  FaPaperPlane,
+  FaTimes,
+  FaExclamationTriangle,
+  FaInfoCircle,
+} from "react-icons/fa";
 import { useRouter } from "next/router";
 import styles from "./ChatBot.module.css";
 import openRouterService from "../../services/openRouterService";
@@ -8,6 +15,9 @@ import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import Underline from "@tiptap/extension-underline";
 import { jwtDecode } from "jwt-decode";
+
+import { useTranslation } from "next-i18next";
+// import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 // View-only editor component - identical to Journal's approach
 const ViewOnlyEditor = ({ content }) => {
@@ -42,40 +52,45 @@ const isTokenExpired = (token) => {
 };
 
 const ChatBot = () => {
+  const { t } = useTranslation("common");
   const router = useRouter();
-  
+
   // Check authentication using the same method as your _app.js
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  
+
   // Check auth status on component mount and when localStorage changes
   useEffect(() => {
     const checkAuthStatus = () => {
       const token = localStorage.getItem("token");
       setIsAuthenticated(token && !isTokenExpired(token));
     };
-    
+
     checkAuthStatus();
-    
+
     // Listen for storage changes (login/logout) to update auth state
     window.addEventListener("storage", checkAuthStatus);
     return () => {
       window.removeEventListener("storage", checkAuthStatus);
     };
   }, []);
-  
+
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
       text: "Hello! I'm your baby care assistant. How can I help you today?",
-      isBot: true
-    }
+      isBot: true,
+    },
   ]);
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [notification, setNotification] = useState({ show: false, message: "" });
+  const [notification, setNotification] = useState({
+    show: false,
+    message: "",
+  });
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const [conversationId, setConversationId] = useState(null);
-  const [conversationTitle, setConversationTitle] = useState("New conversation");
+  const [conversationTitle, setConversationTitle] =
+    useState("New conversation");
   const messagesEndRef = useRef(null);
   const [shouldSaveOnClose, setShouldSaveOnClose] = useState(false);
 
@@ -102,14 +117,14 @@ const ChatBot = () => {
     };
 
     // Add router event listeners
-    router.events.on('routeChangeStart', handleRouteChangeStart);
+    router.events.on("routeChangeStart", handleRouteChangeStart);
 
     // Clean up event listeners
     return () => {
-      router.events.off('routeChangeStart', handleRouteChangeStart);
+      router.events.off("routeChangeStart", handleRouteChangeStart);
     };
   }, [router, shouldSaveOnClose, messages, conversationTitle]);
-  
+
   // Load or create conversation if user is authenticated
   useEffect(() => {
     // Only load stored conversation if user is authenticated and chat is open
@@ -122,7 +137,7 @@ const ChatBot = () => {
   const saveConversationIfNeeded = () => {
     // Only save if there's meaningful conversation to save
     if (!shouldSaveOnClose || messages.length <= 1) return;
-    
+
     // Create a new conversation entry
     const newId = Date.now().toString();
     const newConversation = {
@@ -131,17 +146,21 @@ const ChatBot = () => {
       lastUpdated: new Date().toISOString(),
       messages: messages,
     };
-    
+
     // Get existing conversations
-    const storedConversations = localStorage.getItem("babyAssistantConversations");
-    const conversations = storedConversations ? JSON.parse(storedConversations) : [];
-    
+    const storedConversations = localStorage.getItem(
+      "babyAssistantConversations",
+    );
+    const conversations = storedConversations
+      ? JSON.parse(storedConversations)
+      : [];
+
     // Add new conversation to the beginning of the array
     localStorage.setItem(
       "babyAssistantConversations",
-      JSON.stringify([newConversation, ...conversations])
+      JSON.stringify([newConversation, ...conversations]),
     );
-    
+
     // Reset the save flag
     setShouldSaveOnClose(false);
   };
@@ -151,8 +170,8 @@ const ChatBot = () => {
     setMessages([
       {
         text: "Hello! I'm your baby care assistant. How can I help you today?",
-        isBot: true
-      }
+        isBot: true,
+      },
     ]);
     setConversationTitle("New conversation");
     setHasUserInteracted(false);
@@ -162,15 +181,15 @@ const ChatBot = () => {
 
   const toggleChat = () => {
     const newIsOpen = !isOpen;
-    
+
     // If closing, save conversation and reset
     if (!newIsOpen && shouldSaveOnClose) {
       saveConversationIfNeeded();
       resetChatBot();
     }
-    
+
     setIsOpen(newIsOpen);
-    
+
     // If opening chat and authenticated, load conversation
     if (newIsOpen && isAuthenticated && !conversationId) {
       loadOrCreateConversation();
@@ -183,17 +202,19 @@ const ChatBot = () => {
       setNotification({ show: false, message: "" });
     }, duration);
   };
-  
+
   const loadOrCreateConversation = () => {
     if (!isAuthenticated) return;
-    
+
     // Check localStorage for existing conversations
-    const storedConversations = localStorage.getItem("babyAssistantConversations");
-    
+    const storedConversations = localStorage.getItem(
+      "babyAssistantConversations",
+    );
+
     if (storedConversations) {
       try {
         const parsedConversations = JSON.parse(storedConversations);
-        
+
         // Find most recent conversation or create new one
         if (parsedConversations.length > 0) {
           const recentConversation = parsedConversations[0];
@@ -206,26 +227,26 @@ const ChatBot = () => {
         console.error("Error parsing conversations:", error);
       }
     }
-    
+
     // Create new conversation if none exists
     createNewConversation();
   };
-  
+
   const createNewConversation = () => {
     if (!isAuthenticated) return;
-    
+
     const newId = Date.now().toString();
     setConversationId(newId);
     setConversationTitle("New conversation");
-    
+
     // Reset messages to initial state
     setMessages([
       {
         text: "Hello! I'm your baby care assistant. How can I help you today?",
-        isBot: true
-      }
+        isBot: true,
+      },
     ]);
-    
+
     // Save the new conversation
     const newConversation = {
       id: newId,
@@ -234,30 +255,36 @@ const ChatBot = () => {
       messages: [
         {
           text: "Hello! I'm your baby care assistant. How can I help you today?",
-          isBot: true
-        }
-      ]
+          isBot: true,
+        },
+      ],
     };
-    
-    const storedConversations = localStorage.getItem("babyAssistantConversations");
-    const conversations = storedConversations ? JSON.parse(storedConversations) : [];
-    
+
+    const storedConversations = localStorage.getItem(
+      "babyAssistantConversations",
+    );
+    const conversations = storedConversations
+      ? JSON.parse(storedConversations)
+      : [];
+
     localStorage.setItem(
       "babyAssistantConversations",
-      JSON.stringify([newConversation, ...conversations])
+      JSON.stringify([newConversation, ...conversations]),
     );
   };
-  
+
   const updateStoredConversation = (updatedMessages, title = null) => {
     if (!isAuthenticated || !conversationId) return;
-    
-    const storedConversations = localStorage.getItem("babyAssistantConversations");
+
+    const storedConversations = localStorage.getItem(
+      "babyAssistantConversations",
+    );
     if (!storedConversations) return;
-    
+
     try {
       const conversations = JSON.parse(storedConversations);
       const updatedTitle = title || conversationTitle;
-      
+
       const updatedConversations = conversations.map((conv) => {
         if (conv.id === conversationId) {
           return {
@@ -269,12 +296,12 @@ const ChatBot = () => {
         }
         return conv;
       });
-      
+
       localStorage.setItem(
         "babyAssistantConversations",
-        JSON.stringify(updatedConversations)
+        JSON.stringify(updatedConversations),
       );
-      
+
       setConversationTitle(updatedTitle);
     } catch (error) {
       console.error("Error updating conversation:", error);
@@ -284,46 +311,100 @@ const ChatBot = () => {
   // Function to convert markdown-like text to HTML
   const convertToHtml = (text) => {
     if (!text) return "";
-    
+
     let html = text;
-    
+
     // Convert numbered lists
     html = html.replace(/^(\d+)\.\s+(.+)$/gm, "<li>$2</li>");
     html = html.replace(/(<li>.*<\/li>\n?)+/g, "<ol>$&</ol>");
-    
+
     // Convert bullet points
     html = html.replace(/^\*\s+(.+)$/gm, "<li>$1</li>");
     html = html.replace(/^-\s+(.+)$/gm, "<li>$1</li>");
-    html = html.replace(/(<li>.*<\/li>\n?)+/g, match => {
+    html = html.replace(/(<li>.*<\/li>\n?)+/g, (match) => {
       return match.includes("<ol>") ? match : "<ul>" + match + "</ul>";
     });
-    
+
     // Convert bold text
     html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-    
+
     // Convert italic text
     html = html.replace(/\*([^*]+)\*/g, "<em>$1</em>");
-    
+
     // Convert paragraphs
     html = html.replace(/(.+?)(\n\n|$)/g, "<p>$1</p>");
-    
+
     return html;
   };
-  
+
   const isRelevantQuery = (query) => {
     if (!query || query.trim() === "") return false;
 
     const RELEVANT_KEYWORDS = [
-      "baby", "infant", "child", "toddler", "newborn", "kids", "childhood",
-      "feeding", "formula", "breastfeed", "milk", "bottle", "diaper",
-      "sleep", "crying", "colic", "fever", "vaccine", "growth", "development",
-      "milestone", "weight", "height", "crawl", "walk", "talk", "teeth",
-      "teething", "solid food", "symptom", "doctor", "pediatrician", "stool",
-      "poop", "cough", "cold", "rash", "temperature", "allergy", "eczema", 
-      "constipation", "diarrhea", "nap", "routine", "schedule", "cry",
-      "fussy", "reflux", "jaundice", "umbilical", "bath", "potty", "toilet",
-      "pacifier", "toy", "tummy time", "checkup", "appointment", "prenatal",
-      "postnatal", "premature", "nutrition", "preschool", "daycare"
+      "baby",
+      "infant",
+      "child",
+      "toddler",
+      "newborn",
+      "kids",
+      "childhood",
+      "feeding",
+      "formula",
+      "breastfeed",
+      "milk",
+      "bottle",
+      "diaper",
+      "sleep",
+      "crying",
+      "colic",
+      "fever",
+      "vaccine",
+      "growth",
+      "development",
+      "milestone",
+      "weight",
+      "height",
+      "crawl",
+      "walk",
+      "talk",
+      "teeth",
+      "teething",
+      "solid food",
+      "symptom",
+      "doctor",
+      "pediatrician",
+      "stool",
+      "poop",
+      "cough",
+      "cold",
+      "rash",
+      "temperature",
+      "allergy",
+      "eczema",
+      "constipation",
+      "diarrhea",
+      "nap",
+      "routine",
+      "schedule",
+      "cry",
+      "fussy",
+      "reflux",
+      "jaundice",
+      "umbilical",
+      "bath",
+      "potty",
+      "toilet",
+      "pacifier",
+      "toy",
+      "tummy time",
+      "checkup",
+      "appointment",
+      "prenatal",
+      "postnatal",
+      "premature",
+      "nutrition",
+      "preschool",
+      "daycare",
     ];
 
     const normalizedQuery = query.toLowerCase();
@@ -334,27 +415,27 @@ const ChatBot = () => {
 
   const sendMessage = async (e) => {
     e.preventDefault();
-    
+
     setHasUserInteracted(true);
-    
+
     if (!inputText.trim()) {
-      setMessages(prev => [
+      setMessages((prev) => [
         ...prev,
-        { text: "Your message was empty. Please try again.", isBot: true }
+        { text: "Your message was empty. Please try again.", isBot: true },
       ]);
       return;
     }
-    
+
     const userMessage = { text: inputText, isBot: false };
     const currentInput = inputText;
     setMessages([...messages, userMessage]);
     setInputText("");
     setIsLoading(true);
-    
+
     try {
       let botResponse;
       let conversationTitle;
-      
+
       if (!isRelevantQuery(currentInput)) {
         botResponse =
           "<p>I'm specialized in helping with questions about babies and children ages 0-7. " +
@@ -363,26 +444,27 @@ const ChatBot = () => {
           "a question related to infant or child care?</p>";
         conversationTitle = "Baby Care Assistant";
       } else {
-        const conversationHistory = messages
-          .slice(1)
-          .map(msg => ({
-            role: msg.isBot ? "assistant" : "user",
-            content: msg.text
-          }));
-        
+        const conversationHistory = messages.slice(1).map((msg) => ({
+          role: msg.isBot ? "assistant" : "user",
+          content: msg.text,
+        }));
+
         const enhancedPrompt = `As an expert in infant and child care (ages 0-7), please answer the following question: ${currentInput}`;
-        
-        const response = await openRouterService.generateResponse(enhancedPrompt, conversationHistory);
-        
+
+        const response = await openRouterService.generateResponse(
+          enhancedPrompt,
+          conversationHistory,
+        );
+
         if (response && response.conversationTitle && response.responseText) {
           // The API successfully returned JSON with title and response
           conversationTitle = response.conversationTitle;
           botResponse = response.responseText;
-        } else if (typeof response === 'object' && response.responseText) {
+        } else if (typeof response === "object" && response.responseText) {
           // Legacy format - just get the response text
           botResponse = response.responseText;
           conversationTitle = "Baby Care Advice";
-        } else if (typeof response === 'string') {
+        } else if (typeof response === "string") {
           // Plain string response
           botResponse = response;
           conversationTitle = "Baby Care Advice";
@@ -391,30 +473,35 @@ const ChatBot = () => {
           botResponse = "Sorry, I couldn't generate a response";
           conversationTitle = "Baby Care Assistance";
         }
-        
+
         // Check if the response is already in HTML format
         if (!botResponse.includes("<p>") && !botResponse.includes("<li>")) {
           botResponse = convertToHtml(botResponse);
         }
       }
-      
+
       const botMessage = { text: botResponse, isBot: true };
       const updatedMessages = [...messages, userMessage, botMessage];
-      
+
       setMessages(updatedMessages);
       setConversationTitle(conversationTitle);
-      
+
       // Update conversation if authenticated
       if (isAuthenticated) {
         updateStoredConversation(updatedMessages, conversationTitle);
       }
     } catch (error) {
       console.error("Error generating response:", error);
-      setMessages(prev => [
-        ...prev, 
-        { text: "<p>Sorry, I encountered an error. Please try again later.</p>", isBot: true }
+      setMessages((prev) => [
+        ...prev,
+        {
+          text: "<p>Sorry, I encountered an error. Please try again later.</p>",
+          isBot: true,
+        },
       ]);
-      showTemporaryNotification("Error connecting to the assistant. Please try again later.");
+      showTemporaryNotification(
+        "Error connecting to the assistant. Please try again later.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -428,7 +515,9 @@ const ChatBot = () => {
             <div className={styles.notification}>
               <div className={styles.notificationContent}>
                 <FaInfoCircle className={styles.notificationIcon} />
-                <span className={styles.notificationMessage}>{notification.message}</span>
+                <span className={styles.notificationMessage}>
+                  {notification.message}
+                </span>
               </div>
             </div>
           )}
@@ -438,7 +527,7 @@ const ChatBot = () => {
               <div className={styles.logoWrapper}>
                 <FaRobot className={styles.botIcon} />
               </div>
-              <span>Baby Care Assistant</span>
+              <span>{t("Baby Care Assistant")}</span>
             </div>
             <button
               className={styles.closeButton}
@@ -455,8 +544,8 @@ const ChatBot = () => {
                 <div className={styles.disclaimerContent}>
                   <FaExclamationTriangle className={styles.disclaimerIcon} />
                   <p className={styles.disclaimerText}>
-                    Information provided may not be 100% accurate. Always consult with a
-                    healthcare professional for medical advice.
+                    Information provided may not be 100% accurate. Always
+                    consult with a healthcare professional for medical advice.
                   </p>
                 </div>
               </div>
@@ -497,7 +586,7 @@ const ChatBot = () => {
               type="text"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              placeholder="Type your message..."
+              placeholder={t("Type your message...")}
               className={styles.inputField}
               disabled={isLoading}
             />

@@ -15,6 +15,9 @@ import Underline from "@tiptap/extension-underline";
 import openRouterService from "../../services/openRouterService";
 import styles from "./chat.module.css";
 
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
+
 // View-only editor component - identical to Journal's approach
 const ViewOnlyEditor = ({ content }) => {
   const editor = useEditor(
@@ -76,33 +79,35 @@ const Notification = ({ message, visible }) => {
 // Function to convert markdown-like text to HTML
 const convertToHtml = (text) => {
   if (!text) return "";
-  
+
   let html = text;
-  
+
   // Convert numbered lists
   html = html.replace(/^(\d+)\.\s+(.+)$/gm, "<li>$2</li>");
   html = html.replace(/(<li>.*<\/li>\n?)+/g, "<ol>$&</ol>");
-  
+
   // Convert bullet points
   html = html.replace(/^\*\s+(.+)$/gm, "<li>$1</li>");
   html = html.replace(/^-\s+(.+)$/gm, "<li>$1</li>");
-  html = html.replace(/(<li>.*<\/li>\n?)+/g, match => {
+  html = html.replace(/(<li>.*<\/li>\n?)+/g, (match) => {
     return match.includes("<ol>") ? match : "<ul>" + match + "</ul>";
   });
-  
+
   // Convert bold text
   html = html.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
-  
+
   // Convert italic text
   html = html.replace(/\*([^*]+)\*/g, "<em>$1</em>");
-  
+
   // Convert paragraphs
   html = html.replace(/(.+?)(\n\n|$)/g, "<p>$1</p>");
-  
+
   return html;
 };
 
 const ChatPage = () => {
+  const { t } = useTranslation("common");
+
   const [conversations, setConversations] = useState([]);
   const [activeConversation, setActiveConversation] = useState(null);
   const [messages, setMessages] = useState([]);
@@ -411,9 +416,9 @@ const ChatPage = () => {
     setIsLoading(true);
 
     let currentConversation = conversations.find(
-      (conv) => conv.id === activeConversation
+      (conv) => conv.id === activeConversation,
     );
-    
+
     if (currentConversation) {
       // We'll update the title after getting the AI response
       let updatedConversations = conversations.map((conv) => {
@@ -440,7 +445,7 @@ const ChatPage = () => {
           "If you have questions about feeding, growth, development, symptoms, or " +
           "other child-related topics, I'd be happy to assist. Could you please ask " +
           "a question related to infant or child care?</p>";
-        conversationTitle = "Baby Care Assistant";
+        conversationTitle = t("Baby Care Assistant");
       } else {
         const conversationHistory = messages.slice(1).map((msg) => ({
           role: msg.isBot ? "assistant" : "user",
@@ -458,11 +463,11 @@ const ChatPage = () => {
           // The API successfully returned JSON with title and response
           conversationTitle = response.conversationTitle;
           botResponse = response.responseText;
-        } else if (typeof response === 'object' && response.responseText) {
+        } else if (typeof response === "object" && response.responseText) {
           // Legacy format - just get the response text
           botResponse = response.responseText;
           conversationTitle = "Baby Care Advice";
-        } else if (typeof response === 'string') {
+        } else if (typeof response === "string") {
           // Plain string response
           botResponse = response;
           conversationTitle = "Baby Care Advice";
@@ -471,7 +476,7 @@ const ChatPage = () => {
           botResponse = "Sorry, I couldn't generate a response";
           conversationTitle = "Baby Care Assistance";
         }
-        
+
         // Check if the response is already in HTML format
         if (!botResponse.includes("<p>") && !botResponse.includes("<li>")) {
           botResponse = convertToHtml(botResponse);
@@ -549,17 +554,17 @@ const ChatPage = () => {
 
         <div className={styles.sidebar}>
           <div className={styles.sidebarHeader}>
-            <h2>Baby Care Assistant</h2>
+            <h2>{t("Baby Care Assistant")}</h2>
             {newChatBlocked && (
               <div className={styles.notification}>
-                Using existing empty chat
+                {t("Using existing empty chat")}
               </div>
             )}
             <button
               className={styles.newChatButton}
               onClick={createNewConversation}
             >
-              <FaPlus /> New Chat
+              <FaPlus /> {t("New Chat")}
             </button>
           </div>
 
@@ -654,7 +659,7 @@ const ChatPage = () => {
                   type="text"
                   value={inputText}
                   onChange={(e) => setInputText(e.target.value)}
-                  placeholder="Type your message..."
+                  placeholder={t("Type your message...")}
                   disabled={isLoading}
                   className={styles.inputField}
                 />
@@ -664,7 +669,7 @@ const ChatPage = () => {
                   className={styles.sendButton}
                   aria-label="Send message"
                 >
-                  Send
+                  {t("Send")}
                 </button>
               </form>
             </>
@@ -678,3 +683,11 @@ const ChatPage = () => {
 };
 
 export default ChatPage;
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
+  };
+}
