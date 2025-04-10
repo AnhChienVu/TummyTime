@@ -62,7 +62,7 @@ function MedicalProfessional() {
     const fetchAssignedBabies = async (doctor_id) => {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/v1/medical-professional/${doctor_id}/babies`,
+          `${process.env.NEXT_PUBLIC_API_URL}/v1/medical-professional/${doctor_id}/getAssignedBabiesToDoctor`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -244,13 +244,13 @@ function MedicalProfessional() {
               </div>
               <div className={styles.babyList}>
                 <h3>{t("Assigned Babies")}</h3>
-
+                {console.log("assignedBabies", medicalProfessional)}
                 {assignedBabies[medicalProfessional.user_id] ? (
                   assignedBabies[medicalProfessional.user_id].length > 0 ? (
                     assignedBabies[medicalProfessional.user_id].map((baby) => (
                       <div key={baby.baby_id} className={styles.assignedBabies}>
                         <p className={styles.babyName}>
-                          {t("Baby")}: {baby.first_name} {baby.last_name}
+                          {t("Baby")}: {baby.baby_name}
                         </p>
                         <button
                           className={styles.button}

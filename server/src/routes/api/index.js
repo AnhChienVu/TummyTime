@@ -214,6 +214,12 @@ router.get(
   require('./medicalProfessional/getAssignedBabiesByDoctorId').getAssignedBabiesByDoctorId
 );
 
+// Fetched assigned babies to a doctor from parent side
+router.get(
+  '/medical-professional/:doctor_id/getAssignedBabiesToDoctor',
+  require('./medicalProfessional/getAssignedBabiesToDoctor').getAssignedBabiesToDoctor
+);
+
 // ************ Check Products ************
 router.get('/products/checkProduct', require('./products/checkProduct').checkProduct);
 
