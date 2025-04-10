@@ -1,3 +1,4 @@
+// pages/_app.js
 import "@/styles/globals.css";
 import "bootstrap/dist/css/bootstrap.css";
 import Layout from "@/components/Layout/Layout";
@@ -50,6 +51,7 @@ function App({ Component, pageProps }) {
       "/faq": "FAQ",
       "/terms": "Terms of Service",
       "/privacy": "Privacy Policy",
+      "/baby/[id]/growth": "Growth Data",
     };
 
     return `${titles[path] || "Page"} | Tummy Time`;
@@ -88,6 +90,11 @@ function App({ Component, pageProps }) {
         {/* Page title on browser tabs */}
         <title>{getPageTitle()}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        {/* favicon support */}
+        <link rel="icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" href="/favicon.ico" />
+        <link rel="shortcut icon" href="/favicon.ico" />
       </Head>
       <NotificationProvider>
         {getLayout(<Component {...pageProps} />)}
