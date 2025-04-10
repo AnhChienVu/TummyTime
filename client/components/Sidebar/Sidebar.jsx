@@ -61,6 +61,14 @@ function Sidebar() {
         </Nav.Link>
         <Nav.Link
           as={Link}
+          href="/stool"
+          locale={locale}
+          className={styles.navlink}
+        >
+          {t("Stool")}
+        </Nav.Link>
+        <Nav.Link
+          as={Link}
           href="/reminders"
           locale={locale}
           className={styles.navlink}
