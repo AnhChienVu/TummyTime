@@ -311,15 +311,13 @@ export default function BabyProfile({ baby_id }) {
             </Col>
             <Col md={6}>
               <Form.Group className="mb-3">
-                <Form.Label>{t("Height")} (cm)</Form.Label>
+                <Form.Label>{t("Height at birth")} (in)</Form.Label>
                 <Form.Control
                   {...register("height", {
                     required: true,
-                    min: 5, // min height: 5cm
-                    max: 200, // max height: 2meters
                   })}
                   type="number"
-                  placeholder={t("Enter height in cm")}
+                  placeholder={t("Enter height in inches")}
                   required
                 />
               </Form.Group>
