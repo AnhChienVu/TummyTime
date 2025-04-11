@@ -53,8 +53,6 @@ class LinkMyDealsService {
           url += `&incremental=1&last_extract=${timestamp}`;
         }
         
-        console.log(`Making API call to LinkMyDeals: ${incremental ? 'Incremental' : 'Full'} feed`);
-        
         const response = await fetch(url);
         
         if (!response.ok) {

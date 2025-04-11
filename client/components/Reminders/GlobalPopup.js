@@ -14,12 +14,10 @@ const GlobalReminderPopup = () => {
   // Force client-side rendering to avoid hydration issues
   useEffect(() => {
     setIsComponentMounted(true);
-    console.log("GlobalReminderPopup component mounted");
   }, []);
   
   // Only render on client side
   if (!isComponentMounted) {
-    console.log("GlobalReminderPopup not yet mounted, returning null");
     return null;
   }
   
@@ -28,8 +26,6 @@ const GlobalReminderPopup = () => {
 
 // Main component that renders after mounting
 const MountedGlobalReminderPopup = () => {
-  console.log("MountedGlobalReminderPopup rendering");
-  
   const {
     hasNotifications,
     totalNotifications,
@@ -55,23 +51,14 @@ const MountedGlobalReminderPopup = () => {
 
   // Debug logs to help troubleshoot
   useEffect(() => {
-    if (isClient) {
-      console.log("GlobalReminderPopup client-side effects running");
-      console.log("Authentication status:", isAuthenticated);
-      console.log("Has notifications:", hasNotifications);
-      console.log("Total notifications:", totalNotifications);
-      console.log("Current notification:", currentNotification);
-    }
   }, [isClient, isAuthenticated, hasNotifications, totalNotifications, currentNotification]);
 
   // Don't render if not client-side or no notifications
   if (!isClient) {
-    console.log("Not rendering GlobalReminderPopup - server-side");
     return null;
   }
   
   if (!hasNotifications || !currentNotification) {
-    console.log("Not rendering GlobalReminderPopup - no notifications to show");
     return null;
   }
 
@@ -84,7 +71,6 @@ const MountedGlobalReminderPopup = () => {
     
     // Delay the actual dismissal to allow animation to complete
     setTimeout(() => {
-      console.log("Dismissing notification:", currentNotification.id);
       try {
         dismissNotification(currentNotification.id, 5); // Delay by 5 minutes
       } catch (err) {
@@ -103,7 +89,6 @@ const MountedGlobalReminderPopup = () => {
     
     // Delay the actual completion to allow animation to complete
     setTimeout(() => {
-      console.log("Completing reminder:", currentNotification.id);
       try {
         completeReminder(currentNotification.id);
       } catch (err) {
@@ -123,7 +108,6 @@ const MountedGlobalReminderPopup = () => {
     
     // Delay the actual dismissal to allow animation to complete
     setTimeout(() => {
-      console.log("Delaying notification by", customDelay, "minutes");
       try {
         dismissNotification(currentNotification.id, customDelay);
       } catch (err) {

@@ -33,7 +33,6 @@ export const NotificationProvider = ({ children }) => {
 
   // Handle server-side rendering safely
   useEffect(() => {
-    console.log("NotificationContext initializing (client-side check)");
     setIsClient(true);
     lastCheckRef.current = new Date();
 
@@ -41,7 +40,6 @@ export const NotificationProvider = ({ children }) => {
     const token = localStorage.getItem("token");
     const isAuth = !!token;
     setIsAuthenticated(isAuth);
-    console.log("Authentication status:", isAuth);
   }, []);
 
   // Load previously dismissed reminders from localStorage
@@ -54,9 +52,6 @@ export const NotificationProvider = ({ children }) => {
         const parsedIds = JSON.parse(savedDismissed);
         if (Array.isArray(parsedIds)) {
           setDismissedReminderIds(new Set(parsedIds));
-          console.log(
-            `Loaded ${parsedIds.length} dismissed reminder IDs from storage`,
-          );
         }
       }
     } catch (err) {
@@ -69,28 +64,18 @@ export const NotificationProvider = ({ children }) => {
     if (!isClient) return;
 
     if (!isAuthenticated) {
-      console.log(
-        "NotificationContext: User not authenticated, skipping baby fetch",
-      );
       return;
     }
-
-    console.log("NotificationContext: Running client-side initialization");
 
     // Fetch all babies belonging to user
     const fetchUserBabies = async () => {
       try {
         const token = localStorage.getItem("token");
         if (!token) {
-          console.log(
-            "NotificationContext: No token found, skipping baby fetch",
-          );
           return;
         }
 
-        console.log("NotificationContext: Fetching babies from API");
         const url = `${API_BASE_URL}/babies`;
-        console.log(`API Request URL: ${url}`);
 
         const response = await fetch(url, {
           headers: {
@@ -110,7 +95,6 @@ export const NotificationProvider = ({ children }) => {
         const text = await response.text();
 
         if (!text || text.trim() === "") {
-          console.log("Empty response from API");
           return;
         }
 
@@ -119,10 +103,6 @@ export const NotificationProvider = ({ children }) => {
           // Some validation to avoid common parsing errors
           const trimmedText = text.trim();
           if (!trimmedText.startsWith("{") && !trimmedText.startsWith("[")) {
-            console.error(
-              "Invalid JSON format received:",
-              text.substring(0, 100) + "...",
-            );
             return;
           }
 
@@ -151,10 +131,6 @@ export const NotificationProvider = ({ children }) => {
               );
 
               if (validBabies.length > 0) {
-                console.log(
-                  `NotificationContext: Found ${validBabies.length} valid babies`,
-                );
-
                 // Normalize the baby objects to ensure they have a consistent structure
                 const normalizedBabies = validBabies.map((baby) => ({
                   baby_id: baby.baby_id || baby.id,
@@ -166,14 +142,8 @@ export const NotificationProvider = ({ children }) => {
                 }));
 
                 setUserBabies(normalizedBabies);
-              } else {
-                console.error("No valid baby objects found in:", babiesArray);
               }
-            } else {
-              console.log("No babies found in the response");
             }
-          } else {
-            console.error("Unexpected data format:", data);
           }
         } catch (parseError) {
           console.error("Error parsing JSON response:", parseError);
@@ -197,18 +167,14 @@ export const NotificationProvider = ({ children }) => {
         audioRef.current
           .play()
           .then(() => {
-            console.log("Notification sound played successfully");
-            // Reset after sound completes
             setTimeout(() => {
               isPlayingAudio.current = false;
             }, 1000);
           })
           .catch((err) => {
-            console.error("Error playing notification sound:", err);
             isPlayingAudio.current = false;
           });
       } catch (err) {
-        console.error("Exception playing sound:", err);
         isPlayingAudio.current = false;
       }
     }
@@ -221,11 +187,9 @@ export const NotificationProvider = ({ children }) => {
     }
 
     if (userBabies.length === 0) {
-      console.log("NotificationContext: No babies to check reminders for");
       return;
     }
 
-    console.log("NotificationContext: Checking for reminders...");
     const now = new Date();
     const allNotifications = [];
     let newNotificationsFound = false;
@@ -239,20 +203,12 @@ export const NotificationProvider = ({ children }) => {
 
     for (const baby of userBabies) {
       try {
-        console.log(
-          `NotificationContext: Checking reminders for baby ${
-            baby.name || baby.baby_id
-          }`,
-        );
         let reminders = [];
 
         try {
           reminders = await reminderService.fetchReminders(
             baby.baby_id,
             API_BASE_URL,
-          );
-          console.log(
-            `NotificationContext: Found ${reminders.length} reminders for baby ${baby.baby_id}`,
           );
         } catch (err) {
           console.error(
@@ -264,17 +220,11 @@ export const NotificationProvider = ({ children }) => {
 
         // Find all active reminders
         const activeReminders = reminders.filter((r) => r.isActive);
-        console.log(
-          `NotificationContext: ${activeReminders.length}/${reminders.length} reminders are active for baby ${baby.baby_id}`,
-        );
 
         // Process each active reminder
         for (const reminder of activeReminders) {
           // Skip reminders that have been recently dismissed
           if (dismissedReminderIds.has(reminder.id)) {
-            console.log(
-              `Skipping dismissed reminder: ${reminder.title} (ID: ${reminder.id})`,
-            );
             continue;
           }
 
@@ -341,10 +291,6 @@ export const NotificationProvider = ({ children }) => {
 
             // Add if it's due or overdue or from a past date
             if (isDue || isOverdue || isPastDate) {
-              console.log(
-                `Adding notification for reminder: ${reminder.title}`,
-              );
-
               // Find the baby's real name
               const babyName = baby.name || `Baby ${baby.baby_id}`;
 
@@ -374,10 +320,6 @@ export const NotificationProvider = ({ children }) => {
 
     // If we found any notifications, update the state
     if (allNotifications.length > 0) {
-      console.log(
-        `NotificationContext: Adding ${allNotifications.length} new notifications`,
-      );
-
       setActiveNotifications((prev) => {
         // Add only new notifications (not already in the list)
         const existingIds = new Set(prev.map((n) => n.id));
@@ -386,10 +328,6 @@ export const NotificationProvider = ({ children }) => {
         );
 
         if (newNotifications.length > 0) {
-          console.log(
-            `NotificationContext: ${newNotifications.length} new notifications to add`,
-          );
-
           // Play sound only for new notifications
           if (newNotifications.length > 0) {
             playNotificationSound();
@@ -399,9 +337,7 @@ export const NotificationProvider = ({ children }) => {
         }
         return prev;
       });
-    } else {
-      console.log("NotificationContext: No notifications to add");
-    }
+    } 
 
     lastCheckRef.current = now;
   }, [
@@ -417,8 +353,6 @@ export const NotificationProvider = ({ children }) => {
   useEffect(() => {
     if (!isClient || !isAuthenticated) return;
 
-    console.log("NotificationContext: Setting up reminder check interval");
-
     // Check right away
     checkForReminders();
 
@@ -428,7 +362,6 @@ export const NotificationProvider = ({ children }) => {
 
     return () => {
       if (checkIntervalRef.current) {
-        console.log("NotificationContext: Cleaning up check interval");
         clearInterval(checkIntervalRef.current);
       }
     };
@@ -441,7 +374,6 @@ export const NotificationProvider = ({ children }) => {
     if (dismissedReminderIds.size > 0) {
       const idsArray = Array.from(dismissedReminderIds);
       localStorage.setItem("dismissedReminders", JSON.stringify(idsArray));
-      console.log(`Saved ${idsArray.length} dismissed reminder IDs to storage`);
     }
   }, [dismissedReminderIds, isClient]);
 
@@ -451,12 +383,8 @@ export const NotificationProvider = ({ children }) => {
       if (!isClient || !isAuthenticated) return;
 
       try {
-        console.log(
-          `NotificationContext: Dismissing notification ${id} (delay: ${delayMinutes} minutes)`,
-        );
         const notification = activeNotifications.find((n) => n.id === id);
         if (!notification) {
-          console.log(`NotificationContext: Notification ${id} not found`);
           return;
         }
 
@@ -484,9 +412,6 @@ export const NotificationProvider = ({ children }) => {
             );
             const reminder = reminders.find((r) => r.id === id);
             if (!reminder) {
-              console.log(
-                `NotificationContext: Reminder ${id} not found for update`,
-              );
               return;
             }
 
@@ -496,10 +421,6 @@ export const NotificationProvider = ({ children }) => {
 
             const hours = newTime.getHours().toString().padStart(2, "0");
             const minutes = newTime.getMinutes().toString().padStart(2, "0");
-
-            console.log(
-              `NotificationContext: Delaying reminder ${id} to ${hours}:${minutes}`,
-            );
 
             // Update the reminder
             await reminderService.updateReminder(
@@ -528,9 +449,6 @@ export const NotificationProvider = ({ children }) => {
                 updated.delete(id);
                 return updated;
               });
-              console.log(
-                `Removed reminder ${id} from dismissed after ${delayMinutes} minutes delay`,
-              );
             }, delayMinutes * 60 * 1000); // Convert minutes to milliseconds
           } catch (err) {
             console.error("Error updating reminder:", err);
@@ -555,10 +473,8 @@ export const NotificationProvider = ({ children }) => {
       if (!isClient || !isAuthenticated) return;
   
       try {
-        console.log(`NotificationContext: Completing reminder ${id}`);
         const notification = activeNotifications.find((n) => n.id === id);
         if (!notification) {
-          console.log(`NotificationContext: Notification ${id} not found`);
           return;
         }
   
@@ -585,9 +501,6 @@ export const NotificationProvider = ({ children }) => {
           );
           const reminder = reminders.find((r) => r.id === id);
           if (!reminder) {
-            console.log(
-              `NotificationContext: Reminder ${id} not found for completion`,
-            );
             return;
           }
   
@@ -599,16 +512,8 @@ export const NotificationProvider = ({ children }) => {
             API_BASE_URL,
           );
   
-          console.log(
-            `NotificationContext: Successfully marked reminder ${id} as inactive`,
-          );
-  
           // Create next reminder if enabled
           if (reminder.nextReminder && reminder.reminderIn) {
-            console.log(
-              `NotificationContext: Creating next reminder in ${reminder.reminderIn} for reminder ${id}`
-            );
-            
             // Parse the reminder_in value to get hours
             const hoursMatch = reminder.reminderIn.match(/(\d+(\.\d+)?)/);
             const hoursToAdd = hoursMatch ? parseFloat(hoursMatch[1]) : 1.5;
@@ -640,8 +545,6 @@ export const NotificationProvider = ({ children }) => {
               newReminderData,
               API_BASE_URL,
             );
-            
-            console.log(`NotificationContext: Created next reminder for ${id} in ${reminder.reminderIn}`);
           }
   
           // Important: Dispatch a custom event to notify the ReminderContext
@@ -671,7 +574,6 @@ export const NotificationProvider = ({ children }) => {
   const showNextNotification = useCallback(() => {
     if (activeNotifications.length <= 1) return;
     setCurrentIndex((prev) => (prev + 1) % activeNotifications.length);
-    console.log("NotificationContext: Showing next notification");
   }, [activeNotifications]);
 
   const showPrevNotification = useCallback(() => {
@@ -679,7 +581,6 @@ export const NotificationProvider = ({ children }) => {
     setCurrentIndex((prev) =>
       prev === 0 ? activeNotifications.length - 1 : prev - 1,
     );
-    console.log("NotificationContext: Showing previous notification");
   }, [activeNotifications]);
 
   // Get current notification
