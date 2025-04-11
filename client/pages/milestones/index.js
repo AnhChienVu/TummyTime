@@ -21,6 +21,7 @@ import { parse, startOfWeek, getDay } from "date-fns";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import useSpeechToText from "@/hooks/useSpeechToText";
 import IncompatibleBrowserModal from "@/components/IncompatibleBrowserModal";
+import { MdCake } from "react-icons/md";
 
 function Milestones() {
   const { t } = useTranslation("common");

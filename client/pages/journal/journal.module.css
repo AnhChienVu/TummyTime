@@ -1,13 +1,19 @@
 .container {
   display: flex;
-  max-width: 1200px;
-  /* Increase max-width to accommodate sidebar and form */
+  max-width: 1200px; /* Increase max-width to accommodate sidebar and form */
   margin-left: 50px;
   padding: 12px;
+  margin-top: 20px;
 }
 
+.title{
+  margin-bottom: 24px;
+}
+
+
+
 .formContainer {
-  width: 80%;
+  width: 90%;
 }
 
 .row {

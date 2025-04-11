@@ -39,6 +39,7 @@ function MilestoneEachBaby({ baby_id }) {
   const [milestoneToDelete, setMilestoneToDelete] = useState(null);
   const [currentInputField, setCurrentInputField] = useState(null);
   const [showBrowserModal, setShowBrowserModal] = useState(false);
+  const [babyName, setBabyName] = useState("");
 
   const {
     isListening,
@@ -86,6 +87,31 @@ function MilestoneEachBaby({ baby_id }) {
       fetchMilestones();
     } else {
       console.log("Baby ID not found in query params.");
+    }
+  }, [baby_id, router.isReady]);
+
+  useEffect(() => {
+    if (router.isReady && baby_id) {
+      // Fetch baby info
+      async function fetchBabyInfo() {
+        try {
+          const res = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${baby_id}`,
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            },
+          );
+          const data = await res.json();
+          if (res.ok && data.status === "ok") {
+            setBabyName(data.data.first_name);
+          }
+        } catch (error) {
+          console.error("Error fetching baby info:", error);
+        }
+      }
+      fetchBabyInfo();
     }
   }, [baby_id, router.isReady]);
 
@@ -214,7 +240,7 @@ function MilestoneEachBaby({ baby_id }) {
         : `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${selectedMilestone.baby_id}/milestones/${selectedMilestone.milestone_id}`;
 
       const method = isNewMilestone ? "POST" : "PUT";
-      console.log("Alo");
+
       // Parse the date as a local date
       const [year, month, day] = date.split("-");
       const localDate = new Date(year, month - 1, day); // Month is 0-indexed in JavaScript
@@ -309,6 +335,10 @@ function MilestoneEachBaby({ baby_id }) {
           <span>← {t("Back to Overview")}</span>
         </div>
       </div>
+
+      <h1 className={styles.heading}>
+        {babyName ? `${t("Milestones for")} ${babyName}` : t("Milestones")}{" "}
+      </h1>
 
       <table className={styles.mealsTable}>
         <thead>
