@@ -78,10 +78,13 @@ module.exports.createStoolEntry = async (req, res) => {
       return res.status(403).json(createErrorResponse(403, 'Forbidden'));
     }
 
-    // Insert stool entry into the database.
+    // Ensure timestamp is in UTC format or use current time
+    const timestampValue = timestamp || new Date().toISOString();
+
+    // Insert stool entry into the database with explicit timezone handling
     const insertQuery = `
       INSERT INTO stool_entries (baby_id, color, consistency, notes, timestamp)
-      VALUES ($1, $2, $3, $4, $5)
+      VALUES ($1, $2, $3, $4, $5 AT TIME ZONE 'UTC')
       RETURNING *
     `;
     const stoolResult = await pool.query(insertQuery, [
@@ -89,7 +92,7 @@ module.exports.createStoolEntry = async (req, res) => {
       color,
       consistency,
       notes || null,
-      timestamp || new Date(),
+      timestampValue
     ]);
 
     const newStool = stoolResult.rows[0];

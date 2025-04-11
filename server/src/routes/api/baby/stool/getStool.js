@@ -64,8 +64,18 @@ module.exports.getStoolEntries = async (req, res) => {
     }
 
     // Fetch stool entries for the authorized baby, ordered by timestamp descending.
+    // Explicitly handle timestamps in UTC to avoid timezone issues
     const stoolResult = await pool.query(
-      'SELECT * FROM stool_entries WHERE baby_id = $1 ORDER BY timestamp DESC',
+      `SELECT 
+        stool_id, 
+        baby_id, 
+        color, 
+        consistency, 
+        notes, 
+        timestamp AT TIME ZONE 'UTC' as timestamp
+       FROM stool_entries 
+       WHERE baby_id = $1 
+       ORDER BY timestamp DESC`,
       [numericBabyId]
     );
 

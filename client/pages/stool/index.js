@@ -51,7 +51,7 @@ export default function Stool() {
     error: speechError,
   } = useSpeechToText();
 
-  // Format date in YYYY-MM-DD format in local timezone
+  // Format date in YYYY-MM-DD format
   const formatLocalDate = (date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -179,7 +179,7 @@ export default function Stool() {
     return isValid;
   };
   
-  // Convert time to ISO format
+  // Convert time to ISO format with UTC to avoid timezone issues
   const formatTimeToISO = (timeStr) => {
     // Parse the time string (e.g., "7:30 PM")
     const match = timeStr.match(/([0-9]+):([0-9]+)\s?(AM|PM)/i);
@@ -192,9 +192,19 @@ export default function Stool() {
     if (period.toUpperCase() === "PM" && hours < 12) hours += 12;
     if (period.toUpperCase() === "AM" && hours === 12) hours = 0;
     
-    // Create a date object that properly preserves the local time
-    const date = new Date(selectedDate);
-    date.setHours(hours, parseInt(minutes, 10), 0, 0);
+    // Create a date object with the selected date but in UTC
+    const localDate = new Date(selectedDate);
+    
+    // Create a new UTC date to avoid timezone offset issues
+    const date = new Date(Date.UTC(
+      localDate.getFullYear(),
+      localDate.getMonth(),
+      localDate.getDate(),
+      hours, 
+      parseInt(minutes, 10),
+      0,
+      0
+    ));
     
     return date.toISOString();
   };
@@ -350,7 +360,7 @@ export default function Stool() {
       <BabyCard
         buttons={[
           {
-            name: "View Stool Entries",
+            name: "View Stool Records",
             functionHandler: handleSelectBaby,
           },
           {

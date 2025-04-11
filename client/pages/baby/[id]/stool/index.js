@@ -2,13 +2,11 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Container, Row, Col, Modal, Form, Button, Alert } from "react-bootstrap";
 import { useRouter } from "next/router";
 import { format, parseISO, isSameDay } from "date-fns";
-import { FaToilet, FaEdit, FaTrash, FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
+import { FaToilet, FaEdit, FaTrash } from "react-icons/fa";
 import { AiOutlineInfoCircle } from "react-icons/ai";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import styles from "./stool.module.css";
-import useSpeechToText from "@/hooks/useSpeechToText";
-import IncompatibleBrowserModal from "@/components/IncompatibleBrowserModal";
 
 function BabyStool() {
   const { t } = useTranslation("common");
@@ -20,7 +18,6 @@ function BabyStool() {
   const [babyInfo, setBabyInfo] = useState(null);
   const [modalShow, setModalShow] = useState(false);
   const [selectedStool, setSelectedStool] = useState(null);
-  const [selectedDate, setSelectedDate] = useState(new Date());
   const [color, setColor] = useState("");
   const [consistency, setConsistency] = useState("");
   const [notes, setNotes] = useState("");
@@ -29,70 +26,15 @@ function BabyStool() {
   const [amPm, setAmPm] = useState("AM");
   const [toasts, setToasts] = useState([]);
   const [modalError, setModalError] = useState("");
-  const [showIncompatibleModal, setShowIncompatibleModal] = useState(false);
-  
-  // Speech to text
-  const [currentInputField, setCurrentInputField] = useState(null);
-  
-  const {
-    isListening,
-    startListening,
-    stopListening,
-    transcript,
-    resetTranscript,
-    error: speechError,
-  } = useSpeechToText();
 
-  // Handle voice input
-  const handleVoiceInput = async (fieldName) => {
-    if (!isListening) {
-      if (speechError?.includes("not supported")) {
-        setShowIncompatibleModal(true);
-        return;
-      }
-      setCurrentInputField(fieldName);
-      resetTranscript(); // Clear previous transcript
-      startListening();
-    } else {
-      stopListening();
-      setCurrentInputField(null);
-    }
-  };
-  
-  // Handle transcript updates
-  useEffect(() => {
-    if (transcript && currentInputField) {
-      if (currentInputField === "notes") {
-        setNotes(transcript.trim()); // Replace the existing notes
-      }
-    }
-  }, [transcript, currentInputField]);
-  
-    // Function to show toast notifications
-    const showToast = useCallback((message, variant = "success") => {
-        const id = Date.now();
-        setToasts((prev) => [...prev, { id, message, variant }]);
-        setTimeout(() => {
-            setToasts((prev) => prev.filter((t) => t.id !== id));
-        }, 5000);
-    }, []);
-
-  // Handle speech errors
-  useEffect(() => {
-    if (speechError && !speechError.includes("not supported")) {
-      showToast(t("Voice input error occurred"), "error");
-    }
-  }, [speechError, t, showToast]);
-
-  // Format date in YYYY-MM-DD format in local timezone
-  const formatLocalDate = (date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  };
-
-
+  // Function to show toast notifications
+  const showToast = useCallback((message, variant = "success") => {
+    const id = Date.now();
+    setToasts((prev) => [...prev, { id, message, variant }]);
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 5000);
+  }, []);
 
   const removeToast = (id) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
@@ -230,36 +172,13 @@ function BabyStool() {
         return;
       }
       
-      // Handle timestamp formats from the API
-      let utcDate;
+      // Parse the ISO timestamp from the server (which should be in UTC)
+      const utcDate = new Date(entry.timestamp);
       
-      // Check if timestamp is already ISO format
-      if (entry.timestamp.includes('T')) {
-        utcDate = new Date(entry.timestamp);
-      } 
-      // Handle SQL datetime format (YYYY-MM-DD HH:MM:SS)
-      else {
-        // Add 'T' between date and time, append 'Z' to ensure UTC interpretation
-        const isoTimestamp = entry.timestamp.replace(' ', 'T') + '.000Z';
-        utcDate = new Date(isoTimestamp);
-      }
-      
-      // Ensure we have a valid date
-      if (isNaN(utcDate.getTime())) {
-        console.error("Invalid timestamp:", entry.timestamp);
-        return; // Skip this entry
-      }
-      
-      // Get the user's timezone offset in minutes
-      const timezoneOffset = new Date().getTimezoneOffset();
-      
-      // Adjust UTC time to local time
-      const localTime = new Date(utcDate.getTime() - (timezoneOffset * 60000));
-      
-      // Extract date components in local time
-      const year = localTime.getFullYear();
-      const month = String(localTime.getMonth() + 1).padStart(2, '0');
-      const day = String(localTime.getDate()).padStart(2, '0');
+      // Format the date component in YYYY-MM-DD for grouping
+      const year = utcDate.getUTCFullYear();
+      const month = String(utcDate.getUTCMonth() + 1).padStart(2, '0');
+      const day = String(utcDate.getUTCDate()).padStart(2, '0');
       const date = `${year}-${month}-${day}`;
       
       if (!groupedByDate[date]) {
@@ -269,18 +188,9 @@ function BabyStool() {
         };
       }
       
-      // Format time in local timezone - with better error handling
-      let hours = localTime.getHours();
-      if (isNaN(hours)) {
-        console.error("Invalid hours:", hours);
-        hours = 12; // Default to 12 if hours is NaN
-      }
-      
-      const minutes = localTime.getMinutes();
-      if (isNaN(minutes)) {
-        console.error("Invalid minutes:", minutes);
-        minutes = 0; // Default to 0 if minutes is NaN
-      }
+      // Format time in 12-hour format directly from UTC
+      let hours = utcDate.getUTCHours();
+      const minutes = utcDate.getUTCMinutes();
       
       const ampm = hours >= 12 ? 'PM' : 'AM';
       hours = hours % 12;
@@ -319,14 +229,6 @@ function BabyStool() {
       setConsistency(stoolItem.consistency || "");
       setNotes(stoolItem.notes || "");
       
-      // Get date from timestamp
-      if (stoolItem.timestamp) {
-        const timestampDate = new Date(stoolItem.timestamp);
-        setSelectedDate(timestampDate);
-      } else {
-        setSelectedDate(new Date());
-      }
-      
       // Parse time (assuming format like "7:30 PM")
       const timeMatch = stoolItem.time.match(/([0-9]+):([0-9]+)\s?(AM|PM)/i);
       if (timeMatch) {
@@ -342,36 +244,7 @@ function BabyStool() {
       }
     }
     
-    // Reset speech recognition states
-    if (isListening) {
-      stopListening();
-    }
-    setCurrentInputField(null);
-    resetTranscript();
-    
     setModalShow(true);
-  };
-
-  // Convert time string to ISO format for API
-  const formatTimeToISO = (timeStr) => {
-    // Parse the time string (e.g., "7:30 PM")
-    const match = timeStr.match(/([0-9]+):([0-9]+)\s?(AM|PM)/i);
-    if (!match) return new Date().toISOString();
-    
-    let [_, hours, minutes, period] = match;
-    
-    // Convert hours to 24-hour format
-    hours = parseInt(hours, 10);
-    if (period.toUpperCase() === "PM" && hours < 12) hours += 12;
-    if (period.toUpperCase() === "AM" && hours === 12) hours = 0;
-    
-    // Create a date object that properly preserves the local time
-    // Use selectedDate to keep the date part consistent with what's selected
-    const date = new Date(selectedDate);
-    date.setHours(hours, parseInt(minutes, 10), 0, 0);
-    
-    console.log("Formatted time:", date.toISOString());
-    return date.toISOString();
   };
 
   // Handle saving a stool entry
@@ -527,7 +400,7 @@ function BabyStool() {
     }
   };
 
-  // Format date for display
+  // Format date for display using UTC to avoid timezone issues
   const formatDateDisplay = (dateString) => {
     try {
       // Check if date string is valid
@@ -539,8 +412,8 @@ function BabyStool() {
       // Parse date parts from the YYYY-MM-DD format
       const [year, month, day] = dateString.split('-').map(part => parseInt(part, 10));
       
-      // Create a new date (months are 0-indexed in JavaScript)
-      const date = new Date(year, month - 1, day);
+      // Use UTC to avoid timezone issues
+      const date = new Date(Date.UTC(year, month - 1, day));
       
       // Check if date is valid
       if (isNaN(date.getTime())) {
@@ -549,18 +422,48 @@ function BabyStool() {
       }
       
       // Format the day number
-      const dayNumber = date.getDate().toString();
+      const dayNumber = date.getUTCDate().toString();
       
       // Format the rest of date (Month, Day of week, Year)
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-      const restOfDate = `${months[date.getMonth()]}, ${days[date.getDay()]} ${date.getFullYear()}`;
+      const restOfDate = `${months[date.getUTCMonth()]}, ${days[date.getUTCDay()]} ${date.getUTCFullYear()}`;
       
       return { dayNumber, restOfDate };
     } catch (error) {
       console.error("Date parsing error:", error, "for dateString:", dateString);
       return { dayNumber: "?", restOfDate: "Invalid date" };
     }
+  };
+
+  // Convert time string to ISO format for API using UTC to avoid timezone issues
+  const formatTimeToISO = (timeStr) => {
+    // Parse the time string (e.g., "7:30 PM")
+    const match = timeStr.match(/([0-9]+):([0-9]+)\s?(AM|PM)/i);
+    if (!match) return new Date().toISOString();
+    
+    let [_, hours, minutes, period] = match;
+    
+    // Convert hours to 24-hour format
+    hours = parseInt(hours, 10);
+    if (period.toUpperCase() === "PM" && hours < 12) hours += 12;
+    if (period.toUpperCase() === "AM" && hours === 12) hours = 0;
+    
+    // Get the current date in UTC
+    const now = new Date();
+    
+    // Create a UTC date to ensure consistent timezone handling
+    const date = new Date(Date.UTC(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      hours,
+      parseInt(minutes, 10),
+      0,
+      0
+    ));
+    
+    return date.toISOString();
   };
 
   // Toast notification component
@@ -626,15 +529,26 @@ function BabyStool() {
         </h1>
       </div>
       
+      {/* Next stool check reminder box */}
+      <div className={styles.reminderBox}>
+        <div className={styles.reminderIcon}>
+          <FaToilet size={20} color="#674ea7" />
+        </div>
+        <div>
+          <p className={styles.reminderMain}>{t("Regular stool tracking helps monitor baby's digestive health")}</p>
+          <p className={styles.reminderSub}>
+            {stoolData.length > 0 && stoolData[0].changes.length > 0 
+              ? `${t("Last recorded")}: ${stoolData[0].changes[0].time} • ${stoolData[0].changes[0].color}` 
+              : t("No stool records yet.")}
+          </p>
+        </div>
+      </div>
+
       {/* Display stool data by date */}
       {stoolData.length > 0 ? (
         stoolData.map((day, idx) => {
           const { dayNumber, restOfDate } = formatDateDisplay(day.date);
-          
-          // Format today's date in YYYY-MM-DD format for comparison
-          const now = new Date();
-          const todayFormatted = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-          const today = todayFormatted === day.date;
+          const today = new Date().toISOString().split('T')[0] === day.date;
           
           return (
             <div key={idx} className={styles.dayCard}>
@@ -712,20 +626,6 @@ function BabyStool() {
         <Modal.Body>
           {modalError && <Alert variant="danger">{modalError}</Alert>}
           <Form>
-            <Form.Group className="mb-3" controlId="stoolDate">
-              <Form.Label>{t("Date")}</Form.Label>
-              <Form.Control
-                type="date"
-                value={formatLocalDate(selectedDate)}
-                onChange={(e) => {
-                  const date = e.target.value
-                    ? new Date(e.target.value + "T00:00:00")
-                    : new Date();
-                  setSelectedDate(date);
-                }}
-              />
-            </Form.Group>
-          
             <Form.Group controlId="stoolTime" className="mb-3">
               <Form.Label>{t("Time")}</Form.Label>
               <div className={styles.timeRow}>
@@ -804,26 +704,13 @@ function BabyStool() {
 
             <Form.Group controlId="stoolNotes" className="mb-3">
               <Form.Label>{t("Notes")}</Form.Label>
-              <div className="d-flex align-items-start">
-                <Form.Control
-                  as="textarea"
-                  rows={3}
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder={t("Optional notes about the stool or baby's behavior")}
-                />
-                <Button
-                  variant="link"
-                  className="ms-2 p-0"
-                  onClick={() => handleVoiceInput("notes")}
-                >
-                  {isListening && currentInputField === "notes" ? (
-                    <FaMicrophoneSlash className="text-danger" />
-                  ) : (
-                    <FaMicrophone className="text-primary" />
-                  )}
-                </Button>
-              </div>
+              <Form.Control
+                as="textarea"
+                rows={3}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder={t("Optional notes about the stool or baby's behavior")}
+              />
               <Form.Text className="text-muted">
                 {`${notes.length}/255 ${t("characters")}`}
               </Form.Text>
@@ -845,14 +732,6 @@ function BabyStool() {
           </Button>
         </Modal.Footer>
       </Modal>
-      
-      {/* Incompatible Browser Modal */}
-      {showIncompatibleModal && (
-        <IncompatibleBrowserModal
-          show={showIncompatibleModal}
-          onHide={() => setShowIncompatibleModal(false)}
-        />
-      )}
     </Container>
   );
 }
