@@ -54,7 +54,7 @@ export default function Reminders() {
           <BabyCard
             buttons={[
               {
-                name: "View Reminders",
+                name: t("View Reminders"),
                 functionHandler: handleSelectBaby,
               },
             ]}

@@ -4,8 +4,12 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import styles from "./export.module.css";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 const ExportDataPage = () => {
+  const { t } = useTranslation("common");
+
   const [selectedOptions, setSelectedOptions] = useState({
     babyInfo: true,
     growthRecords: true,
@@ -131,10 +135,10 @@ const ExportDataPage = () => {
 
   return (
     <div className="container mt-5">
-      <h1>Export Baby Health Data</h1>
+      <h1>{t("Export Baby Health Data")}</h1>
       <div className="card p-4 mt-4">
         {/* Select Types of Data to Export */}
-        <h4>Select Data to Export</h4>
+        <h4>{t("Select Data to Export")}</h4>
         {Object.keys(selectedOptions).map((option) => (
           <div className="form-check" key={option}>
             <input
@@ -146,18 +150,18 @@ const ExportDataPage = () => {
               onChange={handleCheckboxChange}
             />
             <label className="form-check-label" htmlFor={option}>
-              {option === "babyInfo" && "Baby Information"}
-              {option === "growthRecords" && "Growth Records"}
-              {option === "milestones" && "Milestones Information"}
-              {option === "feedingSchedule" && "Feeding Schedule"}
-              {option === "stoolRecords" && "Stool Records"}
+              {option === "babyInfo" && t("Baby Information")}
+              {option === "growthRecords" && t("Growth Records")}
+              {option === "milestones" && t("Milestones Information")}
+              {option === "feedingSchedule" && t("Feeding Schedule")}
+              {option === "stoolRecords" && t("Stool Records")}
             </label>
           </div>
         ))}
         <hr />
 
         {/* Select Export Format */}
-        <h4>Select Export Format</h4>
+        <h4>{t("Select Export Format")}</h4>
         <div className="form-check">
           <input
             type="radio"
@@ -189,10 +193,10 @@ const ExportDataPage = () => {
         <hr />
 
         {/* Enter Dates */}
-        <h4>Enter Dates</h4>
+        <h4>{t("Enter Dates")}</h4>
         <div className="row">
           <div className="col-md-6">
-            <label>Start Date</label>
+            <label>{t("Start Date")}</label>
             <DatePicker
               selected={startDate}
               onChange={(date) => setStartDate(date)}
@@ -201,7 +205,7 @@ const ExportDataPage = () => {
             />
           </div>
           <div className="col-md-6">
-            <label>End Date</label>
+            <label>{t("End Date")}</label>
             <DatePicker
               selected={endDate}
               onChange={(date) => setEndDate(date)}
@@ -213,7 +217,7 @@ const ExportDataPage = () => {
         </div>
         {error && <div className="alert alert-danger mt-3">{error}</div>}
         <button className={styles.button} onClick={handleExport}>
-          Export Data
+          {t("Export Data")}
         </button>
       </div>
 
@@ -258,3 +262,11 @@ const ExportDataPage = () => {
 };
 
 export default ExportDataPage;
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
+  };
+}

@@ -148,7 +148,7 @@ function ProfilePage() {
                 <Card.Title>
                   {profile.first_name} {profile.last_name}
                 </Card.Title>
-                <Card.Text>{profile.role}</Card.Text>
+                <Card.Text>{t(profile.role)}</Card.Text>
               </div>
 
               {/* Edit Button */}

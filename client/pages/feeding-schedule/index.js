@@ -1,7 +1,22 @@
 // client/pages/feeding-schedule/index.js
 import React, { useState, useEffect } from "react";
-import { Modal, Form, Button, Alert, Row, Col, InputGroup } from "react-bootstrap";
-import { parseISO, format, compareDesc, isAfter, isBefore, isSameDay } from "date-fns";
+import {
+  Modal,
+  Form,
+  Button,
+  Alert,
+  Row,
+  Col,
+  InputGroup,
+} from "react-bootstrap";
+import {
+  parseISO,
+  format,
+  compareDesc,
+  isAfter,
+  isBefore,
+  isSameDay,
+} from "date-fns";
 import { AiOutlineInfoCircle } from "react-icons/ai";
 import { FaBell, FaBabyCarriage, FaEdit, FaTrash } from "react-icons/fa";
 import styles from "./feeding-schedule.module.css";
@@ -40,14 +55,14 @@ function calculateReminderTime(baseHour, baseMinute, baseAmPm, addMinutes) {
   // Convert to 24-hour format for calculation
   let hour24 = parseInt(baseHour, 10);
   const minute = parseInt(baseMinute, 10);
-  
+
   // Convert to 24-hour format
   if (baseAmPm === "PM" && hour24 < 12) {
     hour24 += 12;
   } else if (baseAmPm === "AM" && hour24 === 12) {
     hour24 = 0;
   }
-  
+
   // Create a Date object with the current date and the provided time
   const now = new Date();
   const baseTime = new Date(
@@ -55,28 +70,31 @@ function calculateReminderTime(baseHour, baseMinute, baseAmPm, addMinutes) {
     now.getMonth(),
     now.getDate(),
     hour24,
-    minute
+    minute,
   );
-  
+
   // Add the specified minutes to get the reminder time
   const reminderTime = new Date(baseTime.getTime() + addMinutes * 60000);
-  
+
   // Convert back to 12-hour format
   let reminderHour = reminderTime.getHours();
   const reminderMinute = reminderTime.getMinutes();
   const reminderAmPm = reminderHour >= 12 ? "PM" : "AM";
-  
+
   // Convert hour back to 12-hour format
   reminderHour = reminderHour % 12 || 12;
-  
+
   // Format the time
   return {
     hour: reminderHour,
     minute: String(reminderMinute).padStart(2, "0"),
     amPm: reminderAmPm,
-    formattedTime: `${reminderHour}:${String(reminderMinute).padStart(2, "0")} ${reminderAmPm}`,
+    formattedTime: `${reminderHour}:${String(reminderMinute).padStart(
+      2,
+      "0",
+    )} ${reminderAmPm}`,
     // Also return the date in case it's needed (if reminder crosses midnight)
-    date: reminderTime.toISOString().split('T')[0]
+    date: reminderTime.toISOString().split("T")[0],
   };
 }
 
@@ -156,9 +174,9 @@ const createToastId = () => {
 // Format reminder notes for display with proper line breaks
 const formatReminderNotes = (notes) => {
   if (!notes) return "";
-  
+
   // Split by line breaks and add appropriate HTML
-  return notes.split('\n\n').map((paragraph, i) => (
+  return notes.split("\n\n").map((paragraph, i) => (
     <React.Fragment key={i}>
       {i > 0 && <br />}
       {paragraph}
@@ -199,7 +217,7 @@ const FeedingSchedule = () => {
   const [reminderEnabled, setReminderEnabled] = useState(false);
   const [toasts, setToasts] = useState([]);
   const [selectedBaby, setSelectedBaby] = useState(null);
-  
+
   // Enhanced reminder customization
   const [reminderCustomTitle, setReminderCustomTitle] = useState("");
   const [reminderPresets] = useState([
@@ -207,10 +225,12 @@ const FeedingSchedule = () => {
     { label: "2 hours", value: "120", default: true },
     { label: "3 hours", value: "180" },
   ]);
-  
+
   // Initialize with the default preset (2 hours)
-  const defaultPreset = reminderPresets.find(preset => preset.default);
-  const [remindMinutes, setRemindMinutes] = useState(defaultPreset ? defaultPreset.value : "120");
+  const defaultPreset = reminderPresets.find((preset) => preset.default);
+  const [remindMinutes, setRemindMinutes] = useState(
+    defaultPreset ? defaultPreset.value : "120",
+  );
 
   // NextFeedingReminderBanner component with better error handling
   const NextFeedingReminderBanner = ({ babyId }) => {
@@ -218,29 +238,29 @@ const FeedingSchedule = () => {
     const [error, setError] = useState(null);
     const [nextReminder, setNextReminder] = useState(null);
     const [lastFeed, setLastFeed] = useState(null);
-    
+
     useEffect(() => {
       // Skip if no babyId is provided
       if (!babyId) return;
-      
+
       const fetchReminders = async () => {
         try {
           setLoading(true);
-          
+
           // Try to fetch reminders, but handle API errors gracefully
           try {
             const response = await fetch(
               `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${babyId}/reminders`,
               {
                 headers: {
-                  Authorization: `Bearer ${localStorage.getItem('token')}`,
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
                 },
-              }
+              },
             );
-            
+
             if (response.ok) {
               const data = await response.json();
-              
+
               // Instead of throwing an error, just log it and continue
               if (!data.success) {
                 console.warn("API returned unsuccessful response:", data);
@@ -249,19 +269,21 @@ const FeedingSchedule = () => {
               } else {
                 // Process the successful data
                 const upcomingReminders = (data.data || [])
-                  .filter(r => r.is_active && r.next_reminder)
+                  .filter((r) => r.is_active && r.next_reminder)
                   .sort((a, b) => {
                     // Compare dates first
                     const dateA = new Date(a.date);
                     const dateB = new Date(b.date);
                     if (dateA < dateB) return -1;
                     if (dateA > dateB) return 1;
-                    
+
                     // If same date, compare times
                     return a.time.localeCompare(b.time);
                   });
-                
-                setNextReminder(upcomingReminders.length > 0 ? upcomingReminders[0] : null);
+
+                setNextReminder(
+                  upcomingReminders.length > 0 ? upcomingReminders[0] : null,
+                );
               }
             } else {
               console.warn("Reminders API returned status:", response.status);
@@ -272,18 +294,18 @@ const FeedingSchedule = () => {
             setError("Could not connect to reminders service");
             // Continue to try fetching latest feed even if reminders fail
           }
-          
+
           // Try to fetch the latest feed as a separate operation
           try {
             const feedResponse = await fetch(
               `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${babyId}/getLatestFeed`,
               {
                 headers: {
-                  Authorization: `Bearer ${localStorage.getItem('token')}`,
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
                 },
-              }
+              },
             );
-            
+
             if (feedResponse.ok) {
               const feedData = await feedResponse.json();
               if (feedData.success && feedData.data) {
@@ -298,19 +320,19 @@ const FeedingSchedule = () => {
           setLoading(false);
         }
       };
-      
+
       fetchReminders();
-      
+
       // Disable auto-refresh for now until the API issues are fixed
       // const intervalId = setInterval(fetchReminders, 60000);
       // return () => clearInterval(intervalId);
     }, [babyId]);
-    
+
     // Show nothing if loading or if there's an error but no last feed
     if (loading || (error && !lastFeed)) {
       return null;
     }
-    
+
     // If no reminder, show last feed info if available
     if (!nextReminder) {
       if (lastFeed) {
@@ -328,55 +350,61 @@ const FeedingSchedule = () => {
           </div>
         );
       }
-      
+
       return null;
     }
-    
+
     // Calculate time remaining until reminder
     const getReminderTimeString = () => {
       const now = new Date();
       const reminderDate = new Date(nextReminder.date);
-      
+
       // Parse the time (HH:MM format)
-      const [hours, minutes] = nextReminder.time.split(':').map(Number);
+      const [hours, minutes] = nextReminder.time.split(":").map(Number);
       reminderDate.setHours(hours);
       reminderDate.setMinutes(minutes);
-      
+
       const timeDiffMs = reminderDate - now;
-      
+
       // If reminder is in the past
       if (timeDiffMs < 0) {
-        return 'Reminder is due now';
+        return "Reminder is due now";
       }
-      
+
       // Convert to minutes
       const minutesRemaining = Math.ceil(timeDiffMs / (1000 * 60));
-      
+
       if (minutesRemaining < 60) {
-        return `in ${minutesRemaining} minute${minutesRemaining === 1 ? '' : 's'}`;
+        return `in ${minutesRemaining} minute${
+          minutesRemaining === 1 ? "" : "s"
+        }`;
       }
-      
+
       const hoursRemaining = Math.floor(minutesRemaining / 60);
       const remainingMinutes = minutesRemaining % 60;
-      
+
       if (remainingMinutes === 0) {
-        return `in ${hoursRemaining} hour${hoursRemaining === 1 ? '' : 's'}`;
+        return `in ${hoursRemaining} hour${hoursRemaining === 1 ? "" : "s"}`;
       }
-      
-      return `in ${hoursRemaining} hour${hoursRemaining === 1 ? '' : 's'} and ${remainingMinutes} minute${remainingMinutes === 1 ? '' : 's'}`;
+
+      return `in ${hoursRemaining} hour${
+        hoursRemaining === 1 ? "" : "s"
+      } and ${remainingMinutes} minute${remainingMinutes === 1 ? "" : "s"}`;
     };
-    
+
     return (
       <div className={styles.feedDueBox}>
         <div className={styles.feedDueIcon}>
           <FaBell size={20} color="#674ea7" />
         </div>
         <div>
-          <p className={styles.feedDueMain}>{nextReminder.title || 'Feed is due'} {getReminderTimeString()}</p>
+          <p className={styles.feedDueMain}>
+            {nextReminder.title || "Feed is due"} {getReminderTimeString()}
+          </p>
           <p className={styles.feedDueSub}>
-            {lastFeed 
+            {lastFeed
               ? `Last feed at ${lastFeed.time} • ${lastFeed.amount} oz`
-              : 'Set up regular feeding times for your baby'}
+              : "Set up regular feeding times for your baby"}
           </p>
         </div>
       </div>
@@ -619,15 +647,15 @@ const FeedingSchedule = () => {
             notes: feedData.notes,
             date: getLocalTodayString(),
           }),
-        }
+        },
       );
-  
+
       const feedResult = await feedResponse.json();
-  
+
       if (feedResult.status !== "ok") {
         throw new Error("Failed to save feed entry");
       }
-  
+
       // Step 2: Create a reminder if enabled
       if (reminderData) {
         try {
@@ -635,9 +663,9 @@ const FeedingSchedule = () => {
           // Format the time to ensure it includes AM/PM
           const reminderTime = reminderData.time;
           const reminderTimeWithAmPm = `${reminderTime} ${reminderData.amPm}`;
-          
-          console.log('Sending reminder with time:', reminderTimeWithAmPm);
-          
+
+          console.log("Sending reminder with time:", reminderTimeWithAmPm);
+
           const reminderResponse = await fetch(
             `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${babyId}/reminders`,
             {
@@ -653,25 +681,32 @@ const FeedingSchedule = () => {
                 notes: reminderData.notes,
                 isActive: reminderData.isActive,
                 nextReminder: reminderData.nextReminder,
-                reminderIn: reminderData.reminderIn
+                reminderIn: reminderData.reminderIn,
               }),
-            }
+            },
           );
-  
+
           if (reminderResponse.ok) {
-            showToast(
-              "Feed and reminder saved successfully!"
-            );
+            showToast("Feed and reminder saved successfully!");
             return { feedSaved: true, reminderSaved: true };
           } else {
             const reminderResult = await reminderResponse.json();
-            console.warn("Reminder creation returned unsuccessful response:", reminderResult);
-            showToast("Feed saved successfully, but reminder creation failed.", "warning");
+            console.warn(
+              "Reminder creation returned unsuccessful response:",
+              reminderResult,
+            );
+            showToast(
+              "Feed saved successfully, but reminder creation failed.",
+              "warning",
+            );
             return { feedSaved: true, reminderSaved: false };
           }
         } catch (reminderError) {
           console.error("Error creating reminder:", reminderError);
-          showToast("Feed saved successfully, but reminder creation failed.", "warning");
+          showToast(
+            "Feed saved successfully, but reminder creation failed.",
+            "warning",
+          );
           return { feedSaved: true, reminderSaved: false };
         }
       } else {
@@ -685,7 +720,7 @@ const FeedingSchedule = () => {
       return { feedSaved: false, reminderSaved: false };
     }
   };
-  
+
   const handleOpenAddFeedModal = (baby_id) => {
     setNewModalError("");
     setNewMeal("Breakfast");
@@ -699,11 +734,11 @@ const FeedingSchedule = () => {
     setNewNote("");
     setReminderEnabled(false);
     setReminderCustomTitle("");
-    
+
     // Reset to default reminder time (2 hours)
-    const defaultPreset = reminderPresets.find(preset => preset.default);
+    const defaultPreset = reminderPresets.find((preset) => preset.default);
     setRemindMinutes(defaultPreset ? defaultPreset.value : "120");
-    
+
     setAddFeedModalShow(true);
     setSelectedBaby(baby_id);
   };
@@ -711,26 +746,36 @@ const FeedingSchedule = () => {
   // UPDATED: handleSaveNewFeed with proper time calculation
   const handleSaveNewFeed = async () => {
     setNewModalError("");
-    
+
     // Validate time inputs
     const parsedHour = parseInt(newHour, 10);
     const parsedMinute = parseInt(newMinute, 10);
-    
-    if (parsedHour < 1 || parsedHour > 12 || parsedMinute < 0 || parsedMinute > 59) {
-      setNewModalError("Please enter a valid time (1-12 for hour, 0-59 for minute).");
+
+    if (
+      parsedHour < 1 ||
+      parsedHour > 12 ||
+      parsedMinute < 0 ||
+      parsedMinute > 59
+    ) {
+      setNewModalError(
+        "Please enter a valid time (1-12 for hour, 0-59 for minute).",
+      );
       return;
     }
-    
+
     // Validate amount
     const parsedAmount = parseFloat(newAmount) || 0;
     if (parsedAmount <= 0) {
       setNewModalError("Amount must be greater than 0.");
       return;
     }
-    
+
     // Format time string
-    const timeStr = `${parsedHour}:${String(parsedMinute).padStart(2, "0")} ${newAmPm}`;
-    
+    const timeStr = `${parsedHour}:${String(parsedMinute).padStart(
+      2,
+      "0",
+    )} ${newAmPm}`;
+
     // Create feed data object
     const feedData = {
       meal: newMeal,
@@ -738,9 +783,9 @@ const FeedingSchedule = () => {
       type: newType,
       amount: parsedAmount,
       issues: newIssues,
-      notes: newNote
+      notes: newNote,
     };
-    
+
     // Create reminder data if enabled
     let reminderData = null;
     if (reminderEnabled) {
@@ -749,51 +794,59 @@ const FeedingSchedule = () => {
         setNewModalError("Please enter a valid reminder time (minutes).");
         return;
       }
-      
+
       // Calculate reminder time using our dedicated function
       const reminderTimeResult = calculateReminderTime(
         newHour,
         newMinute,
         newAmPm,
-        parsedReminderMinutes
+        parsedReminderMinutes,
       );
-      
+
       // Use the custom title if provided, otherwise use the default format
-      const reminderTitle = reminderCustomTitle || `Next feeding time (after ${newMeal})`;
-      
+      const reminderTitle =
+        reminderCustomTitle || `Next feeding time (after ${newMeal})`;
+
       // Format notes with proper line breaks and sections
       let reminderNotes = `Last meal: ${newMeal} - ${newType} (${parsedAmount} oz)`;
-      
+
       // Add any issues if present
       if (newIssues && newIssues.trim()) {
         reminderNotes += `\n\nIssues: ${newIssues}`;
       }
-      
+
       // Add any additional notes if present
       if (newNote && newNote.trim()) {
         reminderNotes += `\n\nNotes: ${newNote}`;
       }
-      
+
       // IMPORTANT: Include the complete time information including AM/PM
       reminderData = {
         title: reminderTitle,
-        time: `${reminderTimeResult.hour}:${reminderTimeResult.minute}`,  // Store without AM/PM for server
-        amPm: reminderTimeResult.amPm,  // Store AM/PM separately to ensure it's sent correctly
+        time: `${reminderTimeResult.hour}:${reminderTimeResult.minute}`, // Store without AM/PM for server
+        amPm: reminderTimeResult.amPm, // Store AM/PM separately to ensure it's sent correctly
         date: reminderTimeResult.date,
         notes: reminderNotes,
         isActive: true,
         nextReminder: true,
-        reminderIn: parsedReminderMinutes
+        reminderIn: parsedReminderMinutes,
       };
-      
+
       // For debugging
-      console.log('Calculated reminder time:', reminderTimeResult.formattedTime);
+      console.log(
+        "Calculated reminder time:",
+        reminderTimeResult.formattedTime,
+      );
     }
-    
+
     try {
       // Save the feed and create reminder
-      const result = await saveFeedAndCreateReminder(feedData, reminderData, selectedBaby);
-      
+      const result = await saveFeedAndCreateReminder(
+        feedData,
+        reminderData,
+        selectedBaby,
+      );
+
       if (result.feedSaved) {
         setAddFeedModalShow(false);
         router.reload();
@@ -812,7 +865,7 @@ const FeedingSchedule = () => {
     } else if (amPm === "AM" && hour24 === 12) {
       hour24 = 0;
     }
-    
+
     // Create a date object with current date and specified time
     const now = new Date();
     const baseTime = new Date(
@@ -820,21 +873,26 @@ const FeedingSchedule = () => {
       now.getMonth(),
       now.getDate(),
       hour24,
-      parseInt(minute, 10)
+      parseInt(minute, 10),
     );
-    
+
     // Add the specified minutes
-    const reminderTime = new Date(baseTime.getTime() + (parseInt(addMinutes, 10) * 60000));
-    
+    const reminderTime = new Date(
+      baseTime.getTime() + parseInt(addMinutes, 10) * 60000,
+    );
+
     // Format the time back to 12-hour format
     let reminderHour = reminderTime.getHours();
     const reminderMinute = reminderTime.getMinutes();
     const reminderAmPm = reminderHour >= 12 ? "PM" : "AM";
-    
+
     // Convert to 12-hour format
     reminderHour = reminderHour % 12 || 12;
-    
-    return `${reminderHour}:${String(reminderMinute).padStart(2, "0")} ${reminderAmPm}`;
+
+    return `${reminderHour}:${String(reminderMinute).padStart(
+      2,
+      "0",
+    )} ${reminderAmPm}`;
   };
 
   return (
@@ -850,15 +908,17 @@ const FeedingSchedule = () => {
                 {/* Additional header buttons can be added here if needed */}
               </div>
             </div>
-            
+
             {/* Temporarily comment out this line if you're still having issues */}
-            {selectedBaby && <NextFeedingReminderBanner babyId={selectedBaby} />}
+            {selectedBaby && (
+              <NextFeedingReminderBanner babyId={selectedBaby} />
+            )}
 
             <BabyCard
               buttons={[
-                { name: "See details", path: "feedingSchedule" },
+                { name: t("See details"), path: "feedingSchedule" },
                 {
-                  name: "Add meal",
+                  name: t("Add meal"),
                   functionHandler: handleOpenAddFeedModal,
                 },
               ]}
@@ -881,7 +941,9 @@ const FeedingSchedule = () => {
                       <span className={styles.dateText}>{restOfDate}</span>
                     </div>
                     <div className={styles.dayHeaderRight}>
-                      <span className={styles.todayMeals}>Today&apos;s Meals</span>
+                      <span className={styles.todayMeals}>
+                        Today&apos;s Meals
+                      </span>
                     </div>
                   </div>
                   <table className={styles.mealsTable}>
@@ -1187,18 +1249,18 @@ const FeedingSchedule = () => {
                       onChange={(e) => setNewNote(e.target.value)}
                     />
                   </Form.Group>
-                  
+
                   {/* Enhanced Feeding Reminder Section */}
                   <div className="mt-4 mb-2 pt-3 border-top">
                     <div className="d-flex align-items-center">
                       <FaBell className="me-2" style={{ color: "#674ea7" }} />
-                      <h6 className="mb-0">Feeding Reminder</h6>
+                      <h6 className="mb-0">{t("Feeding Reminder")}</h6>
                     </div>
                     <p className="text-muted small mt-1">
-                      Set a reminder for the next feeding time
+                      {t("Set a reminder for the next feeding time")}
                     </p>
                   </div>
-                  
+
                   <div className={`${styles.reminderRow} form-switch`}>
                     <Form.Check
                       type="switch"
@@ -1208,44 +1270,55 @@ const FeedingSchedule = () => {
                         setReminderEnabled(!reminderEnabled);
                         // Set default values when enabling reminder
                         if (!reminderEnabled) {
-                          const defaultPreset = reminderPresets.find(preset => preset.default);
-                          setRemindMinutes(defaultPreset ? defaultPreset.value : "120");
+                          const defaultPreset = reminderPresets.find(
+                            (preset) => preset.default,
+                          );
+                          setRemindMinutes(
+                            defaultPreset ? defaultPreset.value : "120",
+                          );
                           setReminderCustomTitle("");
                         }
                       }}
                       label={t("Next feed reminder")}
                     />
-                    
+
                     {reminderEnabled && (
                       <div className={styles.reminderContainer}>
                         <p className={styles.reminderInfo}>
-                          You should be feeding your baby every 1–2 hours. Set a reminder for the next feeding time.
+                          {t(`You should be feeding your baby every 1–2 hours. Set a
+                          reminder for the next feeding time.`)}
                         </p>
-                        
+
                         {/* Reminder Title Customization */}
                         <Form.Group className="mb-3">
-                          <Form.Label>Reminder Title</Form.Label>
+                          <Form.Label>{t("Reminder Title")}</Form.Label>
                           <Form.Control
                             type="text"
-                            placeholder={`Next feeding time (after ${newMeal})`}
+                            placeholder={t(
+                              `Next feeding time (after ${newMeal})`,
+                            )}
                             value={reminderCustomTitle}
-                            onChange={(e) => setReminderCustomTitle(e.target.value)}
+                            onChange={(e) =>
+                              setReminderCustomTitle(e.target.value)
+                            }
                           />
                           <Form.Text className="text-muted">
-                            Leave blank to use the default title
+                            {t("Leave blank to use the default title")}
                           </Form.Text>
                         </Form.Group>
-                        
+
                         {/* Reminder Timing Options */}
                         <Form.Group className="mb-3">
-                          <Form.Label>Remind me in</Form.Label>
+                          <Form.Label>{t("Remind me in")}</Form.Label>
                           <div className="d-flex flex-wrap gap-2 mb-2">
                             {reminderPresets.map((preset) => (
-                              <Button 
+                              <Button
                                 key={preset.value}
                                 variant="outline-secondary"
                                 size="sm"
-                                className={remindMinutes === preset.value ? "active" : ""}
+                                className={
+                                  remindMinutes === preset.value ? "active" : ""
+                                }
                                 onClick={() => setRemindMinutes(preset.value)}
                               >
                                 {preset.label}
@@ -1260,31 +1333,56 @@ const FeedingSchedule = () => {
                               value={remindMinutes}
                               onChange={(e) => setRemindMinutes(e.target.value)}
                             />
-                            <InputGroup.Text>minutes</InputGroup.Text>
+                            <InputGroup.Text>{t("minutes")}</InputGroup.Text>
                           </InputGroup>
                         </Form.Group>
-                        
+
                         {/* UPDATED: Reminder Preview with correct time calculation */}
                         <div className={styles.reminderPreview}>
-                          <div className={styles.reminderPreviewTitle}>Reminder Preview:</div>
+                          <div className={styles.reminderPreviewTitle}>
+                            {t("Reminder Preview:")}
+                          </div>
                           <div className={styles.reminderPreviewItem}>
-                            <span className={styles.reminderPreviewLabel}>Title:</span>
+                            <span className={styles.reminderPreviewLabel}>
+                              {t("Title:")}
+                            </span>
                             <span className={styles.reminderPreviewValue}>
-                              {reminderCustomTitle || `Next feeding time (after ${newMeal})`}
+                              {reminderCustomTitle ||
+                                t(`Next feeding time (after ${newMeal})`)}
                             </span>
                           </div>
                           <div className={styles.reminderPreviewItem}>
-                            <span className={styles.reminderPreviewLabel}>When:</span>
+                            <span className={styles.reminderPreviewLabel}>
+                              {t("When:")}
+                            </span>
                             <span className={styles.reminderPreviewValue}>
-                              In {remindMinutes} minutes ({calculatePreviewTime(newHour, newMinute, newAmPm, remindMinutes)})
+                              {t("In")} {remindMinutes} {t("minutes")} (
+                              {calculatePreviewTime(
+                                newHour,
+                                newMinute,
+                                newAmPm,
+                                remindMinutes,
+                              )}
+                              )
                             </span>
                           </div>
                           <div className={styles.reminderPreviewItem}>
-                            <span className={styles.reminderPreviewLabel}>Notes:</span>
+                            <span className={styles.reminderPreviewLabel}>
+                              {t("Notes:")}
+                            </span>
                             <div className={styles.reminderPreviewValue}>
-                              Last meal: {newMeal} - {newType} {newAmount ? `(${newAmount} oz)` : ''}
-                              {newIssues && <div><strong>Issues:</strong> {newIssues}</div>}
-                              {newNote && <div><strong>Notes:</strong> {newNote}</div>}
+                              {t("Last meal:")} {newMeal} - {newType}{" "}
+                              {newAmount ? `(${newAmount} oz)` : ""}
+                              {newIssues && (
+                                <div>
+                                  <strong>{t("Issues:")}</strong> {newIssues}
+                                </div>
+                              )}
+                              {newNote && (
+                                <div>
+                                  <strong>{t("Notes:")}</strong> {newNote}
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>

@@ -98,7 +98,8 @@ export default function PostDetail({ post_id }) {
               replies?.length > 0
                 ? replies
                     .map(
-                      (reply, index) => `Reply ${index + 1}: ${reply.content}`,
+                      (reply, index) =>
+                        `${t("Reply")} ${index + 1}: ${reply.content}`,
                     )
                     .join("\n\n")
                 : t("No replies")

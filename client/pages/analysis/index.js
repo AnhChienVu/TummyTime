@@ -53,7 +53,7 @@ export default function Analysis() {
           <BabyCard
             buttons={[
               {
-                name: "View Analysis",
+                name: t("View Analysis"),
                 functionHandler: handleSelectBaby,
               },
             ]}
