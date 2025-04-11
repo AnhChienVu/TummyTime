@@ -7,16 +7,12 @@ const { deleteStoolEntry } = require('../../../../src/routes/api/baby/stool/dele
 const { createSuccessResponse, createErrorResponse } = require('../../../../src/utils/response');
 const pool = require('../../../../database/db');
 const jwt = require('jsonwebtoken');
+const { checkBabyBelongsToUser } = require('../../../../src/utils/babyAccessHelper');
 
 jest.mock('../../../../database/db');
 jest.mock('../../../../src/utils/response');
-
-const buildRes = () => {
-  const res = {};
-  res.status = jest.fn().mockReturnValue(res);
-  res.json = jest.fn().mockReturnValue(res);
-  return res;
-};
+jest.mock('jsonwebtoken');
+jest.mock('../../../../src/utils/babyAccessHelper');
 
 describe('deleteStoolEntry direct invocation', () => {
   let req, res;
@@ -25,11 +21,21 @@ describe('deleteStoolEntry direct invocation', () => {
       params: { babyId: '1', stoolId: '1' },
       headers: {},
     };
-    res = buildRes();
+    res = {
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn().mockReturnThis()
+    };
     jest.clearAllMocks();
-    pool.query.mockReset();
-    createErrorResponse.mockReset();
-    createSuccessResponse.mockReset();
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  // Add this to address the graceful exit issue
+  afterAll(async () => {
+    // Allow any background promises to resolve
+    await new Promise(resolve => setTimeout(resolve, 500));
   });
 
   test('returns 400 for invalid babyId', async () => {
@@ -67,7 +73,7 @@ describe('deleteStoolEntry direct invocation', () => {
   test('returns 401 for token with no email in payload', async () => {
     req.headers.authorization = 'Bearer sometoken';
     // Stub jwt.decode to return an object without email
-    jwt.decode = jest.fn(() => ({}));
+    jwt.decode.mockReturnValue({});
     createErrorResponse.mockReturnValue({ error: 'Invalid token format' });
     await deleteStoolEntry(req, res);
     expect(jwt.decode).toHaveBeenCalledWith('sometoken');
@@ -77,7 +83,7 @@ describe('deleteStoolEntry direct invocation', () => {
 
   test('returns 404 if user not found in DB', async () => {
     req.headers.authorization = 'Bearer sometoken';
-    jwt.decode = jest.fn(() => ({ email: 'test@example.com' }));
+    jwt.decode.mockReturnValue({ email: 'test@example.com' });
     // Simulate user lookup returning no rows
     pool.query.mockResolvedValueOnce({ rows: [] });
     createErrorResponse.mockReturnValue({ error: 'User not found' });
@@ -86,13 +92,14 @@ describe('deleteStoolEntry direct invocation', () => {
     expect(res.json).toHaveBeenCalledWith({ error: 'User not found' });
   });
 
-  test('returns 403 if ownership not found', async () => {
+  test('returns 403 if user lacks ownership', async () => {
     req.headers.authorization = 'Bearer sometoken';
-    jwt.decode = jest.fn(() => ({ email: 'test@example.com' }));
-    // 1) User lookup returns a valid user
-    pool.query.mockResolvedValueOnce({ rows: [{ user_id: 2 }] });
-    // 2) Ownership check returns no rows
-    pool.query.mockResolvedValueOnce({ rows: [] });
+    jwt.decode.mockReturnValue({ email: 'test@example.com' });
+    // User lookup returns user_id 1
+    pool.query.mockResolvedValueOnce({ rows: [{ user_id: 1 }] });
+    // Mock checkBabyBelongsToUser to return false
+    checkBabyBelongsToUser.mockResolvedValueOnce(false);
+    
     createErrorResponse.mockReturnValue({ error: 'Forbidden' });
     await deleteStoolEntry(req, res);
     expect(res.status).toHaveBeenCalledWith(403);
@@ -101,13 +108,14 @@ describe('deleteStoolEntry direct invocation', () => {
 
   test('returns 404 if baby not found', async () => {
     req.headers.authorization = 'Bearer sometoken';
-    jwt.decode = jest.fn(() => ({ email: 'test@example.com' }));
-    // 1) User lookup returns a valid user
-    pool.query.mockResolvedValueOnce({ rows: [{ user_id: 2 }] });
-    // 2) Ownership check returns a result (ownership exists)
-    pool.query.mockResolvedValueOnce({ rows: [{ some: 'data' }] });
-    // 3) Baby existence check returns no rows
+    jwt.decode.mockReturnValue({ email: 'test@example.com' });
+    // User lookup returns a valid user
+    pool.query.mockResolvedValueOnce({ rows: [{ user_id: 1 }] });
+    // Mock checkBabyBelongsToUser to return true
+    checkBabyBelongsToUser.mockResolvedValueOnce(true);
+    // Baby existence check returns no rows
     pool.query.mockResolvedValueOnce({ rows: [] });
+    
     createErrorResponse.mockReturnValue({ error: 'Baby not found' });
     await deleteStoolEntry(req, res);
     expect(res.status).toHaveBeenCalledWith(404);
@@ -116,15 +124,16 @@ describe('deleteStoolEntry direct invocation', () => {
 
   test('returns 404 if stool entry not found', async () => {
     req.headers.authorization = 'Bearer sometoken';
-    jwt.decode = jest.fn(() => ({ email: 'test@example.com' }));
-    // 1) User lookup
-    pool.query.mockResolvedValueOnce({ rows: [{ user_id: 2 }] });
-    // 2) Ownership check
-    pool.query.mockResolvedValueOnce({ rows: [{ some: 'data' }] });
-    // 3) Baby exists
+    jwt.decode.mockReturnValue({ email: 'test@example.com' });
+    // User lookup
+    pool.query.mockResolvedValueOnce({ rows: [{ user_id: 1 }] });
+    // Mock checkBabyBelongsToUser to return true
+    checkBabyBelongsToUser.mockResolvedValueOnce(true);
+    // Baby exists
     pool.query.mockResolvedValueOnce({ rows: [{ baby_id: 1 }] });
-    // 4) Stool entry check returns empty
+    // Stool entry check returns empty
     pool.query.mockResolvedValueOnce({ rows: [] });
+    
     createErrorResponse.mockReturnValue({ error: 'Stool entry not found' });
     await deleteStoolEntry(req, res);
     expect(res.status).toHaveBeenCalledWith(404);
@@ -133,17 +142,18 @@ describe('deleteStoolEntry direct invocation', () => {
 
   test('successful deletion returns 200', async () => {
     req.headers.authorization = 'Bearer sometoken';
-    jwt.decode = jest.fn(() => ({ email: 'test@example.com' }));
-    // 1) User lookup returns a valid user
-    pool.query.mockResolvedValueOnce({ rows: [{ user_id: 2 }] });
-    // 2) Ownership check returns valid data
-    pool.query.mockResolvedValueOnce({ rows: [{ some: 'data' }] });
-    // 3) Baby exists
+    jwt.decode.mockReturnValue({ email: 'test@example.com' });
+    // User lookup returns a valid user
+    pool.query.mockResolvedValueOnce({ rows: [{ user_id: 1 }] });
+    // Mock checkBabyBelongsToUser to return true
+    checkBabyBelongsToUser.mockResolvedValueOnce(true);
+    // Baby exists
     pool.query.mockResolvedValueOnce({ rows: [{ baby_id: 1 }] });
-    // 4) Stool entry exists
+    // Stool entry exists
     pool.query.mockResolvedValueOnce({ rows: [{ stool_id: 1 }] });
-    // 5) Deletion query (we don't check its result since we don't use it)
+    // Deletion query (we don't check its result since we don't use it)
     pool.query.mockResolvedValueOnce({});
+    
     createSuccessResponse.mockReturnValue({ message: 'Stool entry deleted successfully' });
     await deleteStoolEntry(req, res);
     expect(res.status).toHaveBeenCalledWith(200);
@@ -152,17 +162,18 @@ describe('deleteStoolEntry direct invocation', () => {
 
   test('returns 500 on error in try block', async () => {
     req.headers.authorization = 'Bearer sometoken';
-    jwt.decode = jest.fn(() => ({ email: 'test@example.com' }));
-    // 1) User lookup
-    pool.query.mockResolvedValueOnce({ rows: [{ user_id: 2 }] });
-    // 2) Ownership check
-    pool.query.mockResolvedValueOnce({ rows: [{ some: 'data' }] });
-    // 3) Baby exists
+    jwt.decode.mockReturnValue({ email: 'test@example.com' });
+    // User lookup
+    pool.query.mockResolvedValueOnce({ rows: [{ user_id: 1 }] });
+    // Mock checkBabyBelongsToUser to return true
+    checkBabyBelongsToUser.mockResolvedValueOnce(true);
+    // Baby exists
     pool.query.mockResolvedValueOnce({ rows: [{ baby_id: 1 }] });
-    // 4) Stool entry exists
+    // Stool entry exists
     pool.query.mockResolvedValueOnce({ rows: [{ stool_id: 1 }] });
-    // 5) Simulate an error thrown during the deletion query
+    // Simulate an error thrown during the deletion query
     pool.query.mockRejectedValueOnce(new Error('DB error'));
+    
     createErrorResponse.mockReturnValue({ error: 'Internal server error' });
     await deleteStoolEntry(req, res);
     expect(res.status).toHaveBeenCalledWith(500);

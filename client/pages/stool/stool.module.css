@@ -1,43 +1,12 @@
 .container {
-  margin-top: 80px;
-  max-width: 800px;
-  margin-left: auto;
-  margin-right: auto;
-  padding: 24px;
-  font-family: sans-serif;
+  max-width: 1200px;
+  margin-left: 50px;
+  padding: 12px;
+  margin-top: 20px;
 }
 
-.feedDueBox {
-  display: flex;
-  align-items: center;
-  background-color: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 16px;
-}
-
-.feedDueIcon {
-  width: 40px;
-  height: 40px;
-  background-color: #f5eefc;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8px;
-  margin-right: 16px;
-}
-
-.feedDueMain {
-  font-weight: 600;
-  margin: 0 0 4px;
-  color: #000;
-}
-
-.feedDueSub {
-  margin: 0;
-  font-size: 14px;
-  color: #777;
+.header {
+  margin-bottom: 20px;
 }
 
 .headerRow {
@@ -53,202 +22,86 @@
   margin: 0;
 }
 
-.headerActions {
+/* Toast messages at top-center */
+.toastContainer {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
   display: flex;
+  flex-direction: column;
   gap: 8px;
+  width: auto;
 }
 
-.exportBtn {
-  background-color: #eadcec;
-  color: #4a235a;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 16px;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.exportBtn:hover {
-  background-color: #e3c6ff;
-}
-
-.addFeedBtn {
-  background-color: #6b56d1;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  padding: 8px 16px;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.addFeedBtn:hover {
-  background-color: #a89fd4;
-}
-
-.dayCard {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  margin-bottom: 24px;
+.toastMessage {
+  display: flex;
+  align-items: center;
   background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: #444;
+  font-size: 14px;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  margin: 0 auto;
 }
 
-.dayHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px;
-  border-bottom: 1px solid #eee;
-}
-
-.dayInfo {
-  display: flex;
-  align-items: center;
-}
-
-.dateCircle {
-  width: 34px;
-  height: 34px;
-  background-color: #674ea7;
+.toastIconCircle {
+  width: 24px;
+  height: 24px;
+  background-color: #b3e6b3;
   border-radius: 50%;
-  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 600;
-  margin-right: 12px;
-  font-size: 16px;
+  margin-right: 8px;
 }
 
-.dateNumber {
-  font-weight: 600;
-  font-size: 16px;
-  color: #674ea7;
-  margin-right: 12px;
+.toastIconCircle.error {
+  background-color: #f8d7da;
 }
 
-.dateText {
-  font-weight: 600;
-  font-size: 16px;
+.toastIconCircle.warning {
+  background-color: #fff3cd;
 }
 
-.dayHeaderRight {
-  text-align: right;
-}
-
-.todayMeals {
-  font-weight: 500;
-  color: #888;
-}
-
-.mealsTable {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 0;
-}
-
-.mealsTable thead th {
-  text-align: left;
-  font-weight: 600;
-  color: #555;
-  padding: 12px 16px;
-  border-bottom: 1px solid #eee;
-  font-size: 14px;
-}
-
-.mealsTable tbody td {
-  padding: 12px 16px;
-  border-bottom: 1px solid #f5f5f5;
-  vertical-align: top;
-  font-size: 14px;
-  color: #333;
-}
-
-.mealTitle {
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-
-.mealTime {
-  font-size: 12px;
-  color: #888;
-}
-
-.actionCell {
-  text-align: right;
-  width: 50px;
-}
-
-.editBtn {
+.toastClose {
+  margin-left: auto;
   background: none;
   border: none;
-  cursor: pointer;
-  color: #6c757d;
   font-size: 16px;
-  padding: 4px;
-  transition: color 0.2s;
-}
-
-.editBtn:hover {
-  color: #343a40;
-}
-
-.deleteBtn {
-  background: none;
-  border: none;
   cursor: pointer;
-  color: #dc3545; /* a red hue */
-  font-size: 16px;
-  padding: 4px;
-  transition: color 0.2s;
+  color: #666;
 }
 
-.deleteBtn:hover {
-  color: #b52b37; /* darker red on hover */
+/* Modal styles */
+.modalContainer {
+  position: relative;
+  transition: filter 0.3s ease;
 }
 
-.addBtn {
-  background: none;
-  border: none;
-  color: #6b4cff;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 4px;
-  margin-top: 8px;
+.modalBlur {
+  filter: blur(3px);
+  pointer-events: none;
+  user-select: none;
 }
 
-.addBtn:hover {
-  text-decoration: underline;
+/* Save Button Styling */
+.btnSave {
+  background-color: #e8d9ff;
+  color: #4a235a;
+  border: 1px solid #b28ced;
 }
 
-.exportModalSubtext {
-  margin-bottom: 16px;
-  font-size: 14px;
-  color: #6f6f6f;
+.btnSave:hover {
+  background-color: #dfc9ff;
+  color: #4a235a;
 }
 
-.exportModalLabel {
-  font-weight: 600;
-  color: #333;
-}
-
-.exportDateRow {
-  display: flex;
-  gap: 8px;
-}
-
-.dateInput {
-  flex: 1;
-  min-width: 0;
-}
-
-.exportError {
-  margin-top: 8px;
-  color: red;
-  font-weight: 500;
-}
-
-/* Time row (hour, minute, am/pm) */
+/* Time input styling */
 .timeRow {
   display: flex;
   align-items: center;
@@ -306,10 +159,38 @@
 }
 
 .amPmBtnActive {
-  background-color: #b28ced;
-  color: #fff;
+  background-color: #674ea7;
+  color: white;
   border: none;
   padding: 6px 12px;
   font-size: 14px;
   cursor: pointer;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .container {
+    padding: 16px;
+    margin-left: 20px;
+  }
+
+  .toastContainer {
+    left: 20px;
+    right: 20px;
+  }
+
+  .toastMessage {
+    min-width: unset;
+    max-width: unset;
+    width: 100%;
+  }
+  
+  .timeRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .timeSegment, .amPmSegment {
+    width: 100%;
+  }
 }

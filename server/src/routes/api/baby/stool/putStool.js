@@ -6,6 +6,7 @@ const logger = require('../../../../utils/logger');
 const { createSuccessResponse, createErrorResponse } = require('../../../../utils/response');
 const pool = require('../../../../../database/db');
 const jwt = require('jsonwebtoken');
+const { checkBabyBelongsToUser } = require('../../../../utils/babyAccessHelper');
 
 module.exports.updateStoolEntry = async (req, res) => {
   const { babyId, stoolId } = req.params;
@@ -32,7 +33,6 @@ module.exports.updateStoolEntry = async (req, res) => {
 
   try {
     // Decode JWT token from Authorization header to extract user's email.
-    // Note: jwt.decode does not verify the token signature.
     const authHeader = req.headers.authorization;
     if (!authHeader) {
       logger.warn('No authorization header found');
@@ -57,18 +57,16 @@ module.exports.updateStoolEntry = async (req, res) => {
       logger.warn(`User not found in DB for email=${userEmail}`);
       return res.status(404).json(createErrorResponse(404, 'User not found'));
     }
-    const localUserId = userResult.rows[0].user_id;
-    logger.info(`Mapped email=${userEmail} to local user_id=${localUserId}`);
+    const userId = userResult.rows[0].user_id;
+    logger.info(`Got user_id=${userId} from token`);
     
    // {CHECK OWNERSHIP of BABY}
     // Verify user has access to this baby 
     // Check user ownership in user_baby table to ensure the user is authorized.
-    const ownershipRes = await pool.query(
-      'SELECT * FROM user_baby WHERE user_id = $1 AND baby_id = $2',
-      [localUserId, numericBabyId]
-    );
-    if (ownershipRes.rows.length === 0) {
-      logger.info(`User ${localUserId} not authorized for babyId=${numericBabyId}`);
+    
+    const hasBabyAccess = await checkBabyBelongsToUser(numericBabyId, userId);
+    if (!hasBabyAccess) {
+      logger.info(`User ${userId} not authorized for babyId=${numericBabyId}`);
       return res.status(403).json(createErrorResponse(403, 'Forbidden'));
     }
 
