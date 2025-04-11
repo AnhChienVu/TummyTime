@@ -31,12 +31,13 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
   const locale = i18n.language;
 
   return (
-    <div className={`${styles.container} ${isCollapsed ? styles.collapsed : ""}`}>
-      <div className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
-        <button
-          className={`${styles.toggleButton}`}
-          onClick={onToggleCollapse}
-          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+    <Col md={2} className={styles.sidebar}>
+      <Nav defaultActiveKey="/" className="flex-column">
+        <Nav.Link
+          as={Link}
+          href="/dashboard"
+          locale={locale}
+          className={styles.navlink}
         >
           {isCollapsed ? <MdChevronRight /> : <MdChevronLeft />}
         </button>
