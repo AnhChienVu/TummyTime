@@ -4,13 +4,13 @@ import React from "react";
 import styles from "./ForumCategories.module.css";
 import { useTranslation } from "next-i18next";
 
-const ForumCategories = ({ selectedCategory, setCategory }) => {
+const ForumCategories = ({ selectedCategory, setCategory, className }) => {
   const { t } = useTranslation("common");
   const categories = [
-    { id: "general", name: t("General Discussion"), icon: "💬" },
-    { id: "help", name: t("Help & Support"), icon: "❓" },
-    { id: "feedback", name: t("Feedback"), icon: "📝" },
-    { id: "other", name: t("Other"), icon: "📌" },
+    { id: "general", name: "General Discussion", icon: "💬" },
+    { id: "help", name: "Help & Support", icon: "❓" },
+    { id: "feedback", name: "Feedback", icon: "📝" },
+    { id: "other", name: "Other", icon: "📌" },
   ];
 
   const handleCategoryClick = (categoryId) => {
