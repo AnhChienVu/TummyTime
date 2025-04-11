@@ -44,12 +44,10 @@ export const ReminderProvider = ({ children, babyId }) => {
 
   useEffect(() => {
     const handleReminderCompleted = (event) => {
-      console.log("Reminder completed event received:", event.detail);
       fetchReminders(); // Refresh the reminders list
     };
   
     const handleReminderUpdated = (event) => {
-      console.log("Reminder updated event received:", event.detail);
       fetchReminders(); // Refresh the reminders list
     };
   
@@ -136,13 +134,9 @@ export const ReminderProvider = ({ children, babyId }) => {
     // Set the specific time from the original reminder
     originalDate.setHours(hours, minutes, 0, 0);
     
-    console.log(`Original reminder time: ${originalDate.toLocaleString()}`);
-    
     // Add hours to get the next reminder time - this correctly handles date rollover
     const nextReminderDate = new Date(originalDate.getTime());
     nextReminderDate.setTime(nextReminderDate.getTime() + (hoursToAdd * 60 * 60 * 1000));
-    
-    console.log(`Next reminder time after adding ${hoursToAdd} hours: ${nextReminderDate.toLocaleString()}`);
     
     // Format time for API (24-hour format)
     const nextHours = nextReminderDate.getHours().toString().padStart(2, '0');
@@ -151,8 +145,6 @@ export const ReminderProvider = ({ children, babyId }) => {
     
     // Format date as YYYY-MM-DD using proper method that preserves correct date
     const formattedDate = `${nextReminderDate.getFullYear()}-${(nextReminderDate.getMonth() + 1).toString().padStart(2, '0')}-${nextReminderDate.getDate().toString().padStart(2, '0')}`;
-    
-    console.log(`Calculated next reminder date: ${formattedDate}, time: ${formattedTime}`);
     
     // Create new reminder with updated date and time
     return {
@@ -290,14 +282,11 @@ export const ReminderProvider = ({ children, babyId }) => {
       
       // If next reminder is enabled, create it immediately
       if (formData.next_reminder && formData.reminder_in) {
-        console.log(`Creating next reminder in ${formData.reminder_in}`);
-        
         // Create the next reminder data
         const nextReminderData = createNextReminderData(formData);
         
         // Add the next reminder
         await addReminder(babyId, nextReminderData, API_BASE_URL);
-        console.log(`Created next reminder successfully`);
       }
       
       await fetchReminders();
@@ -321,14 +310,11 @@ export const ReminderProvider = ({ children, babyId }) => {
       
       // If next reminder is enabled, find and update or create it
       if (formData.next_reminder && formData.reminder_in) {
-        console.log(`Updating/Creating next reminder in ${formData.reminder_in}`);
-        
         // Create the next reminder data
         const nextReminderData = createNextReminderData(formData);
         
         // Add the next reminder
         await addReminder(babyId, nextReminderData, API_BASE_URL);
-        console.log(`Created/Updated next reminder successfully`);
       }
       
       await fetchReminders();
