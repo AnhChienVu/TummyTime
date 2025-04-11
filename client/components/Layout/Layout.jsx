@@ -18,6 +18,7 @@ const GlobalReminderPopup = dynamic(() => import("../Reminders/GlobalPopup"), {
 export default function Layout({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState("");
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const router = useRouter();
   const isHomePage = router.pathname === "/"; // Hide the side bar on home page
 
@@ -39,15 +40,22 @@ export default function Layout({ children }) {
       <TipsNotificationPopup />
       {isAuthenticated && <GlobalReminderPopup />}
       <Container fluid className={styles.container}>
-        {/* <Sidebar /> */}
         {!isHomePage && isAuthenticated ? (
           userRole === "Parent" ? (
-            <Sidebar />
+            <Sidebar
+              isCollapsed={isSidebarCollapsed}
+              onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            />
           ) : (
-            <DoctorSidebar />
+            <DoctorSidebar
+              isCollapsed={isSidebarCollapsed}
+              onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            />
           )
         ) : null}
-        <main className={styles.main}>
+        <main
+          className={`${styles.main} ${isSidebarCollapsed ? styles.mainCollapsed : ""}`}
+        >
           {children}
           <BackButton />
         </main>

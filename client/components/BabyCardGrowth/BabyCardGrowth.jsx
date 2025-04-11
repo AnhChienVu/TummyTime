@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, Button, Image } from "react-bootstrap";
+import { Card, Button, Image, Container } from "react-bootstrap";
 import styles from "./BabyCardGrowth.module.css";
 import { useTranslation } from "next-i18next";
 import Link from "next/link";
@@ -49,25 +49,24 @@ function BabyCardGrowth({ buttons }) {
   };
 
   return (
-    <div>
+    <Container className={styles.container} fluid>
       {babyProfiles.length > 0 ? (
         babyProfiles.map((baby) => (
-          <Card key={baby.baby_id} className="mb-3">
-            <Card.Body className="d-flex align-items-center">
+          <Card key={baby.baby_id} className={styles.card}>
+            <Card.Body className={styles.cardBody}>
               <Image
                 src="https://images.unsplash.com/photo-1674650638555-8a2c68584ddc?q=80&w=2027&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
                 alt="Profile"
-                className="rounded-circle me-3"
-                style={{ width: "80px", height: "80px" }}
+                className={styles.profileImage}
               />
-              <div className="flex-grow-1">
-                <Card.Title>
+              <div className={styles.cardContent}>
+                <Card.Title className={styles.cardTitle}>
                   {baby.first_name} {baby.last_name}
                 </Card.Title>
-                <Card.Text>
+                <Card.Text className={styles.cardText}>
                   {t("Gender")}: {baby.gender}
                 </Card.Text>
-                <Card.Text>
+                <Card.Text className={styles.cardText}>
                   {t("Weight")}: {baby.weight}lbs
                 </Card.Text>
               </div>
@@ -84,14 +83,13 @@ function BabyCardGrowth({ buttons }) {
                   </Button>
                 </Link>
               ))}
-
             </Card.Body>
           </Card>
         ))
       ) : (
         <p>No baby profiles found.</p>
       )}
-    </div>
+    </Container>
   );
 }
 

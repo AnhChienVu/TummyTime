@@ -522,6 +522,8 @@ export default function Journal() {
       <Container className={styles.container} fluid>
         <div className={styles.formContainer}>
           <h1 className={styles.title}>{t("My Journal")}</h1>
+          <hr />
+          <p className={styles.subtitle}>Record your thoughts...</p>
           {/* Create journal entry modal */}
           <Form onSubmit={handleSubmit(onSubmit)} className="mb-4">
             <Row className="mb-3">

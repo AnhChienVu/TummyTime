@@ -451,6 +451,7 @@ const Dashboard = () => {
               .split("T")[0];
             return postDate === today;
           })
+          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) // Sort by creation date, newest first
           .slice(0, 5); // Get only first 5 posts
 
         setTodayPosts(todaysPosts);

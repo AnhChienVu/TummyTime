@@ -6,7 +6,6 @@ import { useRouter } from "next/router";
 import { FaEdit, FaTrashAlt, FaRulerCombined, FaWeight } from "react-icons/fa";
 import { Modal, Button, Table, Alert } from "react-bootstrap";
 import { format, parseISO, set } from "date-fns";
-import "bootstrap/dist/css/bootstrap.min.css";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
@@ -142,6 +141,7 @@ const Growth = () => {
   const { id: babyId } = router.query;
 
   const [data, setData] = useState([]);
+  const [babyName, setBabyName] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [modalData, setModalData] = useState({
     date: new Date().toISOString().split("T")[0],
@@ -166,6 +166,32 @@ const Growth = () => {
       fetchGrowthData(babyId).then((fetchedData) => {
         setData(fetchedData);
       });
+    }
+  }, [babyId]);
+
+  useEffect(() => {
+    if (babyId) {
+      // Fetch baby info
+      const fetchBabyInfo = async () => {
+        try {
+          const res = await fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/v1/baby/${babyId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+              },
+            },
+          );
+          const data = await res.json();
+          if (data.status === "ok") {
+            setBabyName(data.data.first_name);
+          }
+        } catch (error) {
+          console.error("Error fetching baby info:", error);
+        }
+      };
+
+      fetchBabyInfo();
     }
   }, [babyId]);
 
@@ -327,6 +353,9 @@ const Growth = () => {
 
   return (
     <div className={styles.growthContainer}>
+      <h1 className={styles.heading}>
+        {babyName ? `${babyName}'s height and weight` : "Height and weight"}
+      </h1>
       {/* Measurement Cards */}
       <div className={styles.cardsRow}>
         <CustomStatsCard

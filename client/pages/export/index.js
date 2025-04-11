@@ -2,8 +2,9 @@
 import React, { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import "bootstrap/dist/css/bootstrap.min.css";
+// import "bootstrap/dist/css/bootstrap.min.css";
 import styles from "./export.module.css";
+import { Container } from "react-bootstrap";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
@@ -134,130 +135,132 @@ const ExportDataPage = () => {
   };
 
   return (
-    <div className="container mt-5">
-      <h1>{t("Export Baby Health Data")}</h1>
-      <div className="card p-4 mt-4">
-        {/* Select Types of Data to Export */}
-        <h4>{t("Select Data to Export")}</h4>
-        {Object.keys(selectedOptions).map((option) => (
-          <div className="form-check" key={option}>
+    <Container className={styles.container}>
+      <div className={styles.header}>
+        <h1>Export Baby Health Data</h1>
+        <div className="card p-4 mt-4">
+          {/* Select Types of Data to Export */}
+          <h4>Select Data to Export</h4>
+          {Object.keys(selectedOptions).map((option) => (
+            <div className="form-check" key={option}>
+              <input
+                className="form-check-input"
+                type="checkbox"
+                id={option}
+                name={option}
+                checked={selectedOptions[option]}
+                onChange={handleCheckboxChange}
+              />
+              <label className="form-check-label" htmlFor={option}>
+                {option === "babyInfo" && "Baby Information"}
+                {option === "growthRecords" && "Growth Records"}
+                {option === "milestones" && "Milestones Information"}
+                {option === "feedingSchedule" && "Feeding Schedule"}
+                {option === "stoolRecords" && "Stool Records"}
+              </label>
+            </div>
+          ))}
+          <hr />
+
+          {/* Select Export Format */}
+          <h4>Select Export Format</h4>
+          <div className="form-check">
             <input
+              type="radio"
+              id="csv"
+              name="exportFormat"
+              value="csv"
+              checked={exportFormat === "csv"}
+              onChange={(e) => setExportFormat(e.target.value)}
               className="form-check-input"
-              type="checkbox"
-              id={option}
-              name={option}
-              checked={selectedOptions[option]}
-              onChange={handleCheckboxChange}
             />
-            <label className="form-check-label" htmlFor={option}>
-              {option === "babyInfo" && t("Baby Information")}
-              {option === "growthRecords" && t("Growth Records")}
-              {option === "milestones" && t("Milestones Information")}
-              {option === "feedingSchedule" && t("Feeding Schedule")}
-              {option === "stoolRecords" && t("Stool Records")}
+            <label htmlFor="csv" className="form-check-label">
+              CSV
             </label>
           </div>
-        ))}
-        <hr />
-
-        {/* Select Export Format */}
-        <h4>{t("Select Export Format")}</h4>
-        <div className="form-check">
-          <input
-            type="radio"
-            id="csv"
-            name="exportFormat"
-            value="csv"
-            checked={exportFormat === "csv"}
-            onChange={(e) => setExportFormat(e.target.value)}
-            className="form-check-input"
-          />
-          <label htmlFor="csv" className="form-check-label">
-            CSV
-          </label>
-        </div>
-        <div className="form-check">
-          <input
-            type="radio"
-            id="pdf"
-            name="exportFormat"
-            value="pdf"
-            checked={exportFormat === "pdf"}
-            onChange={(e) => setExportFormat(e.target.value)}
-            className="form-check-input"
-          />
-          <label htmlFor="pdf" className="form-check-label">
-            PDF
-          </label>
-        </div>
-        <hr />
-
-        {/* Enter Dates */}
-        <h4>{t("Enter Dates")}</h4>
-        <div className="row">
-          <div className="col-md-6">
-            <label>{t("Start Date")}</label>
-            <DatePicker
-              selected={startDate}
-              onChange={(date) => setStartDate(date)}
-              className="form-control"
-              dateFormat="yyyy-MM-dd"
+          <div className="form-check">
+            <input
+              type="radio"
+              id="pdf"
+              name="exportFormat"
+              value="pdf"
+              checked={exportFormat === "pdf"}
+              onChange={(e) => setExportFormat(e.target.value)}
+              className="form-check-input"
             />
+            <label htmlFor="pdf" className="form-check-label">
+              PDF
+            </label>
           </div>
-          <div className="col-md-6">
-            <label>{t("End Date")}</label>
-            <DatePicker
-              selected={endDate}
-              onChange={(date) => setEndDate(date)}
-              className="form-control"
-              dateFormat="yyyy-MM-dd"
-              maxDate={new Date()}
-            />
-          </div>
-        </div>
-        {error && <div className="alert alert-danger mt-3">{error}</div>}
-        <button className={styles.button} onClick={handleExport}>
-          {t("Export Data")}
-        </button>
-      </div>
+          <hr />
 
-      {/* Modal to show download link */}
-      {modalVisible && (
-        <div
-          className="modal fade show"
-          style={{ display: "block" }}
-          tabIndex="-1"
-        >
-          <div className="modal-dialog" style={{ zIndex: 1050 }}>
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Export Successful</h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={closeModal}
-                ></button>
-              </div>
-              <div className="modal-body">
-                <p>Your export {exportFormat.toUpperCase()} is ready.</p>
-                <a href={downloadLink} download={downloadFileName}>
-                  Download {exportFormat.toUpperCase()}
-                </a>
-              </div>
-              <div className="modal-footer">
-                <button className="btn btn-secondary" onClick={closeModal}>
-                  Close
-                </button>
-              </div>
+          {/* Enter Dates */}
+          <h4>Enter Dates</h4>
+          <div className="row">
+            <div className="col-md-6">
+              <label>Start Date</label>
+              <DatePicker
+                selected={startDate}
+                onChange={(date) => setStartDate(date)}
+                className="form-control"
+                dateFormat="yyyy-MM-dd"
+              />
+            </div>
+            <div className="col-md-6">
+              <label>End Date</label>
+              <DatePicker
+                selected={endDate}
+                onChange={(date) => setEndDate(date)}
+                className="form-control"
+                dateFormat="yyyy-MM-dd"
+                maxDate={new Date()}
+              />
             </div>
           </div>
-          <div
-            className="modal-backdrop fade show"
-            style={{ zIndex: 1040 }}
-          ></div>
+          {error && <div className="alert alert-danger mt-3">{error}</div>}
+          <button className={styles.button} onClick={handleExport}>
+            Export Data
+          </button>
         </div>
-      )}
-    </div>
+
+        {/* Modal to show download link */}
+        {modalVisible && (
+          <div
+            className="modal fade show"
+            style={{ display: "block" }}
+            tabIndex="-1"
+          >
+            <div className="modal-dialog" style={{ zIndex: 1050 }}>
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Export Successful</h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={closeModal}
+                  ></button>
+                </div>
+                <div className="modal-body">
+                  <p>Your export {exportFormat.toUpperCase()} is ready.</p>
+                  <a href={downloadLink} download={downloadFileName}>
+                    Download {exportFormat.toUpperCase()}
+                  </a>
+                </div>
+                <div className="modal-footer">
+                  <button className="btn btn-secondary" onClick={closeModal}>
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div
+              className="modal-backdrop fade show"
+              style={{ zIndex: 1040 }}
+            ></div>
+          </div>
+        )}
+      </div>
+    </Container>
   );
 };
 

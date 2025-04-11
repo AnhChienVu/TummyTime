@@ -9,10 +9,27 @@ function Growth() {
   const { t } = useTranslation("common");
 
   return (
-    <div className="container mt-5">
-      <h1>{t("Growth")}</h1>
-      <BabyCardGrowth buttons={[{ name: t("See Details"), path: "growth" }]} />
-    </div>
+    <Container className={styles.container} fluid>
+      <Row className={styles.headerRow}>
+        <Col>
+          <h1 className={styles.title}>{t("Growths")}</h1>
+          <p>{t("Manage your baby's height and weight data")}</p>
+        </Col>
+      </Row>
+
+      <Row>
+        <Col>
+          <BabyCardGrowth
+            buttons={[
+              {
+                name: t("See Details"),
+                path: "growth",
+              },
+            ]}
+          />
+        </Col>
+      </Row>
+    </Container>
   );
 }
 
