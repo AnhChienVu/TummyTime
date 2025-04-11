@@ -2,8 +2,11 @@
 import React from "react";
 import styles from "./about.module.css";
 import HomePageNavBar from "@/components/Navbar/HomePageNavBar";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 const AboutUs = () => {
+  const { t } = useTranslation("common");
   return (
     <div className={styles.container}>
       <HomePageNavBar variant="dark" />
@@ -77,3 +80,11 @@ AboutUs.getLayout = function getLayout(page) {
 };
 
 export default AboutUs;
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
+  };
+}
