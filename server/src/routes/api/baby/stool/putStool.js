@@ -87,14 +87,13 @@ module.exports.updateStoolEntry = async (req, res) => {
       return res.status(404).json(createErrorResponse(404, 'Stool entry not found'));
     }
 
-    // Update stool entry using COALESCE for partial updates.
-    // COALESCE allows updating only provided fields while retaining existing values.
+    // Update stool entry using COALESCE for partial updates with UTC timezone handling
     const updateStoolQuery = `
       UPDATE stool_entries
       SET color = COALESCE($1, color),
           consistency = COALESCE($2, consistency),
           notes = COALESCE($3, notes),
-          timestamp = COALESCE($4, timestamp)
+          timestamp = COALESCE($4 AT TIME ZONE 'UTC', timestamp)
       WHERE stool_id = $5 AND baby_id = $6
       RETURNING *;
     `;

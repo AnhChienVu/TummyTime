@@ -125,8 +125,18 @@ describe("getStoolEntries (unit tests)", () => {
     createSuccessResponse.mockReturnValue({ status: 'ok', data: entries });
     
     await getStoolEntries(req, res);
+
     expect(pool.query).toHaveBeenCalledWith(
-      'SELECT * FROM stool_entries WHERE baby_id = $1 ORDER BY timestamp DESC',
+      `SELECT 
+        stool_id, 
+        baby_id, 
+        color, 
+        consistency, 
+        notes, 
+        timestamp AT TIME ZONE 'UTC' as timestamp
+       FROM stool_entries 
+       WHERE baby_id = $1 
+       ORDER BY timestamp DESC`,
       [1]
     );
     expect(res.status).toHaveBeenCalledWith(200);
