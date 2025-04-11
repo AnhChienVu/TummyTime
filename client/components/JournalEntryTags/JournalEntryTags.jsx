@@ -1,24 +1,27 @@
-import React from 'react';
-import styles from './JournalEntryTags.module.css';
+import React from "react";
+import styles from "./JournalEntryTags.module.css";
+import { useTranslation } from "next-i18next";
 
 // Predefined tags list
 const PREDEFINED_TAGS = [
-  'personal',
-  'work',
-  'health',
-  'family',
-  'goals',
-  'gratitude',
-  'reflection',
-  'ideas',
-  'memories',
-  'achievements'
+  "personal",
+  "work",
+  "health",
+  "family",
+  "goals",
+  "gratitude",
+  "reflection",
+  "ideas",
+  "memories",
+  "achievements",
 ];
 
 const JournalEntryTags = ({ selectedTags, setTags, disabled = false }) => {
+  const { t } = useTranslation("common");
+
   const handleTagToggle = (tag) => {
     if (selectedTags.includes(tag)) {
-      setTags(selectedTags.filter(t => t !== tag));
+      setTags(selectedTags.filter((t) => t !== tag));
     } else {
       setTags([...selectedTags, tag]);
     }
@@ -31,11 +34,13 @@ const JournalEntryTags = ({ selectedTags, setTags, disabled = false }) => {
           <button
             key={tag}
             onClick={() => handleTagToggle(tag)}
-            className={`${styles.tag} ${selectedTags.includes(tag) ? styles.tagSelected : ''}`}
+            className={`${styles.tag} ${
+              selectedTags.includes(tag) ? styles.tagSelected : ""
+            }`}
             disabled={disabled}
             type="button"
           >
-            #{tag}
+            #{t(tag)}
           </button>
         ))}
       </div>

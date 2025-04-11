@@ -225,146 +225,129 @@ export default function Forum() {
     <Container className={styles.container} fluid>
       <div className={styles.formContainer}>
         <h1 className={styles.title}>{t("Community Forum")}</h1>
-        <Form onSubmit={handleSubmit(onSubmit)} className="mb-4">
-          <Row className="mb-3">
-            <Col className="d-flex align-items-center">
-              <Form.Control
-                type="text"
-                placeholder={t("Title")}
-                required
-                {...register("title")}
-                onChange={handleTitleChange}
-                // value={
-                //   isListening && selectedInput === "title"
-                //     ? titleText + (transcript || "")
-                //     : titleText
-                // }
-                value={titleText}
-                className="flex-grow-1"
-              />
-              {/* <button
-                onClick={(e) => startStopListening(e, "title")}
-                className={styles.microphone}
-              >
-                <FontAwesomeIcon
-                  icon={
-                    isListening && selectedInput === "title"
-                      ? faMicrophoneSlash
-                      : faMicrophone
-                  }
-                />
-              </button> */}
-              {/* {isListening && selectedInput === "title" && (
-                <span className={styles.listeningIndicator}>
-                  {t("Listening...")}
-                </span>
-              )} */}
-            </Col>
-          </Row>
-          <Row className="mb-3">
-            <Col md={6}>
-              <Form.Label>{t("Category (optional)")}</Form.Label>
-              <CategorySelector
-                selectedCategory={selectedCategory}
-                setCategory={setSelectedCategory}
-              />
-            </Col>
-          </Row>
-          <div className={styles.editor}>
-            <div className={styles.toolbar}>
-              <button
-                type="button"
-                onClick={() => editor.chain().focus().toggleBold().run()}
-                className={editor?.isActive("bold") ? styles.isActive : ""}
-              >
-                Bold
-              </button>
-              <button
-                type="button"
-                onClick={() => editor.chain().focus().toggleItalic().run()}
-                className={editor?.isActive("italic") ? styles.isActive : ""}
-              >
-                Italic
-              </button>
-              <button
-                type="button"
-                onClick={() => editor.chain().focus().toggleUnderline().run()}
-                className={editor?.isActive("underline") ? styles.isActive : ""}
-              >
-                Underline
-              </button>
-              <button
-                type="button"
-                onClick={() => editor.chain().focus().toggleBulletList().run()}
-                className={
-                  editor?.isActive("bulletList") ? styles.isActive : ""
-                }
-              >
-                Bullet List
-              </button>
-              <button
-                type="button"
-                onClick={() => editor.chain().focus().toggleOrderedList().run()}
-                className={
-                  editor?.isActive("orderedList") ? styles.isActive : ""
-                }
-              >
-                Ordered List
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  const url = window.prompt("Enter the URL:");
-                  if (url) {
-                    editor.chain().focus().setLink({ href: url }).run();
-                  }
-                }}
-                className={editor?.isActive("link") ? styles.isActive : ""}
-              >
-                Link
-              </button>
-            </div>
-            <EditorContent editor={editor} />
-          </div>
-          <div className={styles.formActions}>
-            <div className={styles.leftActions}>
-              <TextToSpeech
-                text={editor?.getHTML() || ""}
-                title={titleText || ""}
-              />
-            </div>
-            <div className={styles.rightActions}>
-              {/* <div className={styles.microphoneContainer}>
-                <button
-                  onClick={(e) => startStopListening(e, "content")}
-                  className={styles.microphone}
-                >
-                  <FontAwesomeIcon
-                    icon={
-                      isListening && selectedInput === "content"
-                        ? faMicrophoneSlash
-                        : faMicrophone
-                    }
-                  />
-                </button>
-                {isListening && selectedInput === "content" && (
-                  <span className={styles.listeningIndicator}>
-                    {t("Listening...")}
-                  </span>
-                )}
-              </div> */}
-              <Button
-                variant="primary"
-                type="submit"
-                className={styles.submitButton}
-              >
-                {t("Post")}
-              </Button>
-            </div>
-          </div>
-        </Form>
 
-        <hr />
+        <Card className="mb-4">
+          <Card.Header className={styles.createPostHeader}>
+            <h5 className={styles.createPostTitle}>
+              {t(
+                "Ask questions, seek advice, get to know other Tummy Time users, and more!",
+              )}
+            </h5>
+          </Card.Header>
+          <Card.Body>
+            <Form onSubmit={handleSubmit(onSubmit)}>
+              <Row className="mb-3">
+                <Col className="d-flex align-items-center">
+                  <Form.Control
+                    type="text"
+                    placeholder={t("Title")}
+                    required
+                    {...register("title")}
+                    onChange={handleTitleChange}
+                    value={titleText}
+                    className="flex-grow-1"
+                  />
+                </Col>
+              </Row>
+
+              <Row className="mb-3">
+                <Col xs={12} lg={8}>
+                  <Form.Label>{t("Category (optional)")}</Form.Label>
+                  <CategorySelector
+                    selectedCategory={selectedCategory}
+                    setCategory={setSelectedCategory}
+                    className={styles.categorySelector}
+                  />
+                </Col>
+              </Row>
+
+              <div className={styles.editor}>
+                <div className={styles.toolbar}>
+                  <button
+                    type="button"
+                    onClick={() => editor.chain().focus().toggleBold().run()}
+                    className={editor?.isActive("bold") ? styles.isActive : ""}
+                  >
+                    Bold
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => editor.chain().focus().toggleItalic().run()}
+                    className={
+                      editor?.isActive("italic") ? styles.isActive : ""
+                    }
+                  >
+                    Italic
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      editor.chain().focus().toggleUnderline().run()
+                    }
+                    className={
+                      editor?.isActive("underline") ? styles.isActive : ""
+                    }
+                  >
+                    Underline
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      editor.chain().focus().toggleBulletList().run()
+                    }
+                    className={
+                      editor?.isActive("bulletList") ? styles.isActive : ""
+                    }
+                  >
+                    Bullet List
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      editor.chain().focus().toggleOrderedList().run()
+                    }
+                    className={
+                      editor?.isActive("orderedList") ? styles.isActive : ""
+                    }
+                  >
+                    Ordered List
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const url = window.prompt("Enter the URL:");
+                      if (url) {
+                        editor.chain().focus().setLink({ href: url }).run();
+                      }
+                    }}
+                    className={editor?.isActive("link") ? styles.isActive : ""}
+                  >
+                    Link
+                  </button>
+                </div>
+                <EditorContent editor={editor} />
+              </div>
+
+              <div className={styles.formActions}>
+                <div className={styles.leftActions}>
+                  <TextToSpeech
+                    text={editor?.getHTML() || ""}
+                    title={titleText || ""}
+                  />
+                </div>
+                <div className={styles.rightActions}>
+                  <Button
+                    variant="primary"
+                    type="submit"
+                    className={styles.submitButton}
+                  >
+                    {t("Post")}
+                  </Button>
+                </div>
+              </div>
+            </Form>
+          </Card.Body>
+        </Card>
 
         {/* Search for a post */}
         <Row className="mb-3">
@@ -409,7 +392,7 @@ export default function Forum() {
                       >
                         {post.category && (
                           <div className={styles.categoryBadge}>
-                            {post.category}
+                            {t(post.category)}
                           </div>
                         )}
                         <Card.Title className={styles.postCardTitle}>
@@ -425,7 +408,7 @@ export default function Forum() {
                         </div>
                         <div className={styles.postMetadata}>
                           <small>
-                            Posted by: {post.display_name} on{" "}
+                            {t("Posted by:")} {post.display_name} on{" "}
                             {new Date(post.created_at).toLocaleDateString()} at{" "}
                             {new Date(post.created_at).toLocaleTimeString()}
                           </small>

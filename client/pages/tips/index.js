@@ -117,7 +117,8 @@ const CuratedTipsPage = () => {
     <Container className={styles.container}>
       <Row className="mb-3">
         <Col>
-          <h1 className="mb-4">{t("Curated Tips")}</h1>
+          <h1 className={styles.heading}>{t("Curated Tips")}</h1>
+          <p>{t("Tips for raising a happy baby")}</p>
         </Col>
         {/* Button for modal Notification Settings */}
         <Col className="text-end">

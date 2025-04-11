@@ -451,6 +451,7 @@ const Dashboard = () => {
               .split("T")[0];
             return postDate === today;
           })
+          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) // Sort by creation date, newest first
           .slice(0, 5); // Get only first 5 posts
 
         setTodayPosts(todaysPosts);
@@ -465,9 +466,7 @@ const Dashboard = () => {
   return (
     <Container fluid className={`${styles.container} py-4 px-3 px-md-4`}>
       <h2 className={styles.heading}>
-        {user
-          ? t("Welcome, {{name}}", { name: user.first_name })
-          : t("Dashboard")}
+        {user ? t("Welcome") + ", " + user.first_name : t("Dashboard")}
       </h2>
       <VoiceControl />
       <br />
@@ -532,8 +531,8 @@ const Dashboard = () => {
                     <small className="text-muted">
                       {babyStats.feedingsToday > 1 ||
                       babyStats.feedingsToday == 0
-                        ? "Feedings"
-                        : "Feeding"}{" "}
+                        ? t("Feedings")
+                        : t("Feeding")}{" "}
                       Today
                     </small>
                   </Card.Body>
@@ -546,8 +545,8 @@ const Dashboard = () => {
                     <small className="text-muted">
                       {babyStats.milestonesToday > 1 ||
                       babyStats.milestonesToday == 0
-                        ? "Milestones"
-                        : "Milestone"}{" "}
+                        ? t("Milestones")
+                        : t("Milestone")}{" "}
                       Today
                     </small>
                   </Card.Body>

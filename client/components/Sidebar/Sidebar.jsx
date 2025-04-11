@@ -1,10 +1,32 @@
+// components/Sidebar/Sidebar.jsx
 import React from "react";
 import { Col, Nav } from "react-bootstrap";
 import styles from "./Sidebar.module.css";
 import { useTranslation } from "next-i18next";
 import Link from "next/link";
+import { MdChevronLeft, MdChevronRight} from 'react-icons/md'; // Icons for sidebar collapse/expand
+import {
+  MdAnalytics,
+  MdRestaurant,
+  MdForum,
+  MdTrendingUp,
+  MdNotifications,
+  MdPerson,
+  MdBook,
+  MdLocalOffer,
+  MdLightbulb,
+  MdQuiz,
+  MdFileDownload,
+  MdLocalHospital,
+  MdSearch,
+  MdCake,
+  MdGTranslate,
+} from 'react-icons/md';
+import { LuBaby } from "react-icons/lu";
+import { TbMessageChatbotFilled,TbLayoutDashboardFilled } from "react-icons/tb";
 
-function Sidebar() {
+
+const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
   const { t, i18n } = useTranslation("common");
   const locale = i18n.language;
 
@@ -58,14 +80,6 @@ function Sidebar() {
           className={styles.navlink}
         >
           {t("Growths")}
-        </Nav.Link>
-        <Nav.Link
-          as={Link}
-          href="/stool"
-          locale={locale}
-          className={styles.navlink}
-        >
-          {t("Stool")}
         </Nav.Link>
         <Nav.Link
           as={Link}
@@ -171,6 +185,6 @@ function Sidebar() {
       </Nav>
     </Col>
   );
-}
+};
 
 export default Sidebar;

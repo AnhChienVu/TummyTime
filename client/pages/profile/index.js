@@ -119,7 +119,7 @@ function ProfilePage() {
   }
 
   return (
-    <Container className={styles.container}>
+    <Container className={styles.container} fluid>
       {error && (
         <Alert variant="danger" className="mb-3">
           {error}
@@ -127,9 +127,12 @@ function ProfilePage() {
       )}
 
       {/* Profile Section */}
-      <Row className="mb-4">
+      <Row>
         <Col>
-          <h1>{t("Profile")}</h1>
+          <div className={styles.header}>
+            <h1>{t("Profile")}</h1>
+          </div>
+          <p>{t("Manage your profile information")}</p>
           <Card className="mb-3">
             <Card.Body className="d-flex align-items-center flex-wrap">
               {/* Profile Picture Section */}
@@ -148,7 +151,7 @@ function ProfilePage() {
                 <Card.Title>
                   {profile.first_name} {profile.last_name}
                 </Card.Title>
-                <Card.Text>{profile.role}</Card.Text>
+                <Card.Text>{t(profile.role)}</Card.Text>
               </div>
 
               {/* Edit Button */}

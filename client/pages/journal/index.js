@@ -522,6 +522,8 @@ export default function Journal() {
       <Container className={styles.container} fluid>
         <div className={styles.formContainer}>
           <h1 className={styles.title}>{t("My Journal")}</h1>
+          <hr />
+          <p className={styles.subtitle}>Record your thoughts...</p>
           {/* Create journal entry modal */}
           <Form onSubmit={handleSubmit(onSubmit)} className="mb-4">
             <Row className="mb-3">
@@ -582,7 +584,7 @@ export default function Journal() {
                         editor?.isActive("bold") ? styles.isActive : ""
                       }
                     >
-                      Bold
+                      {t("Bold")}
                     </button>
                     <button
                       type="button"
@@ -593,7 +595,7 @@ export default function Journal() {
                         editor?.isActive("italic") ? styles.isActive : ""
                       }
                     >
-                      Italic
+                      {t("Italic")}
                     </button>
                     <button
                       type="button"
@@ -604,7 +606,7 @@ export default function Journal() {
                         editor?.isActive("underline") ? styles.isActive : ""
                       }
                     >
-                      Underline
+                      {t("Underline")}
                     </button>
                     <button
                       type="button"
@@ -615,7 +617,7 @@ export default function Journal() {
                         editor?.isActive("bulletList") ? styles.isActive : ""
                       }
                     >
-                      Bullet List
+                      {t("Bullet")} List
                     </button>
                     <button
                       type="button"
@@ -626,7 +628,7 @@ export default function Journal() {
                         editor?.isActive("orderedList") ? styles.isActive : ""
                       }
                     >
-                      Ordered List
+                      {t("Ordered")} List
                     </button>
                     <button
                       type="button"
@@ -640,7 +642,7 @@ export default function Journal() {
                         editor?.isActive("link") ? styles.isActive : ""
                       }
                     >
-                      Link
+                      {t("Link")}
                     </button>
                   </div>
                   <div className={isListening ? styles.disabledEditor : ""}>
@@ -767,7 +769,7 @@ export default function Journal() {
                         <div className={styles.tagList}>
                           {entry.tags.map((tag, idx) => (
                             <span key={idx} className={styles.tag}>
-                              #{tag}
+                              #{t(tag)}
                             </span>
                           ))}
                         </div>
