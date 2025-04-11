@@ -6,7 +6,6 @@ import { useRouter } from "next/router";
 import { FaEdit, FaTrashAlt, FaRulerCombined, FaWeight } from "react-icons/fa";
 import { Modal, Button, Table, Alert } from "react-bootstrap";
 import { format, parseISO, set } from "date-fns";
-import "bootstrap/dist/css/bootstrap.min.css";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
