@@ -311,7 +311,7 @@ export default function BabyProfile({ baby_id }) {
             </Col>
             <Col md={6}>
               <Form.Group className="mb-3">
-                <Form.Label>{t("Height")} (cm)</Form.Label>
+                <Form.Label>{t("Height at birth")} (in)</Form.Label>
                 <Form.Control
                   {...register("height", {
                     required: true,
