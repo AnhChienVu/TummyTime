@@ -392,7 +392,7 @@ export default function Forum() {
                       >
                         {post.category && (
                           <div className={styles.categoryBadge}>
-                            {post.category}
+                            {t(post.category)}
                           </div>
                         )}
                         <Card.Title className={styles.postCardTitle}>
@@ -408,7 +408,7 @@ export default function Forum() {
                         </div>
                         <div className={styles.postMetadata}>
                           <small>
-                            Posted by: {post.display_name} on{" "}
+                            {t("Posted by:")} {post.display_name} on{" "}
                             {new Date(post.created_at).toLocaleDateString()} at{" "}
                             {new Date(post.created_at).toLocaleTimeString()}
                           </small>

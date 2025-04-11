@@ -5,8 +5,12 @@ import "react-datepicker/dist/react-datepicker.css";
 // import "bootstrap/dist/css/bootstrap.min.css";
 import styles from "./export.module.css";
 import { Container } from "react-bootstrap";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 const ExportDataPage = () => {
+  const { t } = useTranslation("common");
+
   const [selectedOptions, setSelectedOptions] = useState({
     babyInfo: true,
     growthRecords: true,
@@ -261,3 +265,11 @@ const ExportDataPage = () => {
 };
 
 export default ExportDataPage;
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
+  };
+}

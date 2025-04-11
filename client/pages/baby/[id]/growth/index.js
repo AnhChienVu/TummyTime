@@ -5,7 +5,10 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { FaEdit, FaTrashAlt, FaRulerCombined, FaWeight } from "react-icons/fa";
 import { Modal, Button, Table, Alert } from "react-bootstrap";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, set } from "date-fns";
+import "bootstrap/dist/css/bootstrap.min.css";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 import styles from "./growth.module.css";
 
@@ -103,6 +106,7 @@ const CustomStatsCard = ({
   isHeight = true,
   lastCheckIn,
 }) => {
+  const { t } = useTranslation("common");
   const icon = isHeight ? (
     <FaRulerCombined size={24} color="#FFFFFF" />
   ) : (
@@ -124,7 +128,7 @@ const CustomStatsCard = ({
           </div>
         </div>
         <div className={styles.lastCheckInRow}>
-          <div>Last check in</div>
+          <div>{t("Last check in")}</div>
           <div className={styles.lastCheckInDate}>{lastCheckIn}</div>
         </div>
       </div>
@@ -133,6 +137,7 @@ const CustomStatsCard = ({
 };
 
 const Growth = () => {
+  const { t } = useTranslation("common");
   const router = useRouter();
   const { id: babyId } = router.query;
 
@@ -355,7 +360,7 @@ const Growth = () => {
       {/* Measurement Cards */}
       <div className={styles.cardsRow}>
         <CustomStatsCard
-          label="Height"
+          label={t("Height")}
           value={latestEntry.height || "--"}
           difference={
             latestEntry.height && previousEntry.height
@@ -372,7 +377,7 @@ const Growth = () => {
           }
         />
         <CustomStatsCard
-          label="Weight"
+          label={t("Weight")}
           value={latestEntry.weight || "--"}
           difference={
             latestEntry.weight && previousEntry.weight
@@ -393,16 +398,16 @@ const Growth = () => {
       {/* Chart Header */}
       <div className={styles.chartHeader}>
         <div>
-          <h3 className={styles.chartHeaderText}>Chart</h3>
+          <h3 className={styles.chartHeaderText}>{t("Chart")}</h3>
           <p className={styles.chartSubtext}>
-            Check in is every month after the baby’s birthday
+            {t("Check in is every month after the baby’s birthday")}
           </p>
         </div>
         <Button
           onClick={() => handleShowModal()}
           className={styles.addNewButton}
         >
-          Add new
+          {t("Add New")}
         </Button>
       </div>
 
@@ -415,24 +420,24 @@ const Growth = () => {
               onClick={() => handleSort("date")}
               style={{ cursor: "pointer" }}
             >
-              Date {renderSortIndicator("date")}
+              {t("Date")} {renderSortIndicator("date")}
             </th>
             <th
               className={styles.tableHeadCell}
               onClick={() => handleSort("height")}
               style={{ cursor: "pointer" }}
             >
-              Height {renderSortIndicator("height")}
+              {t("Height")} {renderSortIndicator("height")}
             </th>
             <th
               className={styles.tableHeadCell}
               onClick={() => handleSort("weight")}
               style={{ cursor: "pointer" }}
             >
-              Weight {renderSortIndicator("weight")}
+              {t("Weight")} {renderSortIndicator("weight")}
             </th>
-            <th className={styles.tableHeadCell}>Notes</th>
-            <th className={styles.tableHeadCell}>Actions</th>
+            <th className={styles.tableHeadCell}>{t("Notes")}</th>
+            <th className={styles.tableHeadCell}>{t("Actions")}</th>
           </tr>
         </thead>
         <tbody>
@@ -485,22 +490,22 @@ const Growth = () => {
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>
-            {editIndex !== null ? "Edit Entry" : "Add New Entry"}
+            {editIndex !== null ? t("Edit Entry") : t("Add New Entry")}
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
           {validationErrors.height && (
             <Alert variant="danger">
-              Height is required and less than 999.99.
+              {t("Height is required and less than 999.99.")}
             </Alert>
           )}
           {validationErrors.weight && (
             <Alert variant="danger">
-              Weight is required and less than 999.
+              {t("Weight is required and less than 999.99.")}
             </Alert>
           )}
           <div className="mb-3">
-            <label>Date</label>
+            <label>{t("Date")}</label>
             <input
               type="date"
               className="form-control"
@@ -511,7 +516,7 @@ const Growth = () => {
             />
           </div>
           <div className="mb-3">
-            <label>Height</label>
+            <label>{t("Height")}</label>
             <input
               type="number"
               className="form-control"
@@ -526,7 +531,7 @@ const Growth = () => {
             />
           </div>
           <div className="mb-3">
-            <label>Weight</label>
+            <label>{t("Weight")}</label>
             <input
               type="number"
               className="form-control"
@@ -541,7 +546,7 @@ const Growth = () => {
             />
           </div>
           <div className="mb-3">
-            <label>Notes</label>
+            <label>{t("Notes")}</label>
             <textarea
               className="form-control"
               placeholder="Add a note (e.g., Example note: Monthly check-up)"
@@ -554,10 +559,10 @@ const Growth = () => {
         </Modal.Body>
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowModal(false)}>
-            Cancel
+            {t("Cancel")}
           </Button>
           <Button className={styles.button} onClick={handleSave}>
-            Save
+            {t("Save")}
           </Button>
         </Modal.Footer>
       </Modal>
@@ -566,3 +571,11 @@ const Growth = () => {
 };
 
 export default Growth;
+
+export async function getServerSideProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
+  };
+}

@@ -302,7 +302,9 @@ export function Post({
                     {post.title}
                   </Card.Title>
                   {post.category && (
-                    <div className={styles.categoryBadge}>{post.category}</div>
+                    <div className={styles.categoryBadge}>
+                      {t(post.category)}
+                    </div>
                   )}
                 </div>
               </>

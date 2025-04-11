@@ -584,7 +584,7 @@ export default function Journal() {
                         editor?.isActive("bold") ? styles.isActive : ""
                       }
                     >
-                      Bold
+                      {t("Bold")}
                     </button>
                     <button
                       type="button"
@@ -595,7 +595,7 @@ export default function Journal() {
                         editor?.isActive("italic") ? styles.isActive : ""
                       }
                     >
-                      Italic
+                      {t("Italic")}
                     </button>
                     <button
                       type="button"
@@ -606,7 +606,7 @@ export default function Journal() {
                         editor?.isActive("underline") ? styles.isActive : ""
                       }
                     >
-                      Underline
+                      {t("Underline")}
                     </button>
                     <button
                       type="button"
@@ -617,7 +617,7 @@ export default function Journal() {
                         editor?.isActive("bulletList") ? styles.isActive : ""
                       }
                     >
-                      Bullet List
+                      {t("Bullet")} List
                     </button>
                     <button
                       type="button"
@@ -628,7 +628,7 @@ export default function Journal() {
                         editor?.isActive("orderedList") ? styles.isActive : ""
                       }
                     >
-                      Ordered List
+                      {t("Ordered")} List
                     </button>
                     <button
                       type="button"
@@ -642,7 +642,7 @@ export default function Journal() {
                         editor?.isActive("link") ? styles.isActive : ""
                       }
                     >
-                      Link
+                      {t("Link")}
                     </button>
                   </div>
                   <div className={isListening ? styles.disabledEditor : ""}>
@@ -769,7 +769,7 @@ export default function Journal() {
                         <div className={styles.tagList}>
                           {entry.tags.map((tag, idx) => (
                             <span key={idx} className={styles.tag}>
-                              #{tag}
+                              #{t(tag)}
                             </span>
                           ))}
                         </div>

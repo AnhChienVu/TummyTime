@@ -2,8 +2,11 @@
 import React, { useState } from "react";
 import { Container, Row, Col } from "react-bootstrap";
 import styles from "./quiz.module.css";
+import { useTranslation } from "next-i18next";
+import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 
 const QuizPage = () => {
+  const { t } = useTranslation("common");
   const [category, setCategory] = useState("ALL");
   const [questions, setQuestions] = useState([]);
   const [answers, setAnswers] = useState({}); // key: question_id, value: selected option
@@ -276,3 +279,11 @@ const QuizPage = () => {
 };
 
 export default QuizPage;
+
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ["common"])),
+    },
+  };
+}

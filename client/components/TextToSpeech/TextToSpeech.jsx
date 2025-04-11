@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import styles from "./TextToSpeech.module.css";
+import { useTranslation } from "next-i18next";
 
 function TextToSpeech({ text, title }) {
+  const { t } = useTranslation("common");
   const [isSpeaking, setIsSpeaking] = useState(false);
 
   // Function to strip HTML tags
   const stripHtml = (html) => {
-    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const doc = new DOMParser().parseFromString(html, "text/html");
     return doc.body.textContent || "";
   };
 
@@ -25,12 +27,14 @@ function TextToSpeech({ text, title }) {
       const cleanText = stripHtml(text || "");
 
       // Create utterances for title and content
-      const titleUtterance = new SpeechSynthesisUtterance(cleanTitle ? `Title: ${cleanTitle}` : "");
-      const pauseUtterance = new SpeechSynthesisUtterance(".");  // Creates a natural pause
+      const titleUtterance = new SpeechSynthesisUtterance(
+        cleanTitle ? `Title: ${cleanTitle}` : "",
+      );
+      const pauseUtterance = new SpeechSynthesisUtterance("."); // Creates a natural pause
       const contentUtterance = new SpeechSynthesisUtterance(cleanText);
 
       // Set properties for all utterances
-      [titleUtterance, contentUtterance].forEach(utterance => {
+      [titleUtterance, contentUtterance].forEach((utterance) => {
         utterance.voice = speechSynthesis
           .getVoices()
           .find((voice) => voice.name === "Google US English");
@@ -40,7 +44,7 @@ function TextToSpeech({ text, title }) {
       });
 
       // Configure pause
-      pauseUtterance.rate = 0.1;  // Slow rate creates longer pause
+      pauseUtterance.rate = 0.1; // Slow rate creates longer pause
 
       // Handle speaking states
       titleUtterance.onstart = () => setIsSpeaking(true);
@@ -72,7 +76,7 @@ function TextToSpeech({ text, title }) {
         className={styles.button}
         type="button"
       >
-        {isSpeaking ? "Speaking..." : "Speak"}
+        {isSpeaking ? "Speaking..." : t("Speak")}
       </button>
       <button
         onClick={handleStop}
@@ -80,7 +84,7 @@ function TextToSpeech({ text, title }) {
         className={styles.button}
         type="button"
       >
-        Stop
+        {t("Stop")}
       </button>
     </div>
   );
