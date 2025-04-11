@@ -24,20 +24,19 @@ import {
 } from 'react-icons/md';
 import { LuBaby } from "react-icons/lu";
 import { TbMessageChatbotFilled,TbLayoutDashboardFilled } from "react-icons/tb";
-import { FaPoop } from 'react-icons/fa';
+
 
 const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
   const { t, i18n } = useTranslation("common");
   const locale = i18n.language;
 
   return (
-    <Col md={2} className={styles.sidebar}>
-      <Nav defaultActiveKey="/" className="flex-column">
-        <Nav.Link
-          as={Link}
-          href="/dashboard"
-          locale={locale}
-          className={styles.navlink}
+    <div className={`${styles.container} ${isCollapsed ? styles.collapsed : ""}`}>
+      <div className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}>
+        <button
+          className={`${styles.toggleButton}`}
+          onClick={onToggleCollapse}
+          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {isCollapsed ? <MdChevronRight /> : <MdChevronLeft />}
         </button>
@@ -103,16 +102,6 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
               >
                 <span className={styles.icon}><MdTrendingUp /></span>
                 <span className={styles.linkText}>{t("Growths")}</span>
-              </Nav.Link>
-              <Nav.Link
-                as={Link}
-                href="/stool"
-                locale={locale}
-                className={styles.navlink}
-                title={t("Stool")}
-              >
-                <span className={styles.icon}><FaPoop /></span>
-                <span className={styles.linkText}>{t("Stool")}</span>
               </Nav.Link>
               <Nav.Link
                 as={Link}
