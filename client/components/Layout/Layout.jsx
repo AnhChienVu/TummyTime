@@ -39,14 +39,14 @@ export default function Layout({ children }) {
       <TipsNotificationPopup />
       {isAuthenticated && <GlobalReminderPopup />}
       <Container fluid className={styles.container}>
-        {/* <Sidebar /> */}
-        {!isHomePage && isAuthenticated ? (
+        <Sidebar />
+        {/* {!isHomePage && isAuthenticated ? (
           userRole === "Parent" ? (
             <Sidebar />
           ) : (
             <DoctorSidebar />
           )
-        ) : null}
+        ) : null} */}
         <main className={styles.main}>
           {children}
           <BackButton />

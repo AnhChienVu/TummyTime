@@ -99,13 +99,46 @@ const deleteGrowthRecord = async (babyId, recordId) => {
   }
 };
 
-const CustomStatsCard = ({
-  label,
-  value,
-  difference,
-  isHeight = true,
-  lastCheckIn,
-}) => {
+// const CustomStatsCard = ({
+//   label,
+//   value,
+//   difference,
+//   isHeight = true,
+//   lastCheckIn,
+// }) => {
+//   const { t } = useTranslation("common");
+//   const icon = isHeight ? (
+//     <FaRulerCombined size={24} color="#FFFFFF" />
+//   ) : (
+//     <FaWeight size={24} color="#FFFFFF" />
+//   );
+
+//   let differenceArrow = "↑";
+
+//   return (
+//     <div className={styles.statsCard}>
+//       <div className={styles.iconContainer}>{icon}</div>
+//       <div className={styles.statsContent}>
+//         <div className={styles.statsLabel}>{label}</div>
+//         <div className={styles.valueRow}>
+//           <div className={styles.valueText}>{value}</div>
+//           <div className={styles.differenceContainer}>
+//             <span className={styles.differenceArrow}>{differenceArrow}</span>
+//             {difference}
+//           </div>
+//         </div>
+//         <div className={styles.lastCheckInRow}>
+//           <div>{t("Last check in")}</div>
+//           <div className={styles.lastCheckInDate}>{lastCheckIn}</div>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+// RENDERING STATS CARD COMPONENT
+// checkIns is an ARRAY [{ date: "2023-01-01", value: 20 }, ...]
+const CustomStatsCard = ({ label, isHeight = true, checkIns }) => {
   const { t } = useTranslation("common");
   const icon = isHeight ? (
     <FaRulerCombined size={24} color="#FFFFFF" />
@@ -113,7 +146,79 @@ const CustomStatsCard = ({
     <FaWeight size={24} color="#FFFFFF" />
   );
 
-  const differenceArrow = "↑";
+  // If no check‑in records provided, show a default display.
+  if (!checkIns || checkIns.length === 0) {
+    return (
+      <div className={styles.statsCard}>
+        <div className={styles.iconContainer}>{icon}</div>
+        <div className={styles.statsContent}>
+          <div className={styles.statsLabel}>{label}</div>
+          <div className={styles.valueRow}>
+            <div className={styles.valueText}>--</div>
+            <div className={styles.differenceContainer}>
+              <span className={styles.differenceArrow}>–</span>0
+            </div>
+          </div>
+          <div className={styles.lastCheckInRow}>
+            <div>{t("Last check in")}</div>
+            <div className={styles.lastCheckInDate}>N/A</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Filter out entries that do not have a valid measurement value.
+  const validCheckIns = checkIns.filter((item) =>
+    isHeight
+      ? item.height !== undefined && item.height !== null && item.height !== ""
+      : item.weight !== undefined && item.weight !== null && item.weight !== "",
+  );
+  // If there are no valid check‑ins after filtering, return the default card.
+  if (validCheckIns.length === 0) {
+    return (
+      <div className={styles.statsCard}>
+        <div className={styles.iconContainer}>{icon}</div>
+        <div className={styles.statsContent}>
+          <div className={styles.statsLabel}>{label}</div>
+          <div className={styles.valueRow}>
+            <div className={styles.valueText}>--</div>
+            <div className={styles.differenceContainer}>
+              <span className={styles.differenceArrow}>–</span>0
+            </div>
+          </div>
+          <div className={styles.lastCheckInRow}>
+            <div>{t("Last check in")}</div>
+            <div className={styles.lastCheckInDate}>N/A</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Sort valid check‑ins by date descending (latest first) regardless of any parent ordering.
+  const sortedCheckIns = [...validCheckIns].sort(
+    (a, b) => new Date(b.date) - new Date(a.date),
+  );
+
+  // Use the two most recent check‑ins
+  const latestCheckIn = sortedCheckIns[0];
+  const previousCheckIn = sortedCheckIns[1];
+  const latestValue = isHeight
+    ? parseFloat(latestCheckIn.height)
+    : parseFloat(latestCheckIn.weight);
+
+  const previousValue = previousCheckIn
+    ? isHeight
+      ? parseFloat(previousCheckIn.height)
+      : parseFloat(previousCheckIn.weight)
+    : latestValue; // if no previous, use same value so difference becomes 0
+
+  const difference = latestValue - previousValue;
+  const differenceArrow = difference < 0 ? "↓" : "↑";
+
+  // Format the date from the latest check‑in
+  const formattedDate = format(parseISO(latestCheckIn.date), "MMM d, yyyy");
 
   return (
     <div className={styles.statsCard}>
@@ -121,15 +226,19 @@ const CustomStatsCard = ({
       <div className={styles.statsContent}>
         <div className={styles.statsLabel}>{label}</div>
         <div className={styles.valueRow}>
-          <div className={styles.valueText}>{value}</div>
+          <div className={styles.valueText}>
+            {latestValue}
+            {isHeight ? " in" : " lbs"}
+          </div>
           <div className={styles.differenceContainer}>
             <span className={styles.differenceArrow}>{differenceArrow}</span>
-            {difference}
+            {Math.abs(difference)}
+            {isHeight ? " in" : " lbs"}
           </div>
         </div>
         <div className={styles.lastCheckInRow}>
           <div>{t("Last check in")}</div>
-          <div className={styles.lastCheckInDate}>{lastCheckIn}</div>
+          <div className={styles.lastCheckInDate}>{formattedDate}</div>
         </div>
       </div>
     </div>
@@ -325,44 +434,18 @@ const Growth = () => {
   const latestEntry = data[0] || {};
   const previousEntry = data[1] || {};
 
+  // ---------------------------------------------------------------------------
+  // RENDERING PAGE
+  // ---------------------------------------------------------------------------
   return (
     <div className={styles.growthContainer}>
       {/* Measurement Cards */}
       <div className={styles.cardsRow}>
-        <CustomStatsCard
-          label={t("Height")}
-          value={latestEntry.height || "--"}
-          difference={
-            latestEntry.height && previousEntry.height
-              ? parseInt(latestEntry.height) -
-                parseInt(previousEntry.height) +
-                " in"
-              : "--"
-          }
-          isHeight={true}
-          lastCheckIn={
-            latestEntry.date
-              ? format(parseISO(latestEntry.date), "MMM d, yyyy")
-              : "--"
-          }
-        />
-        <CustomStatsCard
-          label={t("Weight")}
-          value={latestEntry.weight || "--"}
-          difference={
-            latestEntry.weight && previousEntry.weight
-              ? parseInt(latestEntry.weight) -
-                parseInt(previousEntry.weight) +
-                " lbs"
-              : "--"
-          }
-          isHeight={false}
-          lastCheckIn={
-            latestEntry.date
-              ? format(parseISO(latestEntry.date), "MMM d, yyyy")
-              : "--"
-          }
-        />
+        {/* Height Stats Card */}
+        <CustomStatsCard label={t("Height")} isHeight={true} checkIns={data} />
+
+        {/* Weight Stats Card */}
+        <CustomStatsCard label={t("Weight")} isHeight={false} checkIns={data} />
       </div>
 
       {/* Chart Header */}
