@@ -94,7 +94,7 @@ function Feeding({ baby_id }) {
   );
   let hasAnyMeals = sortedData.some((d) => d.meal && d.meal.length > 0);
 
-  // UPDATED: Fixed formatDate function to properly handle dates
+  // Fixed date formatting function
   const formatDate = (dateString) => {
     try {
       // Check if date string is valid
@@ -127,6 +127,53 @@ function Feeding({ baby_id }) {
     } catch (error) {
       console.error("Date parsing error:", error, "for dateString:", dateString);
       return { dayNumber: "?", restOfDate: "Invalid date" };
+    }
+  };
+
+  // NEW: Function to format time properly in 12-hour format (HH:MM AM/PM)
+  const formatTimeDisplay = (timeString) => {
+    if (!timeString) return "";
+    
+    try {
+      // First, check if it's already in the right format with AM/PM
+      if (/\d{1,2}:\d{2}\s?[AP]M/i.test(timeString)) {
+        // It's already in the correct format, just ensure consistent spacing
+        return timeString.replace(/(\d{1,2}:\d{2})\s?([AP]M)/i, "$1 $2");
+      }
+      
+      // Check for malformed times like "01:2500" or "18:2600"
+      const complexTimeMatch = timeString.match(/(\d{1,2}):(\d{2})(\d{2})/);
+      if (complexTimeMatch) {
+        const hours = parseInt(complexTimeMatch[1], 10);
+        const minutes = parseInt(complexTimeMatch[2], 10);
+        
+        // Convert to 12-hour format
+        const ampm = hours >= 12 ? "PM" : "AM";
+        const hours12 = hours % 12 || 12;
+        
+        // Format properly as HH:MM AM/PM
+        return `${hours12}:${String(minutes).padStart(2, "0")} ${ampm}`;
+      }
+      
+      // Handle regular 24-hour format
+      const timeParts = timeString.match(/(\d{1,2}):(\d{2})/);
+      if (timeParts) {
+        const hours = parseInt(timeParts[1], 10);
+        const minutes = parseInt(timeParts[2], 10);
+        
+        // Convert to 12-hour format
+        const ampm = hours >= 12 ? "PM" : "AM";
+        const hours12 = hours % 12 || 12;
+        
+        // Format properly as HH:MM AM/PM
+        return `${hours12}:${String(minutes).padStart(2, "0")} ${ampm}`;
+      }
+      
+      // If nothing else worked, return the original
+      return timeString;
+    } catch (error) {
+      console.error("Error formatting time:", error, "timeString:", timeString);
+      return timeString;
     }
   };
 
@@ -420,8 +467,7 @@ function Feeding({ baby_id }) {
     }, 5000);
   };
 
-  // UPDATED: Improved function to get today's date as YYYY-MM-DD 
-  // with proper timezone handling
+  // Improved function to get today's date in YYYY-MM-DD format
   function getLocalTodayString() {
     const now = new Date();
     // Use UTC methods to avoid timezone issues
@@ -441,7 +487,7 @@ function Feeding({ baby_id }) {
   };
   const groupedMeals = groupMealsByDate(sortedData);
 
-  // UPDATED: Added function to check if a date is today, using UTC to avoid timezone issues
+  // Added function to check if a date is today, using UTC to avoid timezone issues
   const isDateToday = (dateString) => {
     if (!dateString) return false;
     
@@ -469,7 +515,6 @@ function Feeding({ baby_id }) {
         const meals = mealsOnSameDate[1];
         const date = mealsOnSameDate[0];
         const { dayNumber, restOfDate } = formatDate(date);
-        // UPDATED: Using the new isDateToday function instead of isSameDay
         const today = isDateToday(date);
 
         return (
@@ -507,7 +552,7 @@ function Feeding({ baby_id }) {
                 {meals.map((meal, idx) => (
                   <tr key={idx}>
                     <td>{meal.meal}</td>
-                    <td>{meal.time}</td>
+                    <td>{formatTimeDisplay(meal.time)}</td>
                     <td>{meal.type}</td>
                     <td>{meal.amount > 0 ? meal.amount + " oz" : "0 oz"}</td>
                     <td>{meal.issues || "None"}</td>
