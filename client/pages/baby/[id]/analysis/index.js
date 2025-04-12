@@ -734,11 +734,15 @@ export default function Analysis() {
   function filterDataByRange(dataArray, startDate, endDate) {
     if (!startDate || !endDate || !Array.isArray(dataArray)) return [];
     
-    // Add one day to end date to make the range inclusive of the end date
+    // Parse the date range
     const start = parseISO(startDate);
     const end = parseISO(endDate);
-    const inclusiveEnd = new Date(end);
-    inclusiveEnd.setDate(inclusiveEnd.getDate() + 1);
+    
+    // For week view, don't add the extra day to make exactly 7 days
+    const inclusiveEnd = feedTimeRange === "week" ? end : new Date(end);
+    if (feedTimeRange !== "week") {
+      inclusiveEnd.setDate(inclusiveEnd.getDate() + 1);
+    }
     
     return dataArray.filter((item) => {
       // Get the date from various possible properties
