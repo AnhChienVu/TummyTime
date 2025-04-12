@@ -535,33 +535,107 @@ export default function Analysis() {
     }
   };
 
-  // Handle feed date changes with validation
+  // Handle feed date changes with validation and respect time range selection
   const handleFeedStartChange = (newStart) => {
-    console.log("Feed start date changing to:", newStart);
-    const validated = validateDateRange(
-      newStart,
-      feedEnd,
-      minLoggedDate,
-      maxLoggedDate,
-      feedTimeRange
-    );
-    console.log("Validated date range:", validated);
-    setFeedStart(validated.start);
-    setFeedEnd(validated.end);
+    console.log("Feed start date changing to:", newStart, "with time range:", feedTimeRange);
+    
+    // If time range is set, we need to adjust the end date based on the selected start date
+    if (feedTimeRange === "week" || feedTimeRange === "month") {
+      const startDate = parseISO(newStart);
+      const endDate = new Date(startDate);
+      
+      // Calculate end date based on time range (add 6 days for week, 29 days for month)
+      feedTimeRange === "week"
+        ? endDate.setDate(endDate.getDate() + 6)
+        : endDate.setDate(endDate.getDate() + 29);
+      
+      // Ensure end date doesn't exceed max logged date
+      if (maxLoggedDate && format(endDate, "yyyy-MM-dd") > maxLoggedDate) {
+        // If end date would exceed max logged date, adjust start date instead
+        const maxDate = parseISO(maxLoggedDate);
+        const adjustedStart = new Date(maxDate);
+        feedTimeRange === "week"
+          ? adjustedStart.setDate(adjustedStart.getDate() - 6)
+          : adjustedStart.setDate(adjustedStart.getDate() - 29);
+        
+        // Ensure adjusted start isn't before min logged date
+        if (minLoggedDate && format(adjustedStart, "yyyy-MM-dd") < minLoggedDate) {
+          // If we can't satisfy both constraints, use min to max range
+          setFeedStart(minLoggedDate);
+          setFeedEnd(maxLoggedDate);
+        } else {
+          // Use adjusted start and max end
+          setFeedStart(format(adjustedStart, "yyyy-MM-dd"));
+          setFeedEnd(maxLoggedDate);
+        }
+      } else {
+        // Normal case: set start to selected date and calculate appropriate end date
+        setFeedStart(newStart);
+        setFeedEnd(format(endDate, "yyyy-MM-dd"));
+      }
+    } else {
+      // If no time range constraint, fall back to general validation
+      const validated = validateDateRange(
+        newStart,
+        feedEnd,
+        minLoggedDate,
+        maxLoggedDate,
+        feedTimeRange
+      );
+      setFeedStart(validated.start);
+      setFeedEnd(validated.end);
+    }
   };
 
   const handleFeedEndChange = (newEnd) => {
-    console.log("Feed end date changing to:", newEnd);
-    const validated = validateDateRange(
-      feedStart,
-      newEnd,
-      minLoggedDate,
-      maxLoggedDate,
-      feedTimeRange
-    );
-    console.log("Validated date range:", validated);
-    setFeedStart(validated.start);
-    setFeedEnd(validated.end);
+    console.log("Feed end date changing to:", newEnd, "with time range:", feedTimeRange);
+    
+    // If time range is set, we need to adjust the start date based on the selected end date
+    if (feedTimeRange === "week" || feedTimeRange === "month") {
+      const endDate = parseISO(newEnd);
+      const startDate = new Date(endDate);
+      
+      // Calculate start date based on time range (subtract 6 days for week, 29 days for month)
+      feedTimeRange === "week"
+        ? startDate.setDate(startDate.getDate() - 6)
+        : startDate.setDate(startDate.getDate() - 29);
+      
+      // Ensure start date isn't before min logged date
+      if (minLoggedDate && format(startDate, "yyyy-MM-dd") < minLoggedDate) {
+        // If start date would be before min logged date, adjust end date instead
+        const minDate = parseISO(minLoggedDate);
+        const adjustedEnd = new Date(minDate);
+        feedTimeRange === "week"
+          ? adjustedEnd.setDate(adjustedEnd.getDate() + 6)
+          : adjustedEnd.setDate(adjustedEnd.getDate() + 29);
+        
+        // Ensure adjusted end isn't after max logged date
+        if (maxLoggedDate && format(adjustedEnd, "yyyy-MM-dd") > maxLoggedDate) {
+          // If we can't satisfy both constraints, use min to max range
+          setFeedStart(minLoggedDate);
+          setFeedEnd(maxLoggedDate);
+        } else {
+          // Use min start and adjusted end
+          setFeedStart(minLoggedDate);
+          setFeedEnd(format(adjustedEnd, "yyyy-MM-dd"));
+        }
+      } else {
+        // Normal case: set end to selected date and calculate appropriate start date
+        setFeedEnd(newEnd);
+        setFeedStart(format(startDate, "yyyy-MM-dd"));
+      }
+    } else {
+      // If no time range constraint, fall back to general validation
+      const validated = validateDateRange(
+        feedStart,
+        newEnd,
+        minLoggedDate,
+        maxLoggedDate,
+        feedTimeRange
+      );
+      setFeedStart(validated.start);
+      setFeedEnd(validated.end);
+    }
   };
 
   // Handle stool date changes with validation
