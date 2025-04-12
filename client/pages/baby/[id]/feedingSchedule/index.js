@@ -543,7 +543,7 @@ function Feeding({ baby_id }) {
                   <th>{t("Time")}</th>
                   <th>{t("Type")}</th>
                   <th>{t("Amount")} (oz)</th>
-                  <th>{t("Amount")}x</th>
+                  <th>{t("Issues")}</th>
                   <th>{t("Notes")}</th>
                   <th style={{ width: "60px" }}></th>
                 </tr>
