@@ -94,32 +94,89 @@ function Feeding({ baby_id }) {
   );
   let hasAnyMeals = sortedData.some((d) => d.meal && d.meal.length > 0);
 
+  // Fixed date formatting function
   const formatDate = (dateString) => {
-    const parsed = new Date(dateString);
-    const options = {
-      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    };
-    console.log(
-      "Parsed date:",
-      parsed.toLocaleDateString("en-US", {
-        day: "numeric",
-        ...options,
-      }),
-    );
-
-    return {
-      dayNumber: parsed.toLocaleDateString("en-US", {
-        day: "numeric",
-        ...options,
-      }),
-      restOfDate: parsed.toLocaleDateString("en-US", {
-        month: "short",
-        weekday: "short",
-        year: "numeric",
-        ...options,
-      }),
-    };
+    try {
+      // Check if date string is valid
+      if (!dateString || typeof dateString !== 'string') {
+        console.error("Invalid date string:", dateString);
+        return { dayNumber: "?", restOfDate: "Invalid date" };
+      }
+      
+      // Parse date parts from the YYYY-MM-DD format
+      const [year, month, day] = dateString.split('-').map(part => parseInt(part, 10));
+      
+      // Use UTC to avoid timezone issues
+      const date = new Date(Date.UTC(year, month - 1, day));
+      
+      // Check if date is valid
+      if (isNaN(date.getTime())) {
+        console.error("Invalid date created from:", dateString);
+        return { dayNumber: "?", restOfDate: "Invalid date" };
+      }
+      
+      // Format the day number
+      const dayNumber = date.getUTCDate().toString();
+      
+      // Format the rest of date (Month, Day of week, Year)
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const restOfDate = `${months[date.getUTCMonth()]}, ${days[date.getUTCDay()]} ${date.getUTCFullYear()}`;
+      
+      return { dayNumber, restOfDate };
+    } catch (error) {
+      console.error("Date parsing error:", error, "for dateString:", dateString);
+      return { dayNumber: "?", restOfDate: "Invalid date" };
+    }
   };
+
+  // NEW: Function to format time properly in 12-hour format (HH:MM AM/PM)
+  const formatTimeDisplay = (timeString) => {
+    if (!timeString) return "";
+    
+    try {
+      // First, check if it's already in the right format with AM/PM
+      if (/\d{1,2}:\d{2}\s?[AP]M/i.test(timeString)) {
+        // It's already in the correct format, just ensure consistent spacing
+        return timeString.replace(/(\d{1,2}:\d{2})\s?([AP]M)/i, "$1 $2");
+      }
+      
+      // Check for malformed times like "01:2500" or "18:2600"
+      const complexTimeMatch = timeString.match(/(\d{1,2}):(\d{2})(\d{2})/);
+      if (complexTimeMatch) {
+        const hours = parseInt(complexTimeMatch[1], 10);
+        const minutes = parseInt(complexTimeMatch[2], 10);
+        
+        // Convert to 12-hour format
+        const ampm = hours >= 12 ? "PM" : "AM";
+        const hours12 = hours % 12 || 12;
+        
+        // Format properly as HH:MM AM/PM
+        return `${hours12}:${String(minutes).padStart(2, "0")} ${ampm}`;
+      }
+      
+      // Handle regular 24-hour format
+      const timeParts = timeString.match(/(\d{1,2}):(\d{2})/);
+      if (timeParts) {
+        const hours = parseInt(timeParts[1], 10);
+        const minutes = parseInt(timeParts[2], 10);
+        
+        // Convert to 12-hour format
+        const ampm = hours >= 12 ? "PM" : "AM";
+        const hours12 = hours % 12 || 12;
+        
+        // Format properly as HH:MM AM/PM
+        return `${hours12}:${String(minutes).padStart(2, "0")} ${ampm}`;
+      }
+      
+      // If nothing else worked, return the original
+      return timeString;
+    } catch (error) {
+      console.error("Error formatting time:", error, "timeString:", timeString);
+      return timeString;
+    }
+  };
+
   const handleOpenModal = (mealItem, date) => {
     setModalError("");
     setSelectedMeal(mealItem);
@@ -410,6 +467,13 @@ function Feeding({ baby_id }) {
     }, 5000);
   };
 
+  // Improved function to get today's date in YYYY-MM-DD format
+  function getLocalTodayString() {
+    const now = new Date();
+    // Use UTC methods to avoid timezone issues
+    return `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, '0')}-${String(now.getUTCDate()).padStart(2, '0')}`;
+  }
+
   // Group meals by date
   const groupMealsByDate = (meals) => {
     return meals.reduce((acc, meal) => {
@@ -423,6 +487,27 @@ function Feeding({ baby_id }) {
   };
   const groupedMeals = groupMealsByDate(sortedData);
 
+  // Added function to check if a date is today, using UTC to avoid timezone issues
+  const isDateToday = (dateString) => {
+    if (!dateString) return false;
+    
+    try {
+      // Get today's date in UTC
+      const now = new Date();
+      const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+      
+      // Parse the input date
+      const [year, month, day] = dateString.split('-').map(part => parseInt(part, 10));
+      const dateUTC = new Date(Date.UTC(year, month - 1, day));
+      
+      // Compare the dates (ignoring time)
+      return todayUTC.getTime() === dateUTC.getTime();
+    } catch (e) {
+      console.error("Error checking if date is today:", e);
+      return false;
+    }
+  };
+
   return (
     <div className={styles.container}>
       <ToastContainer toasts={toasts} removeToast={removeToast} />
@@ -430,8 +515,7 @@ function Feeding({ baby_id }) {
         const meals = mealsOnSameDate[1];
         const date = mealsOnSameDate[0];
         const { dayNumber, restOfDate } = formatDate(date);
-        console.log("Parsed date:", dayNumber);
-        const today = isSameDay(parseISO(date), new Date());
+        const today = isDateToday(date);
 
         return (
           <div key={date} className={styles.dayCard}>
@@ -447,7 +531,7 @@ function Feeding({ baby_id }) {
               {today && (
                 <div className={styles.dayHeaderRight}>
                   <span className={styles.todayMeals}>
-                    {t("Today’s Meals")}
+                    {t("Today's Meals")}
                   </span>
                 </div>
               )}
@@ -459,7 +543,7 @@ function Feeding({ baby_id }) {
                   <th>{t("Time")}</th>
                   <th>{t("Type")}</th>
                   <th>{t("Amount")} (oz)</th>
-                  <th>{t("Amount")}x</th>
+                  <th>{t("Issues")}</th>
                   <th>{t("Notes")}</th>
                   <th style={{ width: "60px" }}></th>
                 </tr>
@@ -468,7 +552,7 @@ function Feeding({ baby_id }) {
                 {meals.map((meal, idx) => (
                   <tr key={idx}>
                     <td>{meal.meal}</td>
-                    <td>{meal.time}</td>
+                    <td>{formatTimeDisplay(meal.time)}</td>
                     <td>{meal.type}</td>
                     <td>{meal.amount > 0 ? meal.amount + " oz" : "0 oz"}</td>
                     <td>{meal.issues || "None"}</td>
