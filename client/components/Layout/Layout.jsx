@@ -41,7 +41,7 @@ export default function Layout({ children }) {
       {isAuthenticated && <GlobalReminderPopup />}
       <Container fluid className={styles.container}>
         {!isHomePage && isAuthenticated ? (
-          userRole === "Parent" ? (
+          userRole === "Parent" || userRole === "Caregiver" ? (
             <Sidebar
               isCollapsed={isSidebarCollapsed}
               onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
