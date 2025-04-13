@@ -16,9 +16,14 @@ function App({ Component, pageProps }) {
   // Define page titles mapping
   const getPageTitle = () => {
     const path = router.pathname;
+
+    if (path === "/") {
+      return "Tummy Time"; // Default title for the home page
+    }
+
     const titles = {
-      "/": "Home",
       "/dashboard": "Dashboard",
+      "/doctor/[id]": "Dashboard",
       "/analysis": "Analysis",
       "/baby/[id]/analysis": "Baby Analysis",
       "/baby/[id]": "Baby Profile",
@@ -52,6 +57,7 @@ function App({ Component, pageProps }) {
       "/terms": "Terms of Service",
       "/privacy": "Privacy Policy",
       "/baby/[id]/growth": "Growth Data",
+      "/baby/add": "Add Baby",
     };
 
     return `${titles[path] || "Page"} | Tummy Time`;
