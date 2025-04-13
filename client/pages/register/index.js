@@ -4,6 +4,7 @@ import { Button, Container, Form, Modal } from "react-bootstrap";
 import styles from "./register.module.css";
 import Image from "next/image";
 import { useRouter } from "next/router";
+import NavBar from "@/components/Navbar/NavBar";
 
 function Register() {
   const [show, setShow] = useState(false);
@@ -56,9 +57,18 @@ function Register() {
 
       if (data.status === "ok") {
         localStorage.setItem("userId", data.user_id);
+        localStorage.setItem("userRole", role);
         console.log("User's information has been created successfully");
         handleClose();
-        router.push("/dashboard");
+
+        // Role-based routing (since doctors have a different dashboard)
+        if (role === "Medical Professional") {
+          router.push(`/doctor/${data.user_id}`);
+        } else if (role === "Caregiver" || role === "Parent") {
+          router.push("/dashboard");
+        } else {
+          router.push("/login");
+        }
       } else {
         setError(data.message);
       }
@@ -67,6 +77,7 @@ function Register() {
 
   return (
     <Container fluid className={styles.about}>
+      <NavBar />
       <svg
         width="38"
         height="38"
@@ -173,5 +184,11 @@ function Register() {
     </Container>
   );
 }
+
+// THIS PREVENTS THE SIDEBAR FROM SHOWING ON THIS PAGE
+// Override the default layout by returning the page without a layout
+Register.getLayout = function getLayout(page) {
+  return page;
+};
 
 export default Register;
