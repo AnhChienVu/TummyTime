@@ -40,7 +40,7 @@ const MultipleFeedingSchedules = () => {
     return <div className={styles.statusMessage}>{t("Loading babies...")}</div>;
   if (error)
     return (
-      <div className={styles.statusMessage}>{t("Error loading babies")}</div>
+      <div className={styles.statusMessage}>{t("No babies found")}</div>
     );
   if (!babies.length)
     return <div className={styles.statusMessage}>{t("No babies found")}</div>;
