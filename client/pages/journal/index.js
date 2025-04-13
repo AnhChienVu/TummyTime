@@ -171,7 +171,7 @@ export default function Journal() {
 
       const token = localStorage.getItem("token");
       if (!token) {
-        logger.error("No token found");
+        console.error("No token found");
         return;
       }
 

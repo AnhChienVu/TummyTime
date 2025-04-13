@@ -1,3 +1,4 @@
+// pages/doctor/[id]/index.js
 import React, { useState, useEffect } from "react";
 import { FaUserMd, FaSearch } from "react-icons/fa";
 import { Line, Pie } from "react-chartjs-2";
@@ -13,6 +14,7 @@ import {
   ArcElement,
 } from "chart.js";
 import { format } from "date-fns";
+import { useRouter } from "next/router";
 import styles from "./doctor.module.css";
 
 // Register the necessary components
@@ -28,10 +30,22 @@ ChartJS.register(
 );
 
 const DoctorDashboard = () => {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("vitals");
   const [healthRecords, setHealthRecords] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
+    // Check if user is authenticated and is a medical professional
+    // userRole and userId were set in register/index.js
+    const userRole = localStorage.getItem("userRole");
+    const userId = localStorage.getItem("userId");
+
+    if (!userId || userRole !== "Medical Professional") {
+      router.push("/login");
+      return;
+    }
+
     const fetchBabyHealthRecords = async () => {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/v1/doctor/${localStorage.userId}/healthRecords`,
@@ -49,8 +63,9 @@ const DoctorDashboard = () => {
         setHealthRecords(data.combinedData);
       }
     };
+
     fetchBabyHealthRecords();
-  }, []);
+  }, [router]);
 
   const vitalData = {
     labels: ["Jan", "Feb", "Mar", "Apr", "May"],

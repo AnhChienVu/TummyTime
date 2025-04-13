@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-// import "bootstrap/dist/css/bootstrap.min.css";
 import styles from "./export.module.css";
 import { Container } from "react-bootstrap";
 import { useTranslation } from "next-i18next";

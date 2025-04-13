@@ -54,18 +54,23 @@ export default function AddBaby() {
   return (
     <Container className={styles.container} fluid>
       <div className={styles.formContainer}>
+        <h1 className={styles.title}>{t("Add New Baby")}</h1>
+        <p className={styles.welcomeText}>
+          {t(
+            "Congratulations on growing your family! Let's start by adding your new baby to Tummy Time.",
+          )}
+        </p>
+
         <Form onSubmit={handleSubmit(submitForm)}>
-          <p>
-            {t(
-              "Congratulations on growing your family! Let's start by adding your new baby to Tummy Time.",
-            )}
-          </p>
-          <Row className="mb-3">
+          <Row className="mb-4">
             <Col md={6}>
-              <Form.Group className="mb-3">
+              <Form.Group className={styles.formGroup}>
+                <Form.Label className={styles.formLabel}>
+                  {t("First Name")}
+                </Form.Label>
                 <Form.Control
                   type="text"
-                  placeholder={t("First name")}
+                  placeholder={t("Enter first name")}
                   name="firstName"
                   {...register("first_name")}
                   required
@@ -73,10 +78,13 @@ export default function AddBaby() {
               </Form.Group>
             </Col>
             <Col md={6}>
-              <Form.Group className="mb-3">
+              <Form.Group className={styles.formGroup}>
+                <Form.Label className={styles.formLabel}>
+                  {t("Last Name")}
+                </Form.Label>
                 <Form.Control
                   type="text"
-                  placeholder={t("Last name")}
+                  placeholder={t("Enter last name")}
                   name="lastName"
                   {...register("last_name")}
                   required
@@ -85,15 +93,35 @@ export default function AddBaby() {
             </Col>
           </Row>
 
-          <hr />
-
-          <Row className="mb-3">
-            <Col>
-              <Form.Group>
+          <Row className="mb-4">
+            <Col md={6}>
+              <Form.Group className={styles.formGroup}>
+                <Form.Label className={styles.formLabel}>
+                  {t("Gender")}
+                </Form.Label>
+                <Form.Select
+                  name="gender"
+                  defaultValue=""
+                  {...register("gender")}
+                  required
+                >
+                  <option value="" disabled>
+                    {t("Select gender")}
+                  </option>
+                  <option value="boy">{t("Boy")}</option>
+                  <option value="girl">{t("Girl")}</option>
+                </Form.Select>
+              </Form.Group>
+            </Col>
+            <Col md={6}>
+              <Form.Group className={styles.formGroup}>
+                <Form.Label className={styles.formLabel}>
+                  {t("Weight")}
+                </Form.Label>
                 <Form.Control
                   name="weight"
                   type="number"
-                  placeholder={t("Weight at birth (lb)")}
+                  placeholder={t("Enter weight in lb")}
                   min={5}
                   {...register("weight")}
                   required
@@ -141,32 +169,12 @@ export default function AddBaby() {
               </Form.Group>
             </Col>
           </Row> */}
-
-          <Row className="mb-3">
-            <Col>
-              <Form.Select
-                name="gender"
-                defaultValue=""
-                className="mb-3"
-                {...register("gender")}
-                placeholder={t("Gender")}
-                required
-              >
-                <option value="" disabled>
-                  {t("Gender")}
-                </option>
-                <option value="boy">{t("Boy")}</option>
-                <option value="girl">{t("Girl")}</option>
-              </Form.Select>
-            </Col>
-          </Row>
-
           <Button
             variant="primary"
             type="submit"
             className={styles.submitButton}
           >
-            {t("Create baby profile")}
+            {t("Create Baby Profile")}
           </Button>
         </Form>
       </div>

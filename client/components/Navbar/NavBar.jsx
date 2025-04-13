@@ -27,9 +27,10 @@ function NavBar() {
           'Authorization': `Bearer ${token}`,
         }
       });
-      
+ 
       if (response.ok) {
         const userData = await response.json();
+
         setUserInfo({
           firstName: userData.first_name || '',
           role: localStorage.getItem("userRole") || ''
@@ -63,7 +64,7 @@ function NavBar() {
         <span className={styles.brandName}>Tummy Time</span>
       </Link>
       <div className={styles.topNav}>
-        {isAuthenticated ? (
+        {isAuthenticated && (Object.values(userInfo).every(str => str != ""))? (
           <>
             <span className={styles.userInfo}>
               {userInfo.firstName} &#40;{userInfo.role}&#41;
