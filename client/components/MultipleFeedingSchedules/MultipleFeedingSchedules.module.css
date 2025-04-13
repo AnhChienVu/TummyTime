@@ -29,7 +29,7 @@
 
 .customAccordion :global(.accordion-item) {
   border: 1px solid #dbc4f07b;
-  margin-bottom: 0.5rem;
+  margin-bottom: 2rem;
   border-radius: 5px;
   overflow: hidden;
   background-color: #ffffff;
@@ -45,7 +45,7 @@
 
 .statusMessage {
   text-align: center;
-  padding: 1rem;
+  padding: 1.5rem;
   color: #666;
   font-size: 1.1rem;
 }
