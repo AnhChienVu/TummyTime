@@ -58,6 +58,7 @@ function App({ Component, pageProps }) {
       "/privacy": "Privacy Policy",
       "/baby/[id]/growth": "Growth Data",
       "/baby/add": "Add Baby",
+      "/forum/post/[post_id]": "Community Forum",
     };
 
     return `${titles[path] || "Page"} | Tummy Time`;
