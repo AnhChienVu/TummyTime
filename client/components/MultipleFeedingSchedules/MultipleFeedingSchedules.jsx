@@ -65,7 +65,6 @@ const MultipleFeedingSchedules = () => {
             )}
           </Accordion.Header>
           <Accordion.Body style={{ overflowX: "auto" }}>
-            {console.log("baby.baby_id", baby.baby_id)}
             <FeedingSchedule babyId={baby.baby_id} />
           </Accordion.Body>
         </Accordion.Item>

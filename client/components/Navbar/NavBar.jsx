@@ -30,10 +30,9 @@ function NavBar() {
  
       if (response.ok) {
         const userData = await response.json();
-
         setUserInfo({
           firstName: userData.first_name || '',
-          role: localStorage.getItem("userRole") || ''
+          role: userData.role || ''
         });
       }
     } catch (error) {
