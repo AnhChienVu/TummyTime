@@ -833,16 +833,6 @@ const FeedingSchedule = () => {
         reminderNotes += `\n\nNotes: ${newNote}`;
       }
 
-      // For debugging - log if the reminder date has changed from today
-      if (!reminderTimeResult.isSameDay) {
-        console.log(
-          "Notice: The reminder has been scheduled for the next day:", 
-          reminderTimeResult.date, 
-          "at", 
-          reminderTimeResult.formattedTime
-        );
-      }
-
       // IMPORTANT: Include the complete time information including AM/PM
       reminderData = {
         title: reminderTitle,
@@ -855,13 +845,6 @@ const FeedingSchedule = () => {
         reminderIn: parsedReminderMinutes,
       };
 
-      // For debugging
-      console.log(
-        "Calculated reminder time:",
-        reminderTimeResult.formattedTime,
-        "on date:",
-        reminderTimeResult.date
-      );
     }
 
     try {
