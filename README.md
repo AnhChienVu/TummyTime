@@ -145,3 +145,17 @@ npm run dev
 - Frontend: Open http://localhost:3000 (or specified port)
 
 - Backend API: Runs on http://localhost:8080 (or configured port)
+
+**7. Public Server Instructions**
+
+- Backend: Hosted on Render, auto-deployed from main branch
+
+- Frontend: Hosted on Vercel
+
+- Database: Hosted on Supabase
+
+**8. Test Account Credentials**
+
+· Username: vuanhchien003@gmail.com
+
+· Password: Password1@
