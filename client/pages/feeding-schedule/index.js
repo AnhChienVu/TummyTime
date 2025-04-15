@@ -50,7 +50,7 @@ function formatTime(h, m, ampm) {
   return `${h}:${m} ${ampm}`;
 }
 
-// NEW FUNCTION: Calculate reminder time properly with AM/PM handling
+// FIXED FUNCTION: Calculate reminder time properly with AM/PM handling and consistent date transitions
 function calculateReminderTime(baseHour, baseMinute, baseAmPm, addMinutes) {
   // Convert to 24-hour format for calculation
   let hour24 = parseInt(baseHour, 10);
@@ -71,6 +71,8 @@ function calculateReminderTime(baseHour, baseMinute, baseAmPm, addMinutes) {
     now.getDate(),
     hour24,
     minute,
+    0,
+    0
   );
 
   // Add the specified minutes to get the reminder time
@@ -83,6 +85,16 @@ function calculateReminderTime(baseHour, baseMinute, baseAmPm, addMinutes) {
 
   // Convert hour back to 12-hour format
   reminderHour = reminderHour % 12 || 12;
+  
+  // Check if the date is the same as the base date
+  const isSameDay = 
+    reminderTime.getDate() === now.getDate() && 
+    reminderTime.getMonth() === now.getMonth() && 
+    reminderTime.getFullYear() === now.getFullYear();
+  
+  // Use the current date if it's still the same day, otherwise use the next day's date
+  // Format date correctly as YYYY-MM-DD
+  const formattedDate = `${reminderTime.getFullYear()}-${String(reminderTime.getMonth() + 1).padStart(2, '0')}-${String(reminderTime.getDate()).padStart(2, '0')}`;
 
   // Format the time
   return {
@@ -93,8 +105,9 @@ function calculateReminderTime(baseHour, baseMinute, baseAmPm, addMinutes) {
       2,
       "0",
     )} ${reminderAmPm}`,
-    // Also return the date in case it's needed (if reminder crosses midnight)
-    date: reminderTime.toISOString().split("T")[0],
+    // Return the date, matching how it's done in the reminders page
+    date: formattedDate, 
+    isSameDay: isSameDay // Include flag to indicate if date changed for debugging
   };
 }
 
@@ -743,7 +756,7 @@ const FeedingSchedule = () => {
     setSelectedBaby(baby_id);
   };
 
-  // UPDATED: handleSaveNewFeed with proper time calculation
+  // UPDATED: handleSaveNewFeed with proper time calculation and correct date handling
   const handleSaveNewFeed = async () => {
     setNewModalError("");
 
@@ -795,7 +808,7 @@ const FeedingSchedule = () => {
         return;
       }
 
-      // Calculate reminder time using our dedicated function
+      // Calculate reminder time using our improved function
       const reminderTimeResult = calculateReminderTime(
         newHour,
         newMinute,
@@ -820,6 +833,16 @@ const FeedingSchedule = () => {
         reminderNotes += `\n\nNotes: ${newNote}`;
       }
 
+      // For debugging - log if the reminder date has changed from today
+      if (!reminderTimeResult.isSameDay) {
+        console.log(
+          "Notice: The reminder has been scheduled for the next day:", 
+          reminderTimeResult.date, 
+          "at", 
+          reminderTimeResult.formattedTime
+        );
+      }
+
       // IMPORTANT: Include the complete time information including AM/PM
       reminderData = {
         title: reminderTitle,
@@ -836,6 +859,8 @@ const FeedingSchedule = () => {
       console.log(
         "Calculated reminder time:",
         reminderTimeResult.formattedTime,
+        "on date:",
+        reminderTimeResult.date
       );
     }
 
@@ -856,7 +881,7 @@ const FeedingSchedule = () => {
       setNewModalError("Something went wrong. Please try again.");
     }
   };
-  // Helper function to calculate and format preview time
+  // Improved helper function to calculate and format preview time with date information
   const calculatePreviewTime = (hour, minute, amPm, addMinutes) => {
     // Convert hour to 24-hour format for calculations
     let hour24 = parseInt(hour, 10);
@@ -874,6 +899,8 @@ const FeedingSchedule = () => {
       now.getDate(),
       hour24,
       parseInt(minute, 10),
+      0,
+      0
     );
 
     // Add the specified minutes
@@ -888,11 +915,22 @@ const FeedingSchedule = () => {
 
     // Convert to 12-hour format
     reminderHour = reminderHour % 12 || 12;
-
-    return `${reminderHour}:${String(reminderMinute).padStart(
-      2,
-      "0",
-    )} ${reminderAmPm}`;
+    
+    // Check if the date is the same as the base date
+    const isSameDay = 
+      reminderTime.getDate() === now.getDate() && 
+      reminderTime.getMonth() === now.getMonth() && 
+      reminderTime.getFullYear() === now.getFullYear();
+      
+    const formattedTime = `${reminderHour}:${String(reminderMinute).padStart(2, "0")} ${reminderAmPm}`;
+    
+    // Only add date information if the reminder crosses to the next day
+    if (!isSameDay) {
+      const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      return `${formattedTime} (${monthNames[reminderTime.getMonth()]} ${reminderTime.getDate()})`;
+    }
+    
+    return formattedTime;
   };
 
   return (
