@@ -244,8 +244,8 @@ module.exports = async (req, res) => {
           csvContent += "No stool records found\n";
         } else {  // at least one stool record
           const stoolResult = await pool.query(
-            "SELECT * FROM stool_entries WHERE baby_id = $1 AND date BETWEEN $2 AND $3 ORDER BY date ASC",
-            [baby.baby_id, startDate, endDate]
+            "SELECT * FROM stool_entries WHERE baby_id = $1 AND date(timestamp) BETWEEN $2 AND $3 ORDER BY timestamp ASC",
+              [baby.baby_id, startDate, endDate]
           );
 
           csvContent += "---------------------------,---------------------------,----------------------\n";
