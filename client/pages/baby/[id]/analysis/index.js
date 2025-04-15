@@ -13,112 +13,25 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { parseISO, format, isWithinInterval } from "date-fns";
+import { parseISO, format } from "date-fns";
+import {
+  hasEnoughDataPoints,
+  validateDateRange,
+  compareDates,
+  filterDataByRange,
+  findDateRange,
+  calculateStartDate,
+  getDataAvailabilityMessage,
+  getLastLoggedDate,
+  getLastLoggedDateInRange,
+  findOptimalDateRange
+} from "../../../../utils/dateUtils";
 import { useRouter } from "next/router";
 import { useTranslation } from "next-i18next";
 import { serverSideTranslations } from "next-i18next/serverSideTranslations";
 import styles from "./analysis.module.css";
 
-// Helper function to determine if we have enough data points for a meaningful analysis
-function hasEnoughDataPoints(data, timeRange) {
-  if (!Array.isArray(data) || data.length === 0) return false;
-  
-  // For week view, we want at least 3 data points
-  // For month view, we want at least 7 data points
-  const minimumPoints = timeRange === "week" ? 3 : 7;
-  
-  // For chart data that might have a different structure
-  // Count the number of unique dates with data
-  if (data[0] && (data[0].date || data[0].timestamp)) {
-    const uniqueDates = new Set();
-    data.forEach(item => {
-      const dateStr = item.date || item.timestamp;
-      if (dateStr) uniqueDates.add(dateStr.split('T')[0]);
-    });
-    return uniqueDates.size >= minimumPoints;
-  }
-  
-  return data.length >= minimumPoints;
-}
-
-// Helper function to validate date ranges
-function validateDateRange(start, end, minDate, maxDate, timeRange) {
-  // Handle empty inputs safely
-  if (!start || !end || !minDate || !maxDate) {
-    return {
-      start: minDate || "",
-      end: maxDate || ""
-    };
-  }
-  
-  const startDate = parseISO(start);
-  const endDate = parseISO(end);
-  const minLogDate = parseISO(minDate);
-  const maxLogDate = parseISO(maxDate);
-  
-  // Ensure all dates are valid
-  if (isNaN(startDate) || isNaN(endDate) || isNaN(minLogDate) || isNaN(maxLogDate)) {
-    console.error("Invalid date detected in validateDateRange");
-    return {
-      start: minDate,
-      end: maxDate
-    };
-  }
-  
-  let validStart = startDate;
-  let validEnd = endDate;
-  
-  // Ensure start date isn't before minLoggedDate
-  if (startDate < minLogDate) {
-    validStart = minLogDate;
-  }
-  
-  // Ensure end date isn't after maxLoggedDate
-  if (endDate > maxLogDate) {
-    validEnd = maxLogDate;
-  }
-  
-  // Ensure start date isn't after end date
-  if (validStart > validEnd) {
-    validStart = new Date(validEnd);
-    validStart.setDate(validStart.getDate() - (timeRange === "week" ? 6 : 29));
-    
-    // If this puts us before minLoggedDate, adjust again
-    if (validStart < minLogDate) {
-      validStart = minLogDate;
-    }
-  }
-  
-  return {
-    start: format(validStart, "yyyy-MM-dd"),
-    end: format(validEnd, "yyyy-MM-dd")
-  };
-}
-
-// Helper function to compare dates for sorting (newest first)
-function compareDates(a, b) {
-  const dateA = a.date || a.timestamp || a.created_at || a.measurement_date || '';
-  const dateB = b.date || b.timestamp || b.created_at || b.measurement_date || '';
-  
-  // If dates are exactly the same or one is missing, try using time as tie-breaker
-  if (dateA === dateB || !dateA || !dateB) {
-    const timeA = a.time || '';
-    const timeB = b.time || '';
-    return timeB.localeCompare(timeA); // Latest time first
-  }
-  
-  // Convert to date objects for comparison
-  const parsedA = parseISO(dateA);
-  const parsedB = parseISO(dateB);
-  
-  // If both are valid dates, compare them (newest first)
-  if (!isNaN(parsedA) && !isNaN(parsedB)) {
-    return parsedB - parsedA;
-  }
-  
-  // Fall back to string comparison if date parsing fails
-  return dateB.localeCompare(dateA);
-}
+// Helper functions moved to utils/dateUtils.js
 
 function convertResponseToArray(data) {
   if (!data || typeof data !== "object") return [];
@@ -300,6 +213,7 @@ export default function Analysis() {
 
   const [growthStart, setGrowthStart] = useState("");
   const [growthEnd, setGrowthEnd] = useState("2025-04-12");
+  const [growthTimeRange, setGrowthTimeRange] = useState("month");
 
   // Track earliest and latest
   const [minLoggedDate, setMinLoggedDate] = useState("");
@@ -390,42 +304,10 @@ export default function Analysis() {
     
     console.log("Processing data to determine date ranges");
     
-    const allDates = [];
+    // Find date range across all datasets
+    const { minDate: newMinDate, maxDate: newMaxDate } = findDateRange([feedData, stoolData, growthData]);
     
-    // Helper function to extract and process dates from various data items
-    const extractDates = (item) => {
-      // Check all possible date fields
-      const dateStr = item.date || item.timestamp || item.created_at || item.measurement_date;
-      
-      if (dateStr) {
-        // Handle ISO date strings by removing time portion
-        const cleanDateStr = dateStr.includes('T') ? dateStr.split('T')[0] : dateStr;
-        const parsed = parseISO(cleanDateStr);
-        
-        if (!isNaN(parsed)) {
-          allDates.push(parsed);
-          return true;
-        }
-      }
-      return false;
-    };
-    
-    // Process all datasets
-    [...feedData, ...stoolData, ...growthData].forEach(extractDates);
-    
-    // Debug logging
-    console.log("Found dates:", allDates.map(d => format(d, "yyyy-MM-dd")));
-    
-    // If we found any valid dates
-    if (allDates.length > 0) {
-      allDates.sort((a, b) => a - b); // Sort dates chronologically
-      
-      const earliest = allDates[0];
-      const latest = allDates[allDates.length - 1];
-      
-      const newMinDate = format(earliest, "yyyy-MM-dd");
-      const newMaxDate = format(latest, "yyyy-MM-dd");
-      
+    if (newMinDate && newMaxDate) {
       console.log(`Date range detected: ${newMinDate} to ${newMaxDate}`);
       
       // Update the state with the min and max dates
@@ -441,7 +323,7 @@ export default function Analysis() {
         
         // Keep the current date (2025-04-12) as end date if it's within or before the logged date range
         // otherwise use the max logged date
-        if (newMaxDate < currentDate) {
+        if (parseISO(newMaxDate) < parseISO(currentDate)) {
           console.log("Max logged date is earlier than current date, using max logged date");
           setFeedEnd(newMaxDate);
           setStoolEnd(newMaxDate);
@@ -452,37 +334,27 @@ export default function Analysis() {
         }
         
         // Calculate start dates based on the time range and end date
-        const parsedEndDate = parseISO(feedEnd !== "" ? feedEnd : currentDate);
-        const feedStartDate = new Date(parsedEndDate);
-        feedTimeRange === "week" 
-          ? feedStartDate.setDate(feedStartDate.getDate() - 6)
-          : feedStartDate.setDate(feedStartDate.getDate() - 29);
+        const feedStartDate = calculateStartDate(
+          feedEnd !== "" ? feedEnd : currentDate,
+          feedTimeRange,
+          newMinDate
+        );
+        setFeedStart(feedStartDate);
         
-        // Ensure start dates aren't before the earliest date
-        if (feedStartDate < earliest) {
-          setFeedStart(newMinDate);
-        } else {
-          setFeedStart(format(feedStartDate, "yyyy-MM-dd"));
-        }
+        // Similar calculations for stool and growth start dates
+        const stoolStartDate = calculateStartDate(
+          stoolEnd !== "" ? stoolEnd : currentDate,
+          "month",
+          newMinDate
+        );
+        setStoolStart(stoolStartDate);
         
-        // Similar calculations for stool and growth start dates (always 30 days)
-        const parsedStoolEndDate = parseISO(stoolEnd !== "" ? stoolEnd : currentDate);
-        const stoolStartDate = new Date(parsedStoolEndDate);
-        stoolStartDate.setDate(stoolStartDate.getDate() - 29);
-        if (stoolStartDate < earliest) {
-          setStoolStart(newMinDate);
-        } else {
-          setStoolStart(format(stoolStartDate, "yyyy-MM-dd"));
-        }
-        
-        const parsedGrowthEndDate = parseISO(growthEnd !== "" ? growthEnd : currentDate);
-        const growthStartDate = new Date(parsedGrowthEndDate);
-        growthStartDate.setDate(growthStartDate.getDate() - 29);
-        if (growthStartDate < earliest) {
-          setGrowthStart(newMinDate);
-        } else {
-          setGrowthStart(format(growthStartDate, "yyyy-MM-dd"));
-        }
+        const growthStartDate = calculateStartDate(
+          growthEnd !== "" ? growthEnd : currentDate,
+          growthTimeRange,
+          newMinDate
+        );
+        setGrowthStart(growthStartDate);
         
         setDatesInitialized(true);
         console.log("Date pickers initialized with data-based range");
@@ -490,14 +362,14 @@ export default function Analysis() {
     } else {
       console.warn("No valid dates found in any dataset");
     }
-  }, [feedData, stoolData, growthData, loading, feedTimeRange, datesInitialized, feedEnd, stoolEnd, growthEnd]);
+  }, [feedData, stoolData, growthData, loading, feedTimeRange, growthTimeRange, datesInitialized, feedEnd, stoolEnd, growthEnd]);
 
   // Double-check to ensure dates are set to current date (2025-04-12) or max logged date
   useEffect(() => {
     if (maxLoggedDate && !datesInitialized) {
       console.log("Second check: Ensuring end dates are not after max logged date");
-      // Only update if current date (2025-04-12) is greater than max logged date
-      if (maxLoggedDate < "2025-04-12") {
+      // Compare dates properly using Date objects instead of string comparison
+      if (parseISO(maxLoggedDate) < parseISO("2025-04-12")) {
         setFeedEnd(maxLoggedDate);
         setStoolEnd(maxLoggedDate);
         setGrowthEnd(maxLoggedDate);
@@ -509,30 +381,44 @@ export default function Analysis() {
   const handleTimeRangeChange = (newRange) => {
     setFeedTimeRange(newRange);
     
-    // Use the current end date (which should be 2025-04-12 or max logged date)
-    // and calculate a new start date based on the selected time range
-    const currentEndDate = feedEnd || "2025-04-12";
-    console.log(`Calculating new start date based on end date: ${currentEndDate} and time range: ${newRange}`);
+    console.log(`Changing feed time range to: ${newRange}`);
     
-    // Calculate start date based on selected time range
-    const endDate = parseISO(currentEndDate);
-    const startDate = new Date(endDate);
+    // Find optimal date range based on available data
+    const { start, end } = findOptimalDateRange(
+      feedData,
+      feedEnd,
+      newRange,
+      minLoggedDate,
+      maxLoggedDate
+    );
     
-    newRange === "week"
-      ? startDate.setDate(startDate.getDate() - 6)
-      : startDate.setDate(startDate.getDate() - 29);
+    console.log(`Optimal date range: ${start} to ${end}`);
     
-    // Ensure start date isn't before min logged date
-    if (minLoggedDate) {
-      const minDate = parseISO(minLoggedDate);
-      if (startDate < minDate) {
-        setFeedStart(minLoggedDate);
-      } else {
-        setFeedStart(format(startDate, "yyyy-MM-dd"));
-      }
-    } else {
-      setFeedStart(format(startDate, "yyyy-MM-dd"));
-    }
+    // Update state with optimal date range
+    setFeedStart(start);
+    setFeedEnd(end);
+  };
+
+  // Update growth date range when time range changes
+  const handleGrowthTimeRangeChange = (newRange) => {
+    setGrowthTimeRange(newRange);
+    
+    console.log(`Changing growth time range to: ${newRange}`);
+    
+    // Find optimal date range based on available data
+    const { start, end } = findOptimalDateRange(
+      growthData,
+      growthEnd,
+      newRange,
+      minLoggedDate,
+      maxLoggedDate
+    );
+    
+    console.log(`Optimal growth date range: ${start} to ${end}`);
+    
+    // Update state with optimal date range
+    setGrowthStart(start);
+    setGrowthEnd(end);
   };
 
   // Handle feed date changes with validation and respect time range selection
@@ -549,8 +435,8 @@ export default function Analysis() {
         ? endDate.setDate(endDate.getDate() + 6)
         : endDate.setDate(endDate.getDate() + 29);
       
-      // Ensure end date doesn't exceed max logged date
-      if (maxLoggedDate && format(endDate, "yyyy-MM-dd") > maxLoggedDate) {
+      // Ensure end date doesn't exceed max logged date (compare as Date objects)
+      if (maxLoggedDate && endDate > parseISO(maxLoggedDate)) {
         // If end date would exceed max logged date, adjust start date instead
         const maxDate = parseISO(maxLoggedDate);
         const adjustedStart = new Date(maxDate);
@@ -665,27 +551,101 @@ export default function Analysis() {
 
   // Handle growth date changes with validation
   const handleGrowthStartChange = (newStart) => {
-    const validated = validateDateRange(
-      newStart,
-      growthEnd,
-      minLoggedDate,
-      maxLoggedDate,
-      "month"
-    );
-    setGrowthStart(validated.start);
-    setGrowthEnd(validated.end);
+    // If time range is set, we need to adjust the end date based on the selected start date
+    if (growthTimeRange === "week" || growthTimeRange === "month") {
+      const startDate = parseISO(newStart);
+      const endDate = new Date(startDate);
+      
+      // Calculate end date based on time range (add 6 days for week, 29 days for month)
+      growthTimeRange === "week"
+        ? endDate.setDate(endDate.getDate() + 6)
+        : endDate.setDate(endDate.getDate() + 29);
+      
+      // Ensure end date doesn't exceed max logged date
+      if (maxLoggedDate && endDate > parseISO(maxLoggedDate)) {
+        // If end date would exceed max logged date, adjust start date instead
+        const maxDate = parseISO(maxLoggedDate);
+        const adjustedStart = new Date(maxDate);
+        growthTimeRange === "week"
+          ? adjustedStart.setDate(adjustedStart.getDate() - 6)
+          : adjustedStart.setDate(adjustedStart.getDate() - 29);
+        
+        // Ensure adjusted start isn't before min logged date
+        if (minLoggedDate && format(adjustedStart, "yyyy-MM-dd") < minLoggedDate) {
+          // If we can't satisfy both constraints, use min to max range
+          setGrowthStart(minLoggedDate);
+          setGrowthEnd(maxLoggedDate);
+        } else {
+          // Use adjusted start and max end
+          setGrowthStart(format(adjustedStart, "yyyy-MM-dd"));
+          setGrowthEnd(maxLoggedDate);
+        }
+      } else {
+        // Normal case: set start to selected date and calculate appropriate end date
+        setGrowthStart(newStart);
+        setGrowthEnd(format(endDate, "yyyy-MM-dd"));
+      }
+    } else {
+      // If no time range constraint, fall back to general validation
+      const validated = validateDateRange(
+        newStart,
+        growthEnd,
+        minLoggedDate,
+        maxLoggedDate,
+        growthTimeRange
+      );
+      setGrowthStart(validated.start);
+      setGrowthEnd(validated.end);
+    }
   };
 
   const handleGrowthEndChange = (newEnd) => {
-    const validated = validateDateRange(
-      growthStart,
-      newEnd,
-      minLoggedDate,
-      maxLoggedDate,
-      "month"
-    );
-    setGrowthStart(validated.start);
-    setGrowthEnd(validated.end);
+    // If time range is set, we need to adjust the start date based on the selected end date
+    if (growthTimeRange === "week" || growthTimeRange === "month") {
+      const endDate = parseISO(newEnd);
+      const startDate = new Date(endDate);
+      
+      // Calculate start date based on time range (subtract 6 days for week, 29 days for month)
+      growthTimeRange === "week"
+        ? startDate.setDate(startDate.getDate() - 6)
+        : startDate.setDate(startDate.getDate() - 29);
+      
+      // Ensure start date isn't before min logged date
+      if (minLoggedDate && format(startDate, "yyyy-MM-dd") < minLoggedDate) {
+        // If start date would be before min logged date, adjust end date instead
+        const minDate = parseISO(minLoggedDate);
+        const adjustedEnd = new Date(minDate);
+        growthTimeRange === "week"
+          ? adjustedEnd.setDate(adjustedEnd.getDate() + 6)
+          : adjustedEnd.setDate(adjustedEnd.getDate() + 29);
+        
+        // Ensure adjusted end isn't after max logged date
+        if (maxLoggedDate && format(adjustedEnd, "yyyy-MM-dd") > maxLoggedDate) {
+          // If we can't satisfy both constraints, use min to max range
+          setGrowthStart(minLoggedDate);
+          setGrowthEnd(maxLoggedDate);
+        } else {
+          // Use min start and adjusted end
+          setGrowthStart(minLoggedDate);
+          setGrowthEnd(format(adjustedEnd, "yyyy-MM-dd"));
+        }
+      } else {
+        // Normal case: set end to selected date and calculate appropriate start date
+        setGrowthEnd(newEnd);
+        setGrowthStart(format(startDate, "yyyy-MM-dd"));
+      }
+    } else {
+      // If no time range constraint, fall back to general validation
+      const validated = validateDateRange(
+        growthStart,
+        newEnd,
+        minLoggedDate,
+        maxLoggedDate,
+        growthTimeRange
+      );
+      setGrowthStart(validated.start);
+      setGrowthEnd(validated.end);
+    }
   };
 
   function getFeedChartData(feeds) {
@@ -731,39 +691,7 @@ export default function Analysis() {
       .sort((a, b) => (a.date < b.date ? -1 : 1));
   }
 
-  function filterDataByRange(dataArray, startDate, endDate) {
-    if (!startDate || !endDate || !Array.isArray(dataArray)) return [];
-    
-    // Parse the date range
-    const start = parseISO(startDate);
-    const end = parseISO(endDate);
-    
-    // For week view, don't add the extra day to make exactly 7 days
-    const inclusiveEnd = feedTimeRange === "week" ? end : new Date(end);
-    if (feedTimeRange !== "week") {
-      inclusiveEnd.setDate(inclusiveEnd.getDate() + 1);
-    }
-    
-    return dataArray.filter((item) => {
-      // Get the date from various possible properties
-      let dStr = item.date || item.timestamp || item.created_at || item.measurement_date;
-      
-      // Handle chart data objects which have a date property
-      if (!dStr && item.date) {
-        dStr = item.date;
-      }
-      
-      if (!dStr) return false;
-      
-      // If date contains time information, strip it off
-      if (dStr.includes('T')) {
-        dStr = dStr.split('T')[0];
-      }
-      
-      const d = parseISO(dStr);
-      return d && !isNaN(d) && isWithinInterval(d, { start, end: inclusiveEnd });
-    });
-  }
+  // filterDataByRange function moved to utils/dateUtils.js
 
   const rawFeedChartData = getFeedChartData(feedData);
   const rawGrowthData = buildGrowthChartData(growthData);
@@ -771,18 +699,21 @@ export default function Analysis() {
     rawFeedChartData,
     feedStart,
     feedEnd,
+    feedTimeRange
   );
-  const filteredStoolData = filterDataByRange(stoolData, stoolStart, stoolEnd);
+  const filteredStoolData = filterDataByRange(stoolData, stoolStart, stoolEnd, "month");
   const stoolColorData = buildStoolColorData(filteredStoolData);
   const filteredGrowthData = filterDataByRange(
     growthData,
     growthStart,
     growthEnd,
+    growthTimeRange
   );
   const growthChartData = buildGrowthChartData(filteredGrowthData);
 
   // Debug log the current date states and verify we're using 2025-04-12
   console.log("Current feed dates:", { feedStart, feedEnd, minLoggedDate, maxLoggedDate });
+  console.log("Current growth dates:", { growthStart, growthEnd, growthTimeRange });
   console.log("Current date for the app:", "2025-04-12");
 
   if (loading) {
@@ -870,7 +801,7 @@ export default function Analysis() {
                       // Force the max attribute to be respected
                       onInput={(e) => {
                         console.log("Date input event:", e.target.value, "Max:", maxLoggedDate);
-                        if (maxLoggedDate && e.target.value > maxLoggedDate) {
+                        if (maxLoggedDate && parseISO(e.target.value) > parseISO(maxLoggedDate)) {
                           console.log("Forcing date to max logged date");
                           e.target.value = maxLoggedDate;
                           setFeedEnd(maxLoggedDate);
@@ -910,11 +841,9 @@ export default function Analysis() {
                       <p>
                         {t("No feed data found for your selected date range.")}
                       </p>
-                    ) : !hasEnoughDataPoints(filteredFeedChartData, feedTimeRange) ? (
+                    ) : !hasEnoughDataPoints(filteredFeedChartData, feedTimeRange, "feed") ? (
                       <div className="alert alert-info">
-                        {feedTimeRange === "week" 
-                          ? t("Add more feeding logs to view an accurate weeklyanalysis. At least 3 days with logs are needed.")
-                          : t("Add more feeding logs to view an accurate monthly analysis. At least 7 days with logs are needed.")}
+                        {t(getDataAvailabilityMessage("feed", feedTimeRange, getLastLoggedDateInRange(feedData, feedStart, feedEnd)))}                          
                       </div>
                     ) : (
                       <div className={styles.chartContainer}>
@@ -968,7 +897,7 @@ export default function Analysis() {
                       min={minLoggedDate || ""}
                       max={maxLoggedDate || ""}
                       onInput={(e) => {
-                        if (maxLoggedDate && e.target.value > maxLoggedDate) {
+                        if (maxLoggedDate && parseISO(e.target.value) > parseISO(maxLoggedDate)) {
                           e.target.value = maxLoggedDate;
                           setStoolEnd(maxLoggedDate);
                         }
@@ -983,9 +912,9 @@ export default function Analysis() {
                       <p>
                         {t("No stool data found for your selected date range.")}
                       </p>
-                    ) : !hasEnoughDataPoints(filteredStoolData, "month") ? (
+                    ) : !hasEnoughDataPoints(filteredStoolData, "month", "stool") ? (
                       <div className="alert alert-info">
-                        {t("Add more stool logs to view an accurate analysis. At least 7 entries are needed.")}
+                        {t(getDataAvailabilityMessage("stool", "month", getLastLoggedDateInRange(stoolData, stoolStart, stoolEnd)))}
                       </div>
                     ) : (
                       <div style={{ width: "100%", height: 300 }}>
@@ -1035,12 +964,36 @@ export default function Analysis() {
                       min={minLoggedDate || ""}
                       max={maxLoggedDate || ""}
                       onInput={(e) => {
-                        if (maxLoggedDate && e.target.value > maxLoggedDate) {
+                        if (maxLoggedDate && parseISO(e.target.value) > parseISO(maxLoggedDate)) {
                           e.target.value = maxLoggedDate;
                           setGrowthEnd(maxLoggedDate);
                         }
                       }}
                     />
+                  </Col>
+                  <Col xs="auto" className="d-flex align-items-end">
+                    <div className={styles.buttonGroup}>
+                      <button
+                        onClick={() => handleGrowthTimeRangeChange("week")}
+                        className={`${styles.toggleButton} ${
+                          growthTimeRange === "week"
+                            ? styles.toggleButtonActive
+                            : ""
+                        }`}
+                      >
+                        {t("Week")}
+                      </button>
+                      <button
+                        onClick={() => handleGrowthTimeRangeChange("month")}
+                        className={`${styles.toggleButton} ${
+                          growthTimeRange === "month"
+                            ? styles.toggleButtonActive
+                            : ""
+                        }`}
+                      >
+                        {t("Month")}
+                      </button>
+                    </div>
                   </Col>
                 </Row>
                 <Row>
@@ -1054,9 +1007,9 @@ export default function Analysis() {
                               "No growth data found for your selected date range.",
                             )}
                           </p>
-                        ) : !hasEnoughDataPoints(growthChartData, "month") ? (
+                        ) : !hasEnoughDataPoints(growthChartData, growthTimeRange, "growth") ? (
                           <div className="alert alert-info">
-                            {t("Add more growth measurements to view an accurate analysis. At least 3 measurements are needed.")}
+                            {t(getDataAvailabilityMessage("growth", growthTimeRange, getLastLoggedDateInRange(growthData, growthStart, growthEnd)))}
                           </div>
                         ) : (
                           <div style={{ width: "100%", height: 300 }}>
@@ -1099,9 +1052,9 @@ export default function Analysis() {
                               "No growth data found for your selected date range.",
                             )}
                           </p>
-                        ) : !hasEnoughDataPoints(growthChartData, "month") ? (
+                        ) : !hasEnoughDataPoints(growthChartData, growthTimeRange, "growth") ? (
                           <div className="alert alert-info">
-                            {t("Add more growth measurements to view an accurate analysis. At least 3 measurements are needed.")}
+                            {t(getDataAvailabilityMessage("growth", growthTimeRange, getLastLoggedDateInRange(growthData, growthStart, growthEnd)))}
                           </div>
                         ) : (
                           <div style={{ width: "100%", height: 300 }}>
