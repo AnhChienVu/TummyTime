@@ -6,6 +6,20 @@ Tummy Time – A baby care app for parents, caregivers, and medical professional
 
 This guide will help you set up and run the project locally. Follow the steps below to install dependencies, configure the environment, and launch the application.
 
+## Table Of Contents
+
+1. [Overview](#overview)
+2. [Project Installation Guide](#project-installation-guide)
+   - [Prerequisites](#prerequisites)
+   - [1. Clone the Repository](#1-clone-the-repository)
+   - [2. Install Dependencies](#2-install-dependencies)
+   - [3. Environment Configuration](#3-environment-configuration)
+   - [4. Database Setup](#4-database-setup)
+   - [5. Run the Application](#5-run-the-application)
+   - [6. Access the Application](#6-access-the-application)
+   - [7. Public Server Instructions](#7-public-server-instructions)
+   - [8. Test Account Credentials](#8-test-account-credentials)
+
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
@@ -156,6 +170,12 @@ npm run dev
 
 **8. Test Account Credentials**
 
+As parent:
 · Username: vuanhchien003@gmail.com
+
+· Password: Password1@
+
+As Medical Professional:
+· Username: chienvu0209@gmail.com
 
 · Password: Password1@
