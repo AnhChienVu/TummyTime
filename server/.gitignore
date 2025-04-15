@@ -17,6 +17,7 @@ jest/
 
 # Ignore database files
 *.sql
+!tummyTime.sql
 
 # Ignore other files (system, etc)
 .DS_Store
